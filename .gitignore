@@ -80,3 +80,6 @@ ipch/
 
 # Ignore CppClean log
 *.CppClean.log
+
+# Ignore cursor rules
+.cursorrules
