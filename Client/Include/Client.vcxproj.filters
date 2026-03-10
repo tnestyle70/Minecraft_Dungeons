@@ -79,6 +79,18 @@
     <Filter Include="01. Scene\03. Editor\04. BatchBuffer">
       <UniqueIdentifier>{6789d78c-fa49-4291-b06c-567b4ec7a3a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="01. Scene\01. Stage\00. Camp">
+      <UniqueIdentifier>{924e6a32-3fee-415b-9f17-b4a46a7a92c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\01. Stage\01. SquidCoast">
+      <UniqueIdentifier>{b40df4af-3192-4183-bdd7-5e2cd900aba1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\01. Stage\02. RedStone">
+      <UniqueIdentifier>{fe519dfa-9b9b-49d0-8f8d-0945b869853b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\01. Stage\03. Obsidian">
+      <UniqueIdentifier>{aef9c0eb-bd5a-4923-8992-9f0174a7408d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -171,23 +183,23 @@
     <ClInclude Include="..\Header\CIronBar.h">
       <Filter>01. Scene\03. Editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CSquidCoast.h">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Header\CCamp.h">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\CSceneChanger.h">
       <Filter>01. Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CObsidian.h">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Header\CRedStone.h">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClInclude> 
     <ClInclude Include="..\Header\Carrow.h">
       <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCamp.h">
+      <Filter>01. Scene\01. Stage\00. Camp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CSquidCoast.h">
+      <Filter>01. Scene\01. Stage\01. SquidCoast</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStone.h">
+      <Filter>01. Scene\01. Stage\02. RedStone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CObsidian.h">
+      <Filter>01. Scene\01. Stage\03. Obsidian</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -281,23 +293,23 @@
     <ClCompile Include="..\Code\CMonsterAnim.cpp">
       <Filter>02. GameObject\01. Monster</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CSquidCoast.cpp">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Code\CCamp.cpp">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CSceneChanger.cpp">
       <Filter>01. Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CObsidian.cpp">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Code\CRedStone.cpp">
-      <Filter>01. Scene\01. Stage</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\Carrow.cpp">
       <Filter>02. GameObject\01. Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CCamp.cpp">
+      <Filter>01. Scene\01. Stage\00. Camp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CSquidCoast.cpp">
+      <Filter>01. Scene\01. Stage\01. SquidCoast</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStone.cpp">
+      <Filter>01. Scene\01. Stage\02. RedStone</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CObsidian.cpp">
+      <Filter>01. Scene\01. Stage\03. Obsidian</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
