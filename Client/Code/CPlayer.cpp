@@ -81,6 +81,9 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 {
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
+	if (m_bMoving)
+		m_fWalkTime += fTimeDelta * 8.f;
+
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
 	//AABB 업데이트
@@ -229,29 +232,61 @@ HRESULT CPlayer::Add_Component()
 
 void CPlayer::Key_Input(const _float& fTimeDelta)
 {
+	m_bMoving = false;
+
 	if (GetAsyncKeyState(VK_LEFT))
 		m_pTransformCom->Rotation(ROT_Y, 180.f * fTimeDelta);
 
 	if (GetAsyncKeyState(VK_RIGHT))
 		m_pTransformCom->Rotation(ROT_Y, -180.f * fTimeDelta);
 
-	_vec3	vUp;
-	m_pTransformCom->Get_Info(INFO_LOOK, &vUp);
+	_vec3 vLook;
+	m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
 
 	if (GetAsyncKeyState(VK_UP))
-		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vUp, &vUp), 10.f, fTimeDelta);
-
-	if (GetAsyncKeyState(VK_DOWN))
-		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vUp, &vUp), -10.f, fTimeDelta);
-
-	if (GetAsyncKeyState(VK_LBUTTON))
 	{
-		_vec3	vPickPos = Picking_OnTerrain();
-
-		_vec3	vDir = vPickPos - m_pTransformCom->m_vInfo[INFO_POS];
-
-		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vDir, &vDir), 10.f, fTimeDelta);
+		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vLook, &vLook), 10.f, fTimeDelta);
+		m_bMoving = true;
 	}
+	if (GetAsyncKeyState(VK_DOWN))
+	{
+		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vLook, &vLook), -10.f, fTimeDelta);
+		m_bMoving = true;
+	}
+
+
+	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+	{
+		m_vTargetPos = Picking_OnBlock();
+		m_vTargetPos.y = 0.f;  // Y는 중력으로 처리
+		m_bHasTarget = true;
+	}
+
+	// 목적지를 향해 이동
+	if (m_bHasTarget)
+	{
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+		_vec3 vDir = m_vTargetPos - vPos;
+		vDir.y = 0.f;
+
+		float fDist = D3DXVec3Length(&vDir);
+
+		if (fDist > 0.3f)
+		{
+			D3DXVec3Normalize(&vDir, &vDir);
+			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+			m_pTransformCom->Move_Pos(&vDir, 5.f, fTimeDelta);
+			m_bMoving = true;
+		}
+		else
+		{
+			m_bHasTarget = false;
+			m_bMoving = false;
+		}
+	}
+
 	//플레이어 점프 적용
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_SPACE))
 	{
@@ -287,22 +322,125 @@ void CPlayer::Set_OnTerrain()
 	m_pTransformCom->Set_Pos(vPos.x, fY + 1.f, vPos.z);
 }
 
-_vec3 CPlayer::Picking_OnTerrain()
+
+
+
+_vec3 CPlayer::Picking_OnBlock()
 {
-	Engine::CTerrainTex* pTerrainVtxCom = dynamic_cast<Engine::CTerrainTex*>
-		(CManagement::GetInstance()->Get_Component(ID_STATIC, L"GameLogic_Layer", L"Terrain", L"Com_Buffer"));
+	POINT ptMouse;
+	GetCursorPos(&ptMouse);
+	ScreenToClient(g_hWnd, &ptMouse);
 
-	if (nullptr == pTerrainVtxCom)
-		return _vec3();
+	D3DVIEWPORT9 vp;
+	m_pGraphicDev->GetViewport(&vp);
 
-	Engine::CTransform* pTerrainTransformCom = dynamic_cast<Engine::CTransform*>
-		(CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Terrain", L"Com_Transform"));
+	_vec3 vMousePos;
+	vMousePos.x = ptMouse.x / (vp.Width * 0.5f) - 1.f;
+	vMousePos.y = ptMouse.y / -(vp.Height * 0.5f) + 1.f;
+	vMousePos.z = 0.f;
 
-	if (nullptr == pTerrainTransformCom)
-		return _vec3();
+	_matrix matInvProj;
+	m_pGraphicDev->GetTransform(D3DTS_PROJECTION, &matInvProj);
+	D3DXMatrixInverse(&matInvProj, 0, &matInvProj);
+	D3DXVec3TransformCoord(&vMousePos, &vMousePos, &matInvProj);
 
-	return m_pCalculatorCom->Picking_OnTerrain(g_hWnd, pTerrainVtxCom, pTerrainTransformCom);
+	_matrix matInvView;
+	m_pGraphicDev->GetTransform(D3DTS_VIEW, &matInvView);
+	D3DXMatrixInverse(&matInvView, 0, &matInvView);
+
+	_vec3 vRayPos = { 0.f, 0.f, 0.f };
+	_vec3 vRayDir = vMousePos - vRayPos;
+	D3DXVec3TransformCoord(&vRayPos, &vRayPos, &matInvView);
+	D3DXVec3TransformNormal(&vRayDir, &vRayDir, &matInvView);
+	D3DXVec3Normalize(&vRayDir, &vRayDir);
+
+	// 가장 가까운 블럭 AABB와 교차 검사
+	float fMinT = FLT_MAX;
+	_vec3 vHit = _vec3(0.f, 0.f, 0.f);
+	bool bHit = false;
+
+	for (auto& pair : CBlockMgr::GetInstance()->Get_Blocks())
+	{
+		AABB tAABB = CBlockMgr::GetInstance()->Get_BlockAABB(pair.first);
+
+		// 레이 vs AABB (slab method)
+		float tMin = 0.f, tMax = FLT_MAX;
+
+		float bounds[2][3] = {
+			{ tAABB.vMin.x, tAABB.vMin.y, tAABB.vMin.z },
+			{ tAABB.vMax.x, tAABB.vMax.y, tAABB.vMax.z }
+		};
+		float rayOrigin[3] = { vRayPos.x, vRayPos.y, vRayPos.z };
+		float rayDir[3] = { vRayDir.x, vRayDir.y, vRayDir.z };
+
+		bool bMiss = false;
+		for (int i = 0; i < 3; ++i)
+		{
+			if (fabsf(rayDir[i]) < 1e-6f)
+			{
+				if (rayOrigin[i] < bounds[0][i] || rayOrigin[i] > bounds[1][i])
+				{
+					bMiss = true; break;
+				}
+			}
+			else
+			{
+				float t1 = (bounds[0][i] - rayOrigin[i]) / rayDir[i];
+				float t2 = (bounds[1][i] - rayOrigin[i]) / rayDir[i];
+				if (t1 > t2) swap(t1, t2);
+				tMin = max(tMin, t1);
+				tMax = min(tMax, t2);
+				if (tMin > tMax) { bMiss = true; break; }
+			}
+		}
+
+		if (!bMiss && tMin < fMinT && tMin > 0.f)
+		{
+			fMinT = tMin;
+			vHit = vRayPos + vRayDir * tMin;
+			vHit.y = tAABB.vMax.y;  // 블럭 윗면으로 스냅
+			bHit = true;
+		}
+	}
+
+	// 블럭 못 찾으면 현재 위치 반환
+	if (!bHit)
+	{
+		if (fabsf(vRayDir.y) > 0.0001f)
+		{
+			float t = -vRayPos.y / vRayDir.y;
+			if (t > 0.f)
+			{
+				vHit.x = vRayPos.x + vRayDir.x * t;
+				vHit.y = 0.f;
+				vHit.z = vRayPos.z + vRayDir.z * t;
+				return vHit;
+			}
+		}
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		return vPos;
+	}
+
+	return vHit;
 }
+
+//_vec3 CPlayer::Picking_OnTerrain()
+//{
+//	Engine::CTerrainTex* pTerrainVtxCom = dynamic_cast<Engine::CTerrainTex*>
+//		(CManagement::GetInstance()->Get_Component(ID_STATIC, L"GameLogic_Layer", L"Terrain", L"Com_Buffer"));
+//
+//	if (nullptr == pTerrainVtxCom)
+//		return _vec3();
+//
+//	Engine::CTransform* pTerrainTransformCom = dynamic_cast<Engine::CTransform*>
+//		(CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Terrain", L"Com_Transform"));
+//
+//	if (nullptr == pTerrainTransformCom)
+//		return _vec3();
+//
+//	return m_pCalculatorCom->Picking_OnTerrain(g_hWnd, pTerrainVtxCom, pTerrainTransformCom);
+//}
 
 void CPlayer::Render_Part(BODYPART ePart, _float fAngle)
 {
