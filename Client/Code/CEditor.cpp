@@ -27,6 +27,7 @@ HRESULT CEditor::Ready_Scene()
 
 	//block placer 연결
 	m_pBlockPlacer = new CBlockPlacer(m_pGraphicDev);
+
 	if (!m_pBlockPlacer)
 	{
 		MSG_BOX("block placer create failed");
@@ -182,7 +183,8 @@ void CEditor::Render_Inspector()
 		{"Sand", BLOCK_SAND},
 		{"Bedrock", BLOCK_BEDROCK},
 		{"Obsidian", BLOCK_OBSIDIAN},
-		{"StoneBrick", BLOCK_STONEBRICK}
+		{"StoneBrick", BLOCK_STONEBRICK},
+		{"IronBar", BLOCK_IRONBAR}
 	};
 
 	for (const auto& entry : palette)

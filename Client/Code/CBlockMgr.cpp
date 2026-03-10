@@ -48,6 +48,7 @@ HRESULT CBlockMgr::Ready_Textures()
 		{BLOCK_BEDROCK,  L"Proto_BedrockTexture"},
 		{BLOCK_OBSIDIAN,  L"Proto_ObsidianTexture"},
 		{BLOCK_STONEBRICK,  L"Proto_StoneBrickTexture"},
+		{BLOCK_IRONBAR, L"Proto_RockTexture"}
 	};
 
 	for (auto& pair : tTypeToProto)

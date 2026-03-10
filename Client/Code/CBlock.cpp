@@ -23,8 +23,22 @@ HRESULT CBlock::Ready_GameObject(const _vec3& vPos, eBlockType eType)
 	if (FAILED(Add_Component()))
 		return E_FAIL;
 
-	m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-	m_pTransformCom->m_vScale = { 1.f, 1.f, 1.f };
+	switch (eType)
+	{
+		case BLOCK_IRONBAR:
+		{
+			m_pTransformCom->m_vScale = { 0.15f, 5.f, 0.15f };
+			m_pTransformCom->Set_Pos(vPos.x, vPos.y + 2.f, vPos.z);
+			break;
+		}
+		default:
+		{
+			m_pTransformCom->m_vScale = { 1.f, 1.f, 1.f };
+			m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+			break;
+		}
+	}
+	
 	//블럭은 움직이지 않으니 생성 시 한 번만 AABB 세팅
 	m_pColliderCom->Update_AABB(vPos);
 
@@ -99,10 +113,12 @@ HRESULT CBlock::Add_Component()
 	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
 
 	//Collider
-
+	_vec3 vSize, vOffset;
+	vSize = GetColliderSize(m_eType);
+	vOffset = GetColliderOffset(m_eType);
 	pComponent = m_pColliderCom = CCollider::Create(m_pGraphicDev,
-		_vec3(1.f, 1.f, 1.f),
-		_vec3(0.f, 0.f, 0.f));
+		vSize,
+		vOffset);
 	if (!pComponent)
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", pComponent });
@@ -135,11 +151,47 @@ const _tchar* CBlock::GetTextureName()
 		return L"Proto_ObsidianTexture";
 	case BLOCK_STONEBRICK:
 		return L"Proto_StoneBrickTexture";
+	case BLOCK_IRONBAR:
+		return L"Proto_StoneBrickTexture";
 	default:
 		break;
 	}
 
 	return L"Proto_GrassTexture";
+}
+
+_vec3 CBlock::GetColliderSize(eBlockType eType)
+{
+	_vec3 vSize;
+
+	switch (eType)
+	{
+	case BLOCK_IRONBAR:
+		vSize = { 0.15f, 5.f, 0.15f };
+		break;
+	default:
+		vSize = { 1.f, 1.f, 1.f };
+		break;
+	}
+
+	return vSize;
+}
+
+_vec3 CBlock::GetColliderOffset(eBlockType eType)
+{
+	_vec3 vOffset;
+
+	switch (eType)
+	{
+	case BLOCK_IRONBAR:
+		vOffset = { 0.f, 2.f, 0.f };
+		break;
+	default:
+		vOffset = { 0.f, 0.f, 0.f };
+		break;
+	}
+
+	return vOffset;
 }
 
 CBlock* CBlock::Create(LPDIRECT3DDEVICE9 pGraphicDev,

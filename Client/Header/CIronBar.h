@@ -3,7 +3,7 @@
 #include "CProtoMgr.h"
 #include "CBlockPlacer.h"
 
-class CIronBar : CGameObject
+class CIronBar : public CGameObject
 {
 private:
 	explicit CIronBar(LPDIRECT3DDEVICE9 pGraphicDev);

@@ -1,12 +1,31 @@
 #pragma once
 #include "CBlockPlacer.h"
 #include "CBlock.h"
+#include "CIronBar.h"
 #include "CBatchBuffer.h"
 
 struct BlockData
 {
 	int x, y, z;
 	int eType;
+};
+
+struct SpawnData
+{
+	int x, y, z;
+	int iMonsterType;
+};
+
+struct TriggerData
+{
+	int x, y, z;
+	int w, h, d;
+};
+
+struct IronBarsData
+{
+	int x, y, z;
+	int iTriggerID;
 };
 
 class CBlockMgr : public CBase

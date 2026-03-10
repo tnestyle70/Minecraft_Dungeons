@@ -22,6 +22,8 @@ private:
 	HRESULT			Add_Component();
 	HRESULT			Set_Material();
 	const _tchar* GetTextureName();
+	_vec3 GetColliderSize(eBlockType eType);
+	_vec3 GetColliderOffset(eBlockType eType);
 private:
 	Engine::CCubeTex* m_pBufferCom = nullptr;
 	Engine::CTransform* m_pTransformCom = nullptr;

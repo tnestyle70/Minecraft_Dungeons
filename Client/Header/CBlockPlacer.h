@@ -27,6 +27,7 @@ enum eBlockType
 	BLOCK_BEDROCK,
 	BLOCK_OBSIDIAN,
 	BLOCK_STONEBRICK,
+	BLOCK_IRONBAR,
 	BLOCK_END
 };
 
@@ -43,7 +44,8 @@ private:
 	//Ray와 Y = 0 평면의 교차
 	bool RayOnGround(_vec3* pRayPos, _vec3* pRayDir, _vec3* pHitOut);
 	//그리드 스냅
-	_vec3 SnapToGrid(_vec3* pHit);
+	_vec3 SnapToGrid(_vec3* pHit, eBlockType eType);
+
 	void Undo();
 private: 
 	LPDIRECT3DDEVICE9 m_pGraphicDev;

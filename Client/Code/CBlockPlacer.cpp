@@ -66,7 +66,7 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 			_vec3 vHit;
 			if (RayOnGround(&vRayPos, &vRayDir, &vHit))
 			{
-				_vec3 vPlacePos = SnapToGrid(&vHit);
+				_vec3 vPlacePos = SnapToGrid(&vHit, eType);
 				CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
 				m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
 			}
@@ -186,12 +186,19 @@ bool CBlockPlacer::RayOnGround(_vec3* pRayPos, _vec3* pRayDir, _vec3* pHitOut)
 	return true;
 }
 
-_vec3 CBlockPlacer::SnapToGrid(_vec3* pHit)
+_vec3 CBlockPlacer::SnapToGrid(_vec3* pHit, eBlockType eType)
 {
+	float fBlockSize = m_fBlockSize;
+	//창살일 경우 사이즈 0.5로 줄이기
+	if (eType == eBlockType::BLOCK_IRONBAR)
+	{
+		fBlockSize = 0.5f;
+	}
+
 	//ceilf로 블럭 크기 단위에 맞춰서 스냅 시키기
-	_vec3 vSnapPos = _vec3(ceilf(pHit->x / m_fBlockSize) * m_fBlockSize,
-		ceilf(pHit->y / m_fBlockSize) * m_fBlockSize, 
-		ceilf(pHit->z / m_fBlockSize) * m_fBlockSize);
+	_vec3 vSnapPos = _vec3(ceilf(pHit->x / fBlockSize) * fBlockSize,
+		ceilf(pHit->y / fBlockSize) * fBlockSize,
+		ceilf(pHit->z / fBlockSize) * fBlockSize);
 
 	return vSnapPos;
 }

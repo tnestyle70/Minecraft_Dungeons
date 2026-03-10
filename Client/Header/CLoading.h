@@ -37,7 +37,6 @@ private:
 	CRITICAL_SECTION	m_Crt;					// 동기화 기법 사용 객체
 	_bool				m_bFinish;
 
-
 public:
 	static CLoading* Create(LPDIRECT3DDEVICE9 pGraphicDev, LOADINGID eID);
 
