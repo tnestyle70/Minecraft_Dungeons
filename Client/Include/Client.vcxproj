@@ -151,6 +151,7 @@
     <ClInclude Include="..\Header\CBlockMgr.h" />
     <ClInclude Include="..\Header\CBlockPlacer.h" />
     <ClInclude Include="..\Header\CBodyBase.h" />
+    <ClInclude Include="..\Header\CCamp.h" />
     <ClInclude Include="..\Header\CDynamicCamera.h" />
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
@@ -163,11 +164,15 @@
     <ClInclude Include="..\Header\CMonsterBody.h" />
     <ClInclude Include="..\Header\CMonsterUV.h" />
     <ClInclude Include="..\Header\CNavNode.h" />
+    <ClInclude Include="..\Header\CObsidian.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
     <ClInclude Include="..\Header\CPlayer.h" />
     <ClInclude Include="..\Header\CPlayerBody.h" />
     <ClInclude Include="..\Header\CPlayerUV.h" />
+    <ClInclude Include="..\Header\CRedStone.h" />
+    <ClInclude Include="..\Header\CSceneChanger.h" />
     <ClInclude Include="..\Header\CSkyBox.h" />
+    <ClInclude Include="..\Header\CSquidCoast.h" />
     <ClInclude Include="..\Header\CStage.h" />
     <ClInclude Include="..\Header\CTerrain.h" />
     <ClInclude Include="Client.h" />
@@ -184,6 +189,7 @@
     <ClCompile Include="..\Code\CBlockMgr.cpp" />
     <ClCompile Include="..\Code\CBlockPlacer.cpp" />
     <ClCompile Include="..\Code\CBodyBase.cpp" />
+    <ClCompile Include="..\Code\CCamp.cpp" />
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />
@@ -194,10 +200,14 @@
     <ClCompile Include="..\Code\CMonster.cpp" />
     <ClCompile Include="..\Code\CMonsterAnim.cpp" />
     <ClCompile Include="..\Code\CMonsterBody.cpp" />
+    <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />
     <ClCompile Include="..\Code\CPlayer.cpp" />
     <ClCompile Include="..\Code\CPlayerBody.cpp" />
+    <ClCompile Include="..\Code\CRedStone.cpp" />
+    <ClCompile Include="..\Code\CSceneChanger.cpp" />
     <ClCompile Include="..\Code\CSkyBox.cpp" />
+    <ClCompile Include="..\Code\CSquidCoast.cpp" />
     <ClCompile Include="..\Code\CStage.cpp" />
     <ClCompile Include="..\Code\CTerrain.cpp" />
     <ClCompile Include="..\Code\imgui.cpp">

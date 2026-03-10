@@ -15,6 +15,10 @@ CBlockMgr::~CBlockMgr()
 
 HRESULT CBlockMgr::Ready_BlockMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 {
+	//이미 graphicDev가 설정되어있을 경우 return
+	if (m_pGraphicDev)
+		return S_OK;
+
 	m_pGraphicDev = pGraphicDev;
 	m_pGraphicDev->AddRef();
 

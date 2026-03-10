@@ -28,6 +28,7 @@ enum eBlockType
 	BLOCK_OBSIDIAN,
 	BLOCK_STONEBRICK,
 	BLOCK_IRONBAR,
+	BLOCK_TRIGGERBOX,
 	BLOCK_END
 };
 
@@ -38,7 +39,7 @@ public:
 	virtual ~CBlockPlacer();
 public:
 	_int Update_Placer(eBlockType eType);
-private:
+public:
 	//마우스에서 발사하는 Ray
 	void Compute_Ray(_vec3* pRayPos, _vec3* pRayDir);
 	//Ray와 Y = 0 평면의 교차

@@ -10,24 +10,6 @@ struct BlockData
 	int eType;
 };
 
-struct SpawnData
-{
-	int x, y, z;
-	int iMonsterType;
-};
-
-struct TriggerData
-{
-	int x, y, z;
-	int w, h, d;
-};
-
-struct IronBarsData
-{
-	int x, y, z;
-	int iTriggerID;
-};
-
 class CBlockMgr : public CBase
 {
 	DECLARE_SINGLETON(CBlockMgr)

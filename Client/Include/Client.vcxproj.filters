@@ -171,6 +171,21 @@
     <ClInclude Include="..\Header\CIronBar.h">
       <Filter>01. Scene\03. Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CSquidCoast.h">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCamp.h">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CSceneChanger.h">
+      <Filter>01. Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CObsidian.h">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStone.h">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude> 
     <ClInclude Include="..\Header\Carrow.h">
       <Filter>02. GameObject\01. Monster</Filter>
     </ClInclude>
@@ -265,6 +280,21 @@
     </ClCompile>
     <ClCompile Include="..\Code\CMonsterAnim.cpp">
       <Filter>02. GameObject\01. Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CSquidCoast.cpp">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CCamp.cpp">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CSceneChanger.cpp">
+      <Filter>01. Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CObsidian.cpp">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStone.cpp">
+      <Filter>01. Scene\01. Stage</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\Carrow.cpp">
       <Filter>02. GameObject\01. Monster</Filter>

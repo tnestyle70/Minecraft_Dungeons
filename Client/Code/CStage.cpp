@@ -12,6 +12,7 @@
 #include "CBlock.h"
 #include "CBlockMgr.h" 
 #include "CMonsterAnim.h"
+#include "CSceneChanger.h"
 
 CStage::CStage(LPDIRECT3DDEVICE9 pGraphicDev)
     : Engine::CScene(pGraphicDev)
@@ -35,8 +36,6 @@ HRESULT CStage::Ready_Scene()
 
     if (FAILED(Ready_UI_Layer(L"UI_Layer")))
         return E_FAIL;
-
-    CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage.dat");
     
     return S_OK;
 }
@@ -44,6 +43,15 @@ HRESULT CStage::Ready_Scene()
 _int CStage::Update_Scene(const _float& fTimeDelta)
 {
     _int iExit = Engine::CScene::Update_Scene(fTimeDelta);
+
+    if (GetAsyncKeyState('7'))
+    {
+        if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_LOGO)))
+        {
+            MSG_BOX("SquidCoast Create Failed");
+            return -1;
+        }
+    }
 
     CBlockMgr::GetInstance()->Update(fTimeDelta);
 
@@ -94,6 +102,15 @@ HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
         return E_FAIL;
 
     m_mapLayer.insert({ pLayerTag, pLayer });
+
+    //ready blockmgr 
+    if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
+    {
+        MSG_BOX("block mgr create failed");
+        return E_FAIL;
+    }
+
+    CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
 
     return S_OK;
 }
@@ -157,7 +174,7 @@ HRESULT CStage::Ready_UI_Layer(const _tchar* pLayerTag)
 
     CGameObject* pGameObject = nullptr;
 
-    //effect ???
+    //effect
     for (_uint i = 0; i < 50; ++i)
     {
         pGameObject = CEffect::Create(m_pGraphicDev);
@@ -199,7 +216,7 @@ CStage* CStage::Create(LPDIRECT3DDEVICE9 pGraphicDev)
     if (FAILED(pLogo->Ready_Scene()))
     {
         Safe_Release(pLogo);
-        MSG_BOX("Logo Create Failed");
+        MSG_BOX("Stage Create Failed");
         return nullptr;
     }
 

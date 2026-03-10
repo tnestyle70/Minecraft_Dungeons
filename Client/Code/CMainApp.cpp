@@ -118,7 +118,7 @@ HRESULT CMainApp::Ready_DefaultSetting(LPDIRECT3DDEVICE9* ppGraphicDev)
     if (FAILED(CDInputMgr::GetInstance()->Ready_InputDev(g_hInst, g_hWnd)))
         return E_FAIL;
 
-    //SoundMg
+    //SoundMgr
     CSoundMgr::GetInstance()->Initialize();
 
     //CSoundMgr::GetInstance()->PlayBGM(L"BGM/Title.wav", 2.f);
@@ -167,9 +167,7 @@ void CMainApp::Free()
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    //?Œë” ê·¸ë£¹ ë¨¼ì? ë¹„ìš°ê¸?
     CRenderer::GetInstance()->DestroyInstance();
-    //???´ì œ
     CManagement::GetInstance()->DestroyInstance();
 
     Safe_Release(m_pDeviceClass);
@@ -182,7 +180,7 @@ void CMainApp::Free()
     CProtoMgr::GetInstance()->DestroyInstance();
     CFrameMgr::GetInstance()->DestroyInstance();
     CTimerMgr::GetInstance()->DestroyInstance();
-    //Renderer ?´í›„???¸ì¶œ
+    //Renderer Setting After
     CBlockMgr::GetInstance()->DestroyInstance();
     CGraphicDev::GetInstance()->DestroyInstance();
 }

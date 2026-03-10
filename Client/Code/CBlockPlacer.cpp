@@ -32,13 +32,20 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 	}
 
 	m_bZBtnPrev = bZBtn;
+	
+	//If Holding Q && E skip return 
+	bool bQBtn = (GetAsyncKeyState('Q') & 0x8000) != 0;
+	bool bEBtn = (GetAsyncKeyState('E') & 0x8000) != 0;
 
-	// 클릭 없으면 레이 계산 안 함
-	if ((!bLBtn || m_bLBtnPrev) && (!bRBtn || m_bRBtnPrev))
+	if (!bQBtn && !bEBtn)
 	{
-		m_bLBtnPrev = bLBtn;
-		m_bRBtnPrev = bRBtn;
-		return 0;
+		// 클릭 없으면 레이 계산 안 함
+		if ((!bLBtn || m_bLBtnPrev) && (!bRBtn || m_bRBtnPrev))
+		{
+			m_bLBtnPrev = bLBtn;
+			m_bRBtnPrev = bRBtn;
+			return 0;
+		}
 	}
 
 	_vec3 vRayPos, vRayDir;
@@ -49,6 +56,38 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 	float fT = 0.f;
 	bool bBlockHit = CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos,
 		vRayDir, &tHitPos, &fT);
+
+	//No Delay Picking
+	if (GetAsyncKeyState('Q') & 0x8000)
+	{
+		if (bBlockHit)
+		{
+			//히트된 블럭 위에 배치
+			_vec3 vPlacePos = { (float)tHitPos.x, (float)tHitPos.y + 1.f,
+			(float)tHitPos.z };
+			CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
+			//실제 삽입된 PlacePos를 stack에 저장
+			m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
+		}
+		else //바닥일 경우 그냥 배치
+		{
+			_vec3 vHit;
+			if (RayOnGround(&vRayPos, &vRayDir, &vHit))
+			{
+				_vec3 vPlacePos = SnapToGrid(&vHit, eType);
+				CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
+				m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
+			}
+		}
+	}
+
+	if (GetAsyncKeyState('E') & 0x8000)
+	{
+		if (bBlockHit)
+		{
+			CBlockMgr::GetInstance()->RemoveBlockByPos(tHitPos);
+		}
+	}
 	
 	if (bLBtn && !m_bLBtnPrev)
 	{

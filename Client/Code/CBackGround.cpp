@@ -16,13 +16,12 @@ CBackGround::~CBackGround()
 {
 }
 
-HRESULT CBackGround::Ready_GameObject()
+HRESULT CBackGround::Ready_GameObject(const _tchar* pProtoPath)
 {
-	if (FAILED(Add_Component()))
+	if (FAILED(Add_Component(pProtoPath)))
 		return E_FAIL;
 
 	//m_pTransformCom->m_vScale = { 2.f, 1.f, 1.f };
-
 
 	return S_OK;
 }
@@ -49,10 +48,11 @@ void CBackGround::Render_GameObject()
 	m_pTextureCom->Set_Texture(0);
 
 	m_pBufferCom->Render_Buffer();
+
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
 
-HRESULT CBackGround::Add_Component()
+HRESULT CBackGround::Add_Component(const _tchar* pPath)
 {
 	Engine::CComponent* pComponent = nullptr;
 
@@ -66,7 +66,7 @@ HRESULT CBackGround::Add_Component()
 
 	// Texture
 	pComponent = m_pTextureCom = dynamic_cast<CTexture*>
-		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_LogoTexture"));
+		(CProtoMgr::GetInstance()->Clone_Prototype(pPath));
 
 	if (nullptr == pComponent)
 		return E_FAIL;
@@ -76,11 +76,12 @@ HRESULT CBackGround::Add_Component()
 	return S_OK;
 }
 
-CBackGround* CBackGround::Create(LPDIRECT3DDEVICE9 pGraphicDev)
+CBackGround* CBackGround::Create(LPDIRECT3DDEVICE9 pGraphicDev,
+	const _tchar* pProtoPath)
 {
 	CBackGround* pBackGround = new CBackGround(pGraphicDev);
 
-	if (FAILED(pBackGround->Ready_GameObject()))
+	if (FAILED(pBackGround->Ready_GameObject(pProtoPath)))
 	{
 		Safe_Release(pBackGround);
 		MSG_BOX("pBackGround Create Failed");
