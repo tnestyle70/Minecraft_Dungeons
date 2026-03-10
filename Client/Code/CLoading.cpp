@@ -134,6 +134,48 @@ _uint CLoading::Loading_Stage()
         Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
         return E_FAIL;
 #pragma endregion
+#pragma region ½ºÄÌ·¹Åæ
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Head",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::HEAD))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Body",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::BODY))))
+        return E_FAIL; 
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RArm",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_ARM))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LArm",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_ARM))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_LEG))))
+        return E_FAIL; 
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandbyTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_standby.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPullingTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_pulling_0.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
+        return E_FAIL;
+#pragma endregion
+
 
     lstrcpy(m_szLoading, L"Etc Loading.....................................");
 

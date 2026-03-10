@@ -171,6 +171,9 @@
     <ClInclude Include="..\Header\CIronBar.h">
       <Filter>01. Scene\03. Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\Carrow.h">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -261,6 +264,9 @@
       <Filter>01. Scene\03. Editor</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CMonsterAnim.cpp">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\Carrow.cpp">
       <Filter>02. GameObject\01. Monster</Filter>
     </ClCompile>
   </ItemGroup>

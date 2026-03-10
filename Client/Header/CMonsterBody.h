@@ -21,7 +21,9 @@ class CMonsterBody : public CBodyBase
 public:
     explicit CMonsterBody(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType);
     virtual ~CMonsterBody();
-
+    _matrix Get_PartWorld(EBodyPart iPartIndex, const _matrix* pParentWorld); 
+    void Render_PartsWithOffset(const _matrix* pParentWorld,
+        Engine::CTexture* pTexture, const _vec3* pOffsets);
 public:
     HRESULT Ready_Body() override;
 

@@ -11,6 +11,62 @@ CMonsterBody::~CMonsterBody()
 {
 }
 
+_matrix CMonsterBody::Get_PartWorld(EBodyPart iPartIndex, const _matrix* pParentWorld)
+{
+    if (!m_pAnim)
+    {
+        _matrix matIdentity;
+        D3DXMatrixIdentity(&matIdentity);
+        return matIdentity;
+    }
+
+    _matrix matSway;
+    D3DXMatrixTranslation(&matSway, 0.f, m_pAnim->Get_Pose().fBodySwayY, 0.f);
+    _matrix matWorld = matSway * (*pParentWorld);
+
+    _vec3 vRot = m_pAnim->Get_Pose().GetRot(iPartIndex);
+    return Calc_PartMatrix(iPartIndex, matWorld, vRot.x, vRot.y, vRot.z);
+}
+
+void CMonsterBody::Render_PartsWithOffset(const _matrix* pParentWorld,
+    Engine::CTexture* pTexture, const _vec3* pOffsets)
+{
+    if (!pParentWorld || !pTexture) return;
+
+    m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, FALSE);
+    m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    pTexture->Set_Texture(0);
+
+    const BodyPose& pose = m_pAnim->Get_Pose();
+
+    _matrix matSway;
+    D3DXMatrixTranslation(&matSway, 0.f, pose.fBodySwayY, 0.f);
+    _matrix matWorld = matSway * (*pParentWorld);
+
+    for (int i = 0; i < (int)m_vecParts.size(); ++i)
+    {
+        if (!m_vecParts[i].pBuffer) continue;
+
+        _vec3 vRot = pose.GetRot(i);
+
+        
+        _matrix matPartWorld = Calc_PartMatrix(i, matWorld, vRot.x, vRot.y, vRot.z);
+
+       
+        if (pOffsets)
+        {
+            matPartWorld._41 += pOffsets[i].x;
+            matPartWorld._42 += pOffsets[i].y;
+            matPartWorld._43 += pOffsets[i].z;
+        }
+
+        m_pGraphicDev->SetTransform(D3DTS_WORLD, &matPartWorld);
+        m_vecParts[i].pBuffer->Render_Buffer();
+    }
+
+    m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+}
+
 HRESULT CMonsterBody::Ready_Body()
 {
     // 발바닥(Y=0) 기준 위치 계산 
@@ -41,8 +97,14 @@ HRESULT CMonsterBody::Ready_Body()
         pRLeg = L"Proto_Zombie_RLeg";
         pLLeg = L"Proto_Zombie_LLeg";
         break;
-
-
+    case EMonsterType::SKELETON:
+        pHead = L"Proto_Skeleton_Head";
+        pBody = L"Proto_Skeleton_Body";
+        pRArm = L"Proto_Skeleton_RArm";
+        pLArm = L"Proto_Skeleton_LArm";
+        pRLeg = L"Proto_Skeleton_RLeg";
+        pLLeg = L"Proto_Skeleton_LLeg";
+        break;
 
     default:
         return E_FAIL;
@@ -73,8 +135,8 @@ HRESULT CMonsterBody::Ready_Body()
         { pLLeg, { -fLegX, fLegCenterY, 0.f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
         return E_FAIL;
 
-    // 타입에 맞는 애니메이션 연결
-    m_pAnim = new CMonsterAnim();
+    
+    m_pAnim = new CMonsterAnim(m_eType);
 
     return S_OK;
 }
