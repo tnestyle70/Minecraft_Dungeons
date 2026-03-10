@@ -21,6 +21,7 @@ public:
 	void Update(const _float& fTimeDelta);
 	void Render();
 	
+	const map<BlockPos, CBlock*>& Get_Blocks() { return m_mapBlocks; }
 	void AddBlock(const _vec3& vPos, eBlockType eType);
 	void RemoveBlock(const _vec3& vPos);
 	void RemoveBlockByPos(const BlockPos& pos);

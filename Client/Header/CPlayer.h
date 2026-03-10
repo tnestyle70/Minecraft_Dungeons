@@ -31,7 +31,8 @@ private:
 	HRESULT			Add_Component();
 	void			Key_Input(const _float& fTimeDelta);
 	void			Set_OnTerrain();
-	_vec3			Picking_OnTerrain();
+	//_vec3			Picking_OnTerrain();
+	_vec3			Picking_OnBlock();
 	void			Render_Part(BODYPART ePart, _float fAngle = 0.f);
 
 private:
@@ -46,6 +47,9 @@ private:
 
 	_float				m_fWalkTime;	// 걷기 누적 시간 (사인파 입력)
 	_bool				m_bMoving;		// 이동 중 여부
+
+	_vec3 m_vTargetPos;
+	bool  m_bHasTarget = false;
 
 	static constexpr float m_fGravity = -20.f;
 	static constexpr float m_fJumpPower = 8.f;
@@ -63,6 +67,3 @@ private:
 	virtual void Free();
 
 };
-
-// 1. 스카이박스 출력 하기
-// 2. 뷰 스페이스 변환 행렬, 원근 투영 행렬을 직접 구현하여 적용해라
