@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CMonsterAnim.h"
 
-CMonsterAnim::CMonsterAnim()
+CMonsterAnim::CMonsterAnim(EMonsterType eType) : m_eType(eType)
 {
     m_tPose.Initialize(6);
 }
@@ -66,23 +66,51 @@ void CMonsterAnim::Pose_Walk()
     m_tPose.SetRot(5, fLegSwing, 0.f, 0.f); // 왼다리
 }
 
-// 2. ATTACK: 양팔 내려찍기 (0.3초 내려 + 0.3초 복귀)
+
 void CMonsterAnim::Pose_Attack()
 {
-    float fArmRot = (m_fStateTime < 0.3f)
-        ? D3DXToRadian(-180.f * (m_fStateTime / 0.3f)) : D3DXToRadian(-90.f * (1.f - (m_fStateTime - 0.3f) / 0.3f));
+    if (m_eType == EMonsterType::ZOMBIE)
+    {
+       
+        float fArmRot = (m_fStateTime < 0.3f)
+            ? D3DXToRadian(-180.f * (m_fStateTime / 0.3f))
+            : D3DXToRadian(-90.f * (1.f - (m_fStateTime - 0.3f) / 0.3f));
 
-    m_tPose.SetRot(2, fArmRot, 0.f, 0.f);
-    m_tPose.SetRot(3, fArmRot, 0.f, 0.f);
+        m_tPose.SetRot(2, fArmRot, 0.f, 0.f);
+        m_tPose.SetRot(3, fArmRot, 0.f, 0.f);
+    }
+    else if (m_eType == EMonsterType::SKELETON)
+    {
+        // 오른팔 앞으로 고정
+        m_tPose.SetRot(2, D3DXToRadian(-90.f), 0.f, 0.f);
 
-    if (m_fStateTime >= 0.6f)
+        if (m_fStateTime < 0.3f)
+        {
+            // 0 ~ 0.3초: 왼팔 당기기
+            float fPullRot = D3DXToRadian(-90.f * (m_fStateTime / 0.3f));
+            m_tPose.SetRot(3, fPullRot, 0.f, 0.f);
+        }
+        else if (m_fStateTime < 0.8f)
+        {
+            // 0.3 ~ 0.8초: 당긴 상태 유지 (딜레이)
+            m_tPose.SetRot(3, D3DXToRadian(-90.f), 0.f, 0.f);
+        }
+        else if (m_fStateTime < 1.1f)
+        {
+            // 0.8 ~ 1.1초: 팔 복귀
+            float fT = (m_fStateTime - 0.8f) / 0.3f;
+            float fPullRot = D3DXToRadian(-90.f * (1.f - fT));
+            m_tPose.SetRot(3, fPullRot, 0.f, 0.f);
+        }
+    }
+
+    if (m_fStateTime >= 1.1f)
         Set_State(EMonsterState::WALK);
 }
 
-// 3. HIT: 빨간 점멸 0.5초 후 WALK 복귀
 void CMonsterAnim::Pose_Hit(const _float& fTimeDelta)
 {
-    // [추가] 넉백 거리 계산 (0.5초 동안 뒤로 밀림)
+    
     m_fKnockbackDelta = (m_fStateTime < 0.5f) ? 5.f * fTimeDelta : 0.f;
 
     m_fFlashTimer += fTimeDelta;
@@ -102,13 +130,38 @@ void CMonsterAnim::Pose_Hit(const _float& fTimeDelta)
     }
 }
 
-// 4. DEAD: 1.5초 동안 뒤로 서서히 눕기
+
 void CMonsterAnim::Pose_Dead()
 {
+    if (m_eType == EMonsterType::ZOMBIE)
+    {
+        // 좀비 - 기존 전체 눕기
+        float fProgress = min(m_fStateTime / 0.1f, 1.f);
+        m_fDeadRotX = D3DXToRadian(-90.f * fProgress);
+        for (int i = 0; i < 6; ++i)
+            m_tPose.SetRot(i, 0.f, 0.f, 0.f);
+    }
+    else if (m_eType == EMonsterType::SKELETON)
+    {
+        float fFallProgress = min(m_fStateTime / 0.5f, 1.f);
+        float fSplitProgress = max(m_fStateTime - 0.5f, 0.f) / 1.f;
+        float fSplitClamped = fSplitProgress > 1.f ? 1.f : fSplitProgress; // [추가] 회전 고정
 
-    float fProgress = min(m_fStateTime / 0.1f, 1.f);
-    m_fDeadRotX = D3DXToRadian(-90.f * fProgress);
+        m_fDeadRotX = D3DXToRadian(-90.f * fFallProgress);
 
-    for (int i = 0; i < 6; ++i)
-        m_tPose.SetRot(i, 0.f, 0.f, 0.f);
+        m_tPose.SetRot(0, D3DXToRadian(-270.f * fSplitClamped), 0.f, 0.f);
+        m_tPose.SetRot(1, 0.f, 0.f, 0.f);
+        m_tPose.SetRot(2, 0.f, 0.f, D3DXToRadian(200.f * fSplitClamped));
+        m_tPose.SetRot(3, 0.f, 0.f, D3DXToRadian(-270.f * fSplitClamped));
+        m_tPose.SetRot(4, D3DXToRadian(270.f * fSplitClamped), 0.f, 0.f);
+        m_tPose.SetRot(5, D3DXToRadian(-270.f * fSplitClamped), 0.f, 0.f);
+
+        // [수정] 머리 x 방향으로, 거리 +0.4
+        m_vDeadOffset[0] = { 0.f,   0.5f, 0.f };
+        m_vDeadOffset[1] = { 0.f,   0.f,  0.f };
+        m_vDeadOffset[2] = { -1.0f,  0.f,  0.f }; // -0.6f → -1.0f
+        m_vDeadOffset[3] = { 1.0f,  0.f,  0.f }; //  0.6f →  1.0f
+        m_vDeadOffset[4] = { -0.9f,  0.f,  0.f }; // -0.5f → -0.9f
+        m_vDeadOffset[5] = { 0.9f,  0.f,  0.f }; //  0.5f →  0.9f
+    }
 }

@@ -185,6 +185,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CRedStone.h">
       <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude> 
+    <ClInclude Include="..\Header\Carrow.h">
+      <Filter>02. GameObject\01. Monster</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -292,6 +295,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CRedStone.cpp">
       <Filter>01. Scene\01. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\Carrow.cpp">
+      <Filter>02. GameObject\01. Monster</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -5,6 +5,7 @@
 enum class EMonsterType
 {
     ZOMBIE,
+    SKELETON,
 
 };
 
@@ -13,7 +14,7 @@ enum class EMonsterState { WALK, ATTACK, HIT, DEAD, MAX };
 class CMonsterAnim : public CBodyAnim
 {
 public:
-    CMonsterAnim();
+    CMonsterAnim(EMonsterType);
     virtual ~CMonsterAnim() = default;
 
 public:
@@ -24,7 +25,10 @@ public:
     void KeyInput();
     bool Is_HitFlash() const { return m_bHitFlash; }
     float Get_KnockbackDelta() const { return m_fKnockbackDelta; }
-    float Get_DeadRotX() const { return m_fDeadRotX; }
+    float Get_DeadRotX() const { return m_fDeadRotX; } 
+    EMonsterState Get_State() const { return m_eState; } 
+    const _vec3* Get_DeadOffsets() const { return m_vDeadOffset; }
+  
 
 private:
     void Update_Motion(const _float& fTimeDelta);
@@ -35,6 +39,7 @@ private:
     void Pose_Dead();
 
 private:
+    EMonsterType  m_eType = EMonsterType::ZOMBIE;
     EMonsterState m_eState = EMonsterState::WALK;
     BodyPose      m_tPose;
 
@@ -44,5 +49,14 @@ private:
     float m_fWalkTime = 0.f;
     float m_fStateTime = 0.f;
     float m_fFlashTimer = 0.f;
-    bool  m_bHitFlash = false;
+    bool  m_bHitFlash = false; 
+
+    _vec3 m_vDeadOffset[6] = {
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    };
 };
