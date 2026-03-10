@@ -1,0 +1,277 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="00. MainApp">
+      <UniqueIdentifier>{28db44dc-a9b3-46f3-9c4a-550f8da6477b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene">
+      <UniqueIdentifier>{3339bc66-334b-40dd-a08c-7eecb5b16bc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\00. Logo">
+      <UniqueIdentifier>{6ee412b5-a2ad-484c-aff3-a94e6c0025f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\01. Stage">
+      <UniqueIdentifier>{e4b1b5ea-b6d3-4565-b218-5b6de2be96d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject">
+      <UniqueIdentifier>{3a989869-733a-4ccf-8f36-34d6a4a6f993}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\00. BackGround">
+      <UniqueIdentifier>{6a009ef4-9e3e-48d6-83f0-d9bfc10b24ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\01. Monster">
+      <UniqueIdentifier>{bd8e48e5-e1c3-472f-b3f3-c56d594af518}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\02. Player">
+      <UniqueIdentifier>{eee99c08-257c-4660-b8f2-ef5c11b8ea73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\02. Loading">
+      <UniqueIdentifier>{c71ee1b4-111a-4e94-bcba-8a9caea341b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\03. DynamicCamera">
+      <UniqueIdentifier>{3a26a6f3-827d-4ccc-a4ae-e8a7801a17cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\04. Terrain">
+      <UniqueIdentifier>{0a3b7d08-a86e-4812-9b76-634f0b1b24d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\05. SkyBox">
+      <UniqueIdentifier>{ee9a5c89-6ba0-48fc-891c-69483cfa3f33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\06. Effect">
+      <UniqueIdentifier>{c4f018b9-d498-499b-8b87-b316a9647734}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor">
+      <UniqueIdentifier>{2a322333-d442-4ee6-86b1-0c744c0af918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\00. Imgui">
+      <UniqueIdentifier>{4cc9b699-7e9a-4703-aadb-596198873d5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\01. Block">
+      <UniqueIdentifier>{e8c8c98c-2ec4-4e81-b3b8-5fe87294f081}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\02. BlockPlacer">
+      <UniqueIdentifier>{6c4e3757-23fc-4aa4-a627-c30d6620593f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\03. CBlockMgr">
+      <UniqueIdentifier>{1d88706c-b48c-408c-acfb-472d8f257167}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\07. BodyBase">
+      <UniqueIdentifier>{a7936c01-569e-4092-b39b-1cb4b9d25af8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager">
+      <UniqueIdentifier>{9414e0e2-efb4-4068-866f-41a9c55dbbeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\00. PathFinding">
+      <UniqueIdentifier>{fafa08e5-5e31-4e84-b138-30a4c0509e5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\04. BatchBuffer">
+      <UniqueIdentifier>{6789d78c-fa49-4291-b06c-567b4ec7a3a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMainApp.h">
+      <Filter>00. MainApp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CLogo.h">
+      <Filter>01. Scene\00. Logo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBackGround.h">
+      <Filter>02. GameObject\00. BackGround</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMonster.h">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CPlayer.h">
+      <Filter>02. GameObject\02. Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CStage.h">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CLoading.h">
+      <Filter>01. Scene\02. Loading</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CDynamicCamera.h">
+      <Filter>02. GameObject\03. DynamicCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CTerrain.h">
+      <Filter>02. GameObject\04. Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CSkyBox.h">
+      <Filter>02. GameObject\05. SkyBox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CEffect.h">
+      <Filter>02. GameObject\06. Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CEditor.h">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBlock.h">
+      <Filter>01. Scene\03. Editor\01. Block</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBlockPlacer.h">
+      <Filter>01. Scene\03. Editor\02. BlockPlacer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBlockMgr.h">
+      <Filter>01. Scene\03. Editor\03. CBlockMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CPlayerUV.h">
+      <Filter>02. GameObject\02. Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBodyBase.h">
+      <Filter>02. GameObject\07. BodyBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CPlayerBody.h">
+      <Filter>02. GameObject\02. Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CPathFinding.h">
+      <Filter>03. Manager\00. PathFinding</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNavNode.h">
+      <Filter>03. Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMonsterBody.h">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMonsterAnim.h">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMonsterUV.h">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBatchBuffer.h">
+      <Filter>01. Scene\03. Editor\04. BatchBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CIronBar.h">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CMainApp.cpp">
+      <Filter>00. MainApp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CLogo.cpp">
+      <Filter>01. Scene\00. Logo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBackGround.cpp">
+      <Filter>02. GameObject\00. BackGround</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CMonster.cpp">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CPlayer.cpp">
+      <Filter>02. GameObject\02. Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CStage.cpp">
+      <Filter>01. Scene\01. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CLoading.cpp">
+      <Filter>01. Scene\02. Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CDynamicCamera.cpp">
+      <Filter>02. GameObject\03. DynamicCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CTerrain.cpp">
+      <Filter>02. GameObject\04. Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CSkyBox.cpp">
+      <Filter>02. GameObject\05. SkyBox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CEffect.cpp">
+      <Filter>02. GameObject\06. Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CEditor.cpp">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui_impl_dx9.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui_impl_win32.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui_draw.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui_tables.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\imgui_widgets.cpp">
+      <Filter>01. Scene\03. Editor\00. Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBlock.cpp">
+      <Filter>01. Scene\03. Editor\01. Block</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBlockPlacer.cpp">
+      <Filter>01. Scene\03. Editor\02. BlockPlacer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBlockMgr.cpp">
+      <Filter>01. Scene\03. Editor\03. CBlockMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBodyBase.cpp">
+      <Filter>02. GameObject\07. BodyBase</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CPlayerBody.cpp">
+      <Filter>02. GameObject\02. Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CPathFinding.cpp">
+      <Filter>03. Manager\00. PathFinding</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CMonsterBody.cpp">
+      <Filter>02. GameObject\01. Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBatchBuffer.cpp">
+      <Filter>01. Scene\03. Editor\04. BatchBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CIronBar.cpp">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Client.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="Client.ico">
+      <Filter>리소스 파일</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

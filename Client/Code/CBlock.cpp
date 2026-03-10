@@ -1,0 +1,162 @@
+#include "pch.h"
+#include "CBlock.h"
+#include "CRenderer.h"
+
+CBlock::CBlock(LPDIRECT3DDEVICE9 pGraphicDev)
+	: CGameObject(pGraphicDev)
+{
+}
+
+CBlock::CBlock(const CGameObject& rhs)
+	: CGameObject(rhs)
+{
+}
+
+CBlock::~CBlock()
+{
+}
+
+HRESULT CBlock::Ready_GameObject(const _vec3& vPos, eBlockType eType)
+{
+	m_eType = eType;
+
+	if (FAILED(Add_Component()))
+		return E_FAIL;
+
+	m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+	m_pTransformCom->m_vScale = { 1.f, 1.f, 1.f };
+	//블럭은 움직이지 않으니 생성 시 한 번만 AABB 세팅
+	m_pColliderCom->Update_AABB(vPos);
+
+	return S_OK;
+}
+
+_int CBlock::Update_GameObject(const _float& fTimeDelta)
+{
+	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
+
+	//디버깅용 - 나중에 RENDER_PRIORITY로 변경
+	//최적화 이후 주석
+	CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
+
+	return iExit;
+}
+
+void CBlock::LateUpdate_GameObject(const _float& fTimeDelta)
+{
+	CGameObject::LateUpdate_GameObject(fTimeDelta);
+}
+
+void CBlock::Render_GameObject()
+{
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, m_pTransformCom->Get_World());
+
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+	m_pTextureCom->Set_Texture(0);
+
+	m_pBufferCom->Render_Buffer();
+
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+	//디버깅용으로 일단 렌더링
+	m_pColliderCom->Render_Collider();
+}
+
+HRESULT CBlock::Add_Component()
+{
+	CComponent* pComponent = nullptr;
+
+	pComponent = m_pBufferCom = dynamic_cast<CCubeTex*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_CubeTex"));
+	if (!pComponent)
+		return E_FAIL;
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_Buffer", pComponent });
+
+	// Transform
+	pComponent = m_pTransformCom = dynamic_cast<CTransform*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_Transform"));
+
+	if (nullptr == pComponent)
+		return E_FAIL;
+
+	m_mapComponent[ID_DYNAMIC].insert({ L"Com_Transform", pComponent });
+
+	// Texture
+	//pComponent = m_pTextureCom = dynamic_cast<CTexture*>
+	//	(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RockTexture"));
+	pComponent = m_pTextureCom = dynamic_cast<CTexture*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(GetTextureName()));
+
+	if (nullptr == pComponent)
+		return E_FAIL;
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
+
+	//Collider
+
+	pComponent = m_pColliderCom = CCollider::Create(m_pGraphicDev,
+		_vec3(1.f, 1.f, 1.f),
+		_vec3(0.f, 0.f, 0.f));
+	if (!pComponent)
+		return E_FAIL;
+	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", pComponent });
+
+	return S_OK;
+}
+
+HRESULT CBlock::Set_Material()
+{
+	return E_NOTIMPL;
+}
+
+const _tchar* CBlock::GetTextureName()
+{
+	//타입에 따른 각기 다른 텍스쳐 프로토 반환
+
+	switch (m_eType)
+	{
+	case BLOCK_GRASS:
+		return L"Proto_GrassTexture";
+	case BLOCK_DIRT:
+		return L"Proto_DirtTexture";
+	case BLOCK_ROCK:
+		return L"Proto_RockTexture";
+	case BLOCK_SAND:
+		return L"Proto_SandTexture";
+	case BLOCK_BEDROCK:
+		return L"Proto_BedrockTexture";
+	case BLOCK_OBSIDIAN:
+		return L"Proto_ObsidianTexture";
+	case BLOCK_STONEBRICK:
+		return L"Proto_StoneBrickTexture";
+	default:
+		break;
+	}
+
+	return L"Proto_GrassTexture";
+}
+
+CBlock* CBlock::Create(LPDIRECT3DDEVICE9 pGraphicDev,
+	const _vec3& vPos, eBlockType eType)
+{
+	CBlock* pBlock = new CBlock(pGraphicDev);
+
+	if (FAILED(pBlock->Ready_GameObject(vPos, eType)))
+	{
+		Safe_Release(pBlock);
+		MSG_BOX("Block Create Failed");
+		return nullptr;
+	}
+	return pBlock;
+}
+
+void CBlock::Free()
+{
+	CGameObject::Free();
+}
