@@ -25,16 +25,18 @@ private:
     void                Fire_Arrow();
     void                Render_Bow();
 
-    // [추가] 중력
+    // 중력
     void                Apply_Gravity(const _float& fTimeDelta);
     void                Resolve_BlockCollision();
+    // AI 시스템 
+    void                Update_AI(const _float& fTimeDelta);
 
 private:
     CMonsterBody* m_pBodyCom = nullptr;
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTextureCom = nullptr;
     CCollider* m_pColliderCom = nullptr; 
-
+    //스켈레톤 활
     Engine::CRcTex* m_pBowBufferCom = nullptr;
     Engine::CTexture* m_pBowStandbyTex = nullptr;
     Engine::CTexture* m_pBowPullingTex = nullptr;
@@ -43,18 +45,23 @@ private:
     bool                    m_bFired = false;
 
     EMonsterType            m_eType = EMonsterType::ZOMBIE;
-    bool                    m_bIsMoving = true;
+    bool                    m_bIsMoving = false;
 
     
     float                   m_fVelocityY = 0.f;
     bool                    m_bOnGround = false;
 
     static constexpr float  m_fGravity = -20.f;
-    static constexpr float  m_fMaxFall = -20.f;
+    static constexpr float  m_fMaxFall = -20.f; 
+
+    // 사정거리 감지 
+    float m_fDetectRange = 10.f; // 감지할 거리
+    float m_fAttackRange = 2.f;  // 공격 사정거리 
+    float m_fMoveSpeed   = 2.f;  // 이동 속도 
 
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
-        EMonsterType eType = EMonsterType::ZOMBIE);
+        EMonsterType eType = EMonsterType::ZOMBIE); 
 
 private:
     virtual void Free();

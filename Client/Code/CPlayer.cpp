@@ -564,16 +564,16 @@ void CPlayer::Resolve_BlockCollision()
 
 CPlayer* CPlayer::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-	CPlayer* pBackGround = new CPlayer(pGraphicDev);
+	CPlayer* pPlayer = new CPlayer(pGraphicDev);
 
-	if (FAILED(pBackGround->Ready_GameObject()))
+	if (FAILED(pPlayer->Ready_GameObject()))
 	{
-		Safe_Release(pBackGround);
-		MSG_BOX("pBackGround Create Failed");
+		Safe_Release(pPlayer);
+		MSG_BOX("pPlayer Create Failed");
 		return nullptr;
 	}
 
-	return pBackGround;
+	return pPlayer;
 }
 
 void CPlayer::Free()

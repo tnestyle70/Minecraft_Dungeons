@@ -8,23 +8,29 @@ CMonsterAnim::CMonsterAnim(EMonsterType eType) : m_eType(eType)
 
 void CMonsterAnim::Update(const _float& fTimeDelta, bool bMoving, bool bAttack)
 {
-    KeyInput(); // 숫자키 테스트: 1(WALK), 2(ATTACK), 3(HIT), 4(DEAD)
-
     m_fStateTime += fTimeDelta;
 
-    // WALK 상태일 때만 걷기 시간 누적
+    if (m_eState == EMonsterState::IDLE && bMoving)
+        Set_State(EMonsterState::WALK);
+    else if (m_eState == EMonsterState::WALK && !bMoving)
+        Set_State(EMonsterState::IDLE);
+     
+    //KeyInput();
+
     if (m_eState == EMonsterState::WALK)
         m_fWalkTime += fTimeDelta;
+   
 
     Update_Motion(fTimeDelta);
 }
 
 void CMonsterAnim::KeyInput()
 {
-    if (GetAsyncKeyState('1') & 0x8000) Set_State(EMonsterState::WALK);
-    if (GetAsyncKeyState('2') & 0x8000) Set_State(EMonsterState::ATTACK);
-    if (GetAsyncKeyState('3') & 0x8000) Set_State(EMonsterState::HIT);
-    if (GetAsyncKeyState('4') & 0x8000) Set_State(EMonsterState::DEAD);
+    if (GetAsyncKeyState('1') & 0x8000) Set_State(EMonsterState::IDLE);
+    if (GetAsyncKeyState('2') & 0x8000) Set_State(EMonsterState::WALK);
+    if (GetAsyncKeyState('3') & 0x8000) Set_State(EMonsterState::ATTACK);
+    if (GetAsyncKeyState('4') & 0x8000) Set_State(EMonsterState::HIT);
+    if (GetAsyncKeyState('5') & 0x8000) Set_State(EMonsterState::DEAD);
 }
 
 void CMonsterAnim::Set_State(EMonsterState eState)
@@ -46,11 +52,18 @@ void CMonsterAnim::Update_Motion(const _float& fTimeDelta)
 {
     switch (m_eState)
     {
+    case EMonsterState::IDLE:   Pose_Idle();            break;
     case EMonsterState::WALK:   Pose_Walk();            break;
     case EMonsterState::ATTACK: Pose_Attack();          break;
     case EMonsterState::HIT:    Pose_Hit(fTimeDelta);   break;
     case EMonsterState::DEAD:   Pose_Dead();            break;
     }
+}
+
+void CMonsterAnim::Pose_Idle()
+{
+    for (int i = 0; i < 6; ++i)
+        m_tPose.SetRot(i, 0.f, 0.f, 0.f); // 전체 파츠 정지
 }
 
 // 1. WALK: 다리 교차 흔들기

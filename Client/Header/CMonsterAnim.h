@@ -9,7 +9,7 @@ enum class EMonsterType
 
 };
 
-enum class EMonsterState { WALK, ATTACK, HIT, DEAD, MAX };
+enum class EMonsterState { IDLE, WALK, ATTACK, HIT, DEAD, MAX };
 
 class CMonsterAnim : public CBodyAnim
 {
@@ -33,14 +33,17 @@ public:
 private:
     void Update_Motion(const _float& fTimeDelta);
 
+    void Pose_Idle();
     void Pose_Walk();
     void Pose_Attack();
     void Pose_Hit(const _float& fTimeDelta);
-    void Pose_Dead();
+    void Pose_Dead(); 
+
+   
 
 private:
     EMonsterType  m_eType = EMonsterType::ZOMBIE;
-    EMonsterState m_eState = EMonsterState::WALK;
+    EMonsterState m_eState = EMonsterState::IDLE;
     BodyPose      m_tPose;
 
 

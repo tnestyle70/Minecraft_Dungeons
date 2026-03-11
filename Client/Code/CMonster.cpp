@@ -40,11 +40,12 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
     // [추가] 중력 + 블록 충돌
     Apply_Gravity(fTimeDelta);
-    Resolve_BlockCollision();
+    Resolve_BlockCollision(); 
+    
 
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
 
-    if (pAnim && pAnim->Get_DeadRotX() != 0.f)
+    if (pAnim && pAnim->Get_State() == EMonsterState::DEAD && pAnim->Get_DeadRotX() != 0.f)
     {
         D3DXMATRIX matRot, matWorld;
         D3DXMatrixRotationX(&matRot, pAnim->Get_DeadRotX());
@@ -91,7 +92,11 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
 void CMonster::LateUpdate_GameObject(const _float& fTimeDelta)
 {
+    Update_AI(fTimeDelta);
+
     CGameObject::LateUpdate_GameObject(fTimeDelta);
+
+
 }
 
 void CMonster::Render_GameObject()
@@ -298,6 +303,50 @@ void CMonster::Resolve_BlockCollision()
                     m_fVelocityY = 0.f;
                 }
             }
+}
+
+void CMonster::Update_AI(const _float& fTimeDelta)
+{
+    Engine::CComponent* pCom = CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform");
+    Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(pCom);
+
+    if (!pPlayerTrans) return;
+
+    _vec3  vMyPos, vPlayerPos;
+    m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+    pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos); 
+    
+
+    _vec3 vDir = vPlayerPos - vMyPos; 
+    float fDist = D3DXVec3Length(&vDir);
+
+  
+    CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
+    if (!pAnim) return;
+
+    if (pAnim->Get_State() == EMonsterState::DEAD) return;
+
+    if (fDist <= m_fAttackRange)
+    {
+        // 공격 범위 → 이동 멈추고 공격
+        m_bIsMoving = false;
+        pAnim->Set_State(EMonsterState::ATTACK);
+    }
+    else if (fDist <= m_fDetectRange)
+    {
+        // 감지 범위 → 바라보면서 이동
+        m_bIsMoving = true;
+        _vec3 vDir = vPlayerPos - vMyPos;
+        vDir.y = 0.f;
+        D3DXVec3Normalize(&vDir, &vDir);
+        m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z));
+        m_pTransformCom->Move_Pos(&vDir, m_fMoveSpeed, fTimeDelta);
+    }
+    else
+    {
+        // 감지 범위 밖 → 아이들
+        m_bIsMoving = false;
+    }
 }
 
 HRESULT CMonster::Add_Component()

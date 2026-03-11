@@ -89,7 +89,7 @@ HRESULT CArrow::Add_Component()
 
     // ¹öÆÛ
     pComponent = m_pBufferCom = dynamic_cast<Engine::CRcTex*>
-        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
+        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex")); 
     if (!pComponent) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_Buffer", pComponent });
 
