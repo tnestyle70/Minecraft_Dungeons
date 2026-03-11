@@ -157,6 +157,7 @@
     <ClInclude Include="..\Header\CEffect.h" />
     <ClInclude Include="..\Header\CIronBar.h" />
     <ClInclude Include="..\Header\CLoading.h" />
+    <ClInclude Include="..\Header\CLoadingScene.h" />
     <ClInclude Include="..\Header\CLogo.h" />
     <ClInclude Include="..\Header\CMainApp.h" />
     <ClInclude Include="..\Header\CMonster.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="..\Code\CEffect.cpp" />
     <ClCompile Include="..\Code\CIronBar.cpp" />
     <ClCompile Include="..\Code\CLoading.cpp" />
+    <ClCompile Include="..\Code\CLoadingScene.cpp" />
     <ClCompile Include="..\Code\CLogo.cpp" />
     <ClCompile Include="..\Code\CMainApp.cpp" />
     <ClCompile Include="..\Code\CMonster.cpp" />

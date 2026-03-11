@@ -58,14 +58,21 @@ public:
 	virtual			void		Render_Scene();
 private:
 	HRESULT Ready_Environment_Layer(const _tchar* pLayerTag);
+	HRESULT Ready_ProtoType();
 public:
 	bool IsEditorMode() { return m_bEditorMode; }
 	void SetEditorMode(bool editorMode);
+	//현재 선택된 스테이지의 .dat 경로 반환
+	const _tchar* GetStagePath(eStageType eStage) const;
+	//스테이지 전환 : 현재 스테이지 저장 -> 블럭 클리어 -> 새 스테이지 로드
+	void SwitchStage(eStageType eNewStage);
 private:
 	void Render_MenuBar();
 	void Render_Hierarchy();
 	void Render_Inspector();
 	void Render_Viewport();
+
+	void Render_StageSelector();
 	
 	void Render_BlockPalette();
 	void Render_MonsterPalette();
@@ -88,6 +95,7 @@ private:
 	eEditMode m_eEditMode = MODE_BLOCK;
 	eBlockType m_eSelectedBlock = BLOCK_GRASS;
 	int m_iSelectedMonster = 0;
+
 	//Trigger Box Settings
 	int m_iTriggerWidth = 1;
 	int m_iTriggerHeight = 1;

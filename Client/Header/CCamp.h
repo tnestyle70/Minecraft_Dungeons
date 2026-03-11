@@ -1,6 +1,5 @@
 #pragma once
 #include "CScene.h"
-#include "CLoading.h"
 
 class CCamp : public CScene
 {

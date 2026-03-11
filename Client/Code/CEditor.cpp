@@ -2,6 +2,7 @@
 #include "CEditor.h"
 #include "CBlockMgr.h"
 #include "CDynamicCamera.h"
+#include "CMonsterUV.h"
 
 CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
@@ -15,6 +16,9 @@ CEditor::~CEditor()
 
 HRESULT CEditor::Ready_Scene()
 {
+	if (FAILED(Ready_ProtoType()))
+		return E_FAIL;
+
 	if (FAILED(Ready_Environment_Layer(L"Environment_Layer")))
 		return E_FAIL;
 
@@ -130,8 +134,42 @@ void CEditor::SetEditorMode(bool editorMode)
 	CBlockMgr::GetInstance()->SetEditorMode(m_bEditorMode);
 	if (m_bEditorMode)
 	{
-		CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+		CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage));
 	}
+}
+
+const _tchar* CEditor::GetStagePath(eStageType eStage) const
+{
+	//스테이지 경로
+	static const _tchar* s_aPath[STAGE_END] =
+	{
+		L"../Bin/Data/Stage1.dat", //Squid Coast
+		L"../Bin/Data/Stage2.dat", //Camp
+		L"../Bin/Data/Stage3.dat", //RedStone
+		L"../Bin/Data/Stage4.dat" //Obsidian
+	};
+	
+	if (eStage < 0 || eStage >= STAGE_END)
+	{
+		return s_aPath[0];
+	}
+
+	return s_aPath[eStage];
+}
+
+void CEditor::SwitchStage(eStageType eNewStage)
+{
+	if (eNewStage == m_eCurrentStage)
+		return;
+
+	//현재 스테이지 자동 저장
+	CBlockMgr::GetInstance()->SaveBlocks(GetStagePath(m_eCurrentStage));
+	
+	//스테이지 전환
+	m_eCurrentStage = eNewStage;
+
+	//블럭 클리어 후 새 스테이지 로딩
+	CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage));
 }
 
 void CEditor::Render_MenuBar()
@@ -148,7 +186,7 @@ void CEditor::Render_MenuBar()
 			//블럭 저장
 			if (ImGui::MenuItem("Save Scene")) 
 			{
-				if (FAILED(CBlockMgr::GetInstance()->SaveBlocks(L"../Bin/Data/Stage1.dat")))
+				if (FAILED(CBlockMgr::GetInstance()->SaveBlocks(GetStagePath(m_eCurrentStage))))
 				{
 					MSG_BOX("Save Failed");
 				}
@@ -160,7 +198,7 @@ void CEditor::Render_MenuBar()
 			//블럭 불러오기
 			if (ImGui::MenuItem("Load Scene"))
 			{
-				if (FAILED(CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat")))
+				if (FAILED(CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage))))
 				{
 					MSG_BOX("Load Failed");
 				}
@@ -173,6 +211,14 @@ void CEditor::Render_MenuBar()
 			if (ImGui::MenuItem("Exit Editor")) { m_bEditorMode = false; }
 			ImGui::EndMenu();
 		}
+		//메뉴바 오른쪽에 현재 스테이지의 이름 표시
+		static const char* s_aStageNames[STAGE_END] =
+		{
+			"Squid Coast", "Camp", "RedStone", "Obsidian"
+		};
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 150.f);
+		ImGui::TextDisabled("Stage : %s", s_aStageNames[m_eCurrentStage]);
+
 		if (ImGui::BeginMenu("Edit"))
 		{
 			ImGui::EndMenu();
@@ -196,6 +242,11 @@ void CEditor::Render_Hierarchy()
 void CEditor::Render_Inspector()
 {
 	ImGui::Begin("Inspector");
+
+	//스테이지 선택 패널 최상단에 배치
+	Render_StageSelector();
+
+	ImGui::Separator();
 
 	//Mode Tab Button
 	const char* szModes[] =
@@ -236,50 +287,6 @@ void CEditor::Render_Inspector()
 	}
 
 	ImGui::End();
-
-	/*
-	ImGui::Begin("Inspector");
-
-	//Show all blocks can select on the palette
-	ImGui::Text("Block Palette");
-	ImGui::Separator();
-
-	//Definition of palette - {name, type}
-	struct BlockEntry 
-	{ 
-		const char* name;  
-		eBlockType eType;
-	};
-
-	static const BlockEntry palette[] =
-	{
-		{"Grass", BLOCK_GRASS},
-		{"Dirt", BLOCK_DIRT},
-		{"Rock", BLOCK_ROCK},
-		{"Sand", BLOCK_SAND},
-		{"Bedrock", BLOCK_BEDROCK},
-		{"Obsidian", BLOCK_OBSIDIAN},
-		{"StoneBrick", BLOCK_STONEBRICK},
-		{"IronBar", BLOCK_IRONBAR}
-	};
-
-	for (const auto& entry : palette)
-	{
-		//현재 선택된 블럭 강조
-		bool bSelected = (m_eSelectedBlock == entry.eType);
-		if (bSelected)
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.f));
-		if (ImGui::Button(entry.name, ImVec2(120.f, 30.f)))
-			m_eSelectedBlock = entry.eType;
-		if (bSelected)
-			ImGui::PopStyleColor();
-	}
-
-	ImGui::Separator();
-	ImGui::Text("Selected : %s", palette[m_eSelectedBlock].name);
-
-	ImGui::End();
-	*/
 }
 
 void CEditor::Render_Viewport()
@@ -291,28 +298,61 @@ void CEditor::Render_Viewport()
 	ImGui::End();
 }
 
+void CEditor::Render_StageSelector()
+{
+	static const char* s_aNames[STAGE_END] =
+	{ "Squid Coast", "Camp", "RedStone", "Obsidian" };
+	static const char* s_aIDs[STAGE_END] =
+	{ "Squid Coast##stage", "Camp##stage", "RedStone##stage", "Obsidian##stage" };
+
+	ImGui::Text("Stage");
+
+	for (int i = 0; i < STAGE_END; ++i)
+	{
+		if (i > 0) ImGui::SameLine();
+
+		bool bActive = (m_eCurrentStage == (eStageType)i);
+		if (bActive)
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.6f, 0.1f, 1.f));
+
+		if (ImGui::Button(s_aIDs[i], ImVec2(85.f, 24.f)))
+		{
+			if (!bActive)
+				SwitchStage((eStageType)i);
+		}
+
+		if (bActive)
+			ImGui::PopStyleColor();
+	}
+
+	ImGui::SameLine();
+	ImGui::TextDisabled("(Stage%d.dat)", (int)m_eCurrentStage + 1);
+}
+
 void CEditor::Render_BlockPalette()
 {
-	struct BlockEntry { const char* name; eBlockType eType; };
+	struct BlockEntry { const char* label; const char* name; eBlockType eType; };
+	// "##block" suffix → StageSelector의 "Obsidian##stage"와 ID 완전 분리
 	static const BlockEntry palette[] =
 	{
-		{"Grass", BLOCK_GRASS},
-		{"Dirt", BLOCK_DIRT},
-		{"Rock", BLOCK_ROCK},
-		{"Sand", BLOCK_SAND},
-		{"Bedrock", BLOCK_BEDROCK},
-		{"Obsidian", BLOCK_OBSIDIAN},
-		{"StoneBrick", BLOCK_STONEBRICK}
+		{"Grass##block",      "Grass",      BLOCK_GRASS},
+		{"Dirt##block",       "Dirt",       BLOCK_DIRT},
+		{"Rock##block",       "Rock",       BLOCK_ROCK},
+		{"Sand##block",       "Sand",       BLOCK_SAND},
+		{"Bedrock##block",    "Bedrock",    BLOCK_BEDROCK},
+		{"Obsidian##block",   "Obsidian",   BLOCK_OBSIDIAN},
+		{"StoneBrick##block", "StoneBrick", BLOCK_STONEBRICK},
 	};
-	ImGui::Text("Block Palette");
+	constexpr int iCount = (int)(sizeof(palette) / sizeof(palette[0]));
 
-	for (const auto& entry : palette)
+	ImGui::Text("Block Palette");
+	for (int i = 0; i < iCount; ++i)
 	{
-		bool bSelected = (m_eSelectedBlock == entry.eType);
+		bool bSelected = (m_eSelectedBlock == palette[i].eType);
 		if (bSelected)
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.f));
-		if (ImGui::Button(entry.name, ImVec2(120.f, 28.f)))
-			m_eSelectedBlock = entry.eType;
+		if (ImGui::Button(palette[i].label, ImVec2(120.f, 28.f)))
+			m_eSelectedBlock = palette[i].eType;
 		if (bSelected)
 			ImGui::PopStyleColor();
 	}
@@ -358,7 +398,7 @@ void CEditor::Render_MonsterPalette()
 		sprintf_s(szBtn, "X %d", i);
 		if (ImGui::Button(szBtn))
 		{
-			m_vecMonsterData.erase(m_vecMonsterData.begin() + 1);
+			m_vecMonsterData.erase(m_vecMonsterData.begin() + i);
 			break;
 		}
 	}
@@ -577,4 +617,182 @@ void CEditor::Free()
 {
 	Safe_Release(m_pBlockPlacer);
 	CScene::Free();
+}
+
+
+
+
+
+
+HRESULT CEditor::Ready_ProtoType()
+{
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TriCol", Engine::CTriCol::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RcCol", Engine::CRcCol::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTex", Engine::CTerrainTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CubeTex", Engine::CCubeTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
+		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Terrain/Grass_%d.tga", 2))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkyBoxTexture",
+		Engine::CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/SkyBox/burger%d.dds", 4))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EffectTexture",
+		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Explosion/Explosion%d.png", 90))))
+		return E_FAIL;
+
+	//오징어 해안 로딩 텍스쳐
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
+	//    Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
+	//    return E_FAIL;
+
+	//캠프 로딩 텍스쳐
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampLoadingTexture",
+		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png"))))
+		return E_FAIL;
+
+	//레드 스톤 로딩 텍스쳐
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneLoadingTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Fiery_Forge.png"))))
+		return E_FAIL;
+
+	//옵시디언 로딩 텍스쳐
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ObsidianLoadingTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Obsidian_Pinnacle.png"))))
+		return E_FAIL;
+
+	// 플레이어 텍스쳐
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
+		return E_FAIL;
+
+	// 닭 텍스쳐
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))
+		return E_FAIL;
+
+	//블럭 텍스쳐
+	//잔디 
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_GrassTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/GrassSideTexture.dds"))))
+		return E_FAIL;
+	//흙
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_DirtTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/DirtTexture.dds"))))
+		return E_FAIL;
+	//모래
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SandTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/SandTexture.dds"))))
+		return E_FAIL;
+	//돌
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RockTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/RockTexture.dds"))))
+		return E_FAIL;
+	//bedrock
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BedrockTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/BedrockTexture.dds"))))
+		return E_FAIL;
+	//obsidian
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ObsidianTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/ObsidianTexture.dds"))))
+		return E_FAIL;
+	//stonebrick
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_StoneBrickTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/StoneBrickTexture.dds"))))
+		return E_FAIL;
+
+	//블럭 텍스쳐 아틀라스
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BlockAtlasTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
+		return E_FAIL;
+
+#pragma region 
+	// 좀비 텍스처
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
+		return E_FAIL;
+
+	// 좀비 파츠 버퍼
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_Head",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::HEAD))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_Body",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::BODY))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_RArm",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::R_ARM))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_LArm",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_ARM))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_RLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::R_LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_LLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
+		return E_FAIL;
+#pragma endregion
+#pragma region 스켈레톤
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Head",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::HEAD))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Body",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::BODY))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RArm",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_ARM))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LArm",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_ARM))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandbyTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_standby.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPullingTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_pulling_0.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
+		return E_FAIL;
+#pragma endregion
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Transform", Engine::CTransform::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Calculator", Engine::CCalculator::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	return 0;
 }

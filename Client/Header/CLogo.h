@@ -21,7 +21,6 @@ private:
 	HRESULT			Ready_Prototype();
 
 private:
-	CLoading*		m_pLoading;
 	CEditor* m_pEditor;
 	bool m_bF1Toggle = false;
 public:

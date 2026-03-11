@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "CSquidCoast.h"
-#include "CBackGround.h"
-#include "CProtoMgr.h"
-#include "CCamp.h"
+#include "CMonster.h"
+#include "CPlayer.h"
+#include "CMonsterAnim.h"
 #include "CBlockMgr.h"
 #include "CDynamicCamera.h"
 #include "CSceneChanger.h"
@@ -37,16 +37,17 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 {
 	_int iExit = CScene::Update_Scene(fTimeDelta);
 
-	if (GetAsyncKeyState('0'))
+	CBlockMgr::GetInstance()->Update(fTimeDelta);
+	
+	if (GetAsyncKeyState(VK_RETURN))
 	{
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_CAMP)))
 		{
 			MSG_BOX("Camp Create Failed");
 			return -1;
 		}
+		return iExit;
 	}
-
-	//CBlockMgr::GetInstance()->Update(fTimeDelta);
 
 	return iExit;
 }
@@ -58,6 +59,7 @@ void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CSquidCoast::Render_Scene()
 {
+	CBlockMgr::GetInstance()->Render();
 }
 
 HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -69,30 +71,75 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 
 	CGameObject* pGameObject = nullptr;
 
-	//loding screen
-	pGameObject = CBackGround::Create(m_pGraphicDev, L"Proto_SquidCoastLoadingTexture");
+	//dynamic camera 
+
+	_vec3 vEye{ 0.f, 10.f, -10.f };
+	_vec3 vAt{ 0.f, 0.f, 1.f };
+	_vec3 vUp{ 0.f, 1.f, 0.f };
+
+	pGameObject = CDynamicCamera::Create(m_pGraphicDev, &vEye, &vAt, &vUp);
 
 	if (!pGameObject)
 		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"BackGround", pGameObject)))
+	
+	if (FAILED(pLayer->Add_GameObject(L"DynamicCamera", pGameObject)))
 		return E_FAIL;
 
-	m_mapLayer.insert({ pLayerTag, pLayer });
+	//SkyBox 추가
 
 	//BlockMgr
-	//if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
-	//{
-	//	MSG_BOX("BlockMgr Create Failed");
-	//	return E_FAIL;
-	//}
-	//CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+	if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
+	{
+		MSG_BOX("block mgr create failed");
+		return E_FAIL;
+	}
+
+	CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+
+	CBlockMgr::GetInstance()->SetEditorMode(false);
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
 }
 
 HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 {
+	CLayer* pLayer = CLayer::Create();
+
+	if (!pLayer)
+		return E_FAIL;
+
+	CGameObject* pGameObject = nullptr;
+
+	//Player
+	pGameObject = CPlayer::Create(m_pGraphicDev);
+	
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
+		return E_FAIL;
+
+	//Monster
+	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::ZOMBIE);
+	
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+		return E_FAIL;
+	//멀티맵이라 이름 같아도 가능, 그냥 맵은 안 됨
+	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SKELETON);
+	
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+		return E_FAIL;
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	return S_OK;
 }
 

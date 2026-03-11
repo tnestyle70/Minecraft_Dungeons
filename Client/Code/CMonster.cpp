@@ -27,8 +27,8 @@ HRESULT CMonster::Ready_GameObject()
 
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 3.f, 3.f); break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 3.f, 3.f); break;
+    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 5.f, 3.f); break;
+    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 5.f, 3.f); break;
     }
 
     return S_OK;

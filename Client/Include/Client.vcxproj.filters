@@ -201,6 +201,9 @@
     <ClInclude Include="..\Header\CObsidian.h">
       <Filter>01. Scene\01. Stage\03. Obsidian</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CLoadingScene.h">
+      <Filter>01. Scene\02. Loading</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -310,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CObsidian.cpp">
       <Filter>01. Scene\01. Stage\03. Obsidian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CLoadingScene.cpp">
+      <Filter>01. Scene\02. Loading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

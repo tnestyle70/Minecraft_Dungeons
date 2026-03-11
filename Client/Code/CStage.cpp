@@ -44,7 +44,9 @@ _int CStage::Update_Scene(const _float& fTimeDelta)
 {
     _int iExit = Engine::CScene::Update_Scene(fTimeDelta);
 
-    if (GetAsyncKeyState('7'))
+    CBlockMgr::GetInstance()->Update(fTimeDelta);
+
+    if (GetAsyncKeyState(VK_RETURN))
     {
         if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_LOGO)))
         {
@@ -52,8 +54,6 @@ _int CStage::Update_Scene(const _float& fTimeDelta)
             return -1;
         }
     }
-
-    CBlockMgr::GetInstance()->Update(fTimeDelta);
 
     return iExit;
 }
@@ -109,12 +109,6 @@ HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
         MSG_BOX("block mgr create failed");
         return E_FAIL;
     }
-    //Atlas는 Ready에서 등록되니까 따로 Texture설정할 필요 없음
-    //if (FAILED(CBlockMgr::GetInstance()->Ready_Textures()))
-    //{
-    //    MSG_BOX("block mgr create failed");
-    //    return E_FAIL;
-    //}
 
     CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
 
@@ -132,7 +126,6 @@ HRESULT CStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
     if (nullptr == pLayer)
         return E_FAIL;
 
-    // ??????? ???
     CGameObject* pGameObject = nullptr;
 
     // Terrain
@@ -204,7 +197,7 @@ HRESULT CStage::Ready_Light()
 {
     D3DLIGHT9   tLightInfo;
     ZeroMemory(&tLightInfo, sizeof(D3DLIGHT9));
-    //???? ?????? ??? ?밢?????? ??????? ?? ????
+
     tLightInfo.Type = D3DLIGHT_DIRECTIONAL;
 
     tLightInfo.Diffuse  = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
@@ -235,6 +228,5 @@ CStage* CStage::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CStage::Free()
 {
-    //CBlockMgr::GetInstance()->DestroyInstance();
     CScene::Free();
 }

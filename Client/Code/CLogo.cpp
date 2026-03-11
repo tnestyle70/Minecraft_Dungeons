@@ -13,7 +13,7 @@
 #include "CSceneChanger.h"
 
 CLogo::CLogo(LPDIRECT3DDEVICE9 pGraphicDev)
-    : Engine::CScene(pGraphicDev), m_pLoading(nullptr), m_pEditor(nullptr)
+    : Engine::CScene(pGraphicDev), m_pEditor(nullptr)
 {
 }
 
@@ -27,11 +27,6 @@ HRESULT CLogo::Ready_Scene()
         return E_FAIL;
 
     if (FAILED(Ready_Environment_Layer(L"Environment_Layer")))
-        return E_FAIL;
-
-    m_pLoading = CLoading::Create(m_pGraphicDev, CLoading::LOADING_STAGE);
-
-    if (nullptr == m_pLoading)
         return E_FAIL;
 
     return S_OK;
@@ -66,29 +61,15 @@ _int CLogo::Update_Scene(const _float& fTimeDelta)
     //·Î°í ¾À ¾÷µ¥ÀÌÆ®
     _int iExit = Engine::CScene::Update_Scene(fTimeDelta);
 
-    if (m_pLoading->Get_Finish())
+    if (GetAsyncKeyState(VK_RETURN))
     {
-        if (GetAsyncKeyState(VK_RETURN))
+        if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_SQUIDCOAST)))
         {
-            if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_STAGE)))
-            {
-                MSG_BOX("SquidCoast Create Failed");
-                return -1;
-            }
-
-            //Engine::CScene* pStage = CSquidCoast::Create(m_pGraphicDev);
-
-            //if (nullptr == pStage)
-            //    return E_FAIL;
-
-            //if (FAILED(CManagement::GetInstance()->Set_Scene(pStage)))
-            //{
-            //    MSG_BOX("SquidCoast Create Failed");
-            //    return -1;
-            //}
-        }        
+            MSG_BOX("SquidCoast Create Failed");
+            return -1;
+        }
     }
-
+         
     return iExit;
 }
 
@@ -110,11 +91,6 @@ void CLogo::Render_Scene()
         m_pEditor->Render_Scene();
         return;
     }
-
-    // DEBUG ¿ë ·»´õ
-    _vec2 vPos{ 0.f, 0.f };
-
-    CFontMgr::GetInstance()->Render_Font(L"Font_Default", m_pLoading->Get_String(), &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));
 }
 
 HRESULT CLogo::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -150,6 +126,11 @@ HRESULT CLogo::Ready_Prototype()
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/MainMenu_Screen2.png"))))
         return E_FAIL;
 
+    //·Îµù¾À µî·Ï
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
+        return E_FAIL;
+
     return S_OK;
 }
 
@@ -169,7 +150,6 @@ CLogo* CLogo::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CLogo::Free()
 {
-    Safe_Release(m_pLoading);
     Safe_Release(m_pEditor);
     CScene::Free();
 }

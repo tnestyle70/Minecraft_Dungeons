@@ -45,7 +45,7 @@ HRESULT CPlayer::Ready_GameObject()
 	if (FAILED(Add_Component()))
 		return E_FAIL;
 
-	m_pTransformCom->Set_Pos(0.f, 3.f, 0.f);
+	m_pTransformCom->Set_Pos(0.f, 5.f, 0.f);
 	// ========== 파트별 스케일 (CCubeTex는 -1~1 단위 → 실제크기 = scale * 2) ==========
 	// 머리: 0.4 x 0.4 x 0.4
 	m_vPartScale[PART_HEAD] = { 0.20f, 0.20f, 0.20f };
