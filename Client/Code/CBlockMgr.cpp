@@ -22,51 +22,20 @@ HRESULT CBlockMgr::Ready_BlockMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 	m_pGraphicDev = pGraphicDev;
 	m_pGraphicDev->AddRef();
 
-	//// 배치버퍼만 생성 (프로토타입 접근 없음)
-	//map<eBlockType, const _tchar*> tTypeToProto =
-	//{
-	//	{BLOCK_GRASS, L"Proto_GrassTexture"},
-	//	{BLOCK_DIRT,  L"Proto_DirtTexture"},
-	//	{BLOCK_ROCK,  L"Proto_RockTexture"},
-	//	{BLOCK_SAND,  L"Proto_SandTexture"},
-	//};
+	m_pTexture = dynamic_cast<CTexture*>(
+		CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_BlockAtlasTexture"));
 
-	//for (auto& pair : tTypeToProto)
-	//{
-	//	CBatchBuffer* pBatch = CBatchBuffer::Create(m_pGraphicDev);
-	//	if (!pBatch) return E_FAIL;
-	//	m_mapBatchBuffers.insert({ pair.first, pBatch });
-	//}
+	if (!m_pTexture)
+	{
+		MSG_BOX("Atlas Create Failed");
+		return E_FAIL;
+	}
 
 	return S_OK;
 }
 
 HRESULT CBlockMgr::Ready_Textures()
 {
-	map<eBlockType, const _tchar*> tTypeToProto =
-	{
-		{BLOCK_GRASS, L"Proto_GrassTexture"},
-		{BLOCK_DIRT,  L"Proto_DirtTexture"},
-		{BLOCK_ROCK,  L"Proto_RockTexture"},
-		{BLOCK_SAND,  L"Proto_SandTexture"},
-		{BLOCK_BEDROCK,  L"Proto_BedrockTexture"},
-		{BLOCK_OBSIDIAN,  L"Proto_ObsidianTexture"},
-		{BLOCK_STONEBRICK,  L"Proto_StoneBrickTexture"},
-		{BLOCK_IRONBAR, L"Proto_RockTexture"}
-	};
-
-	for (auto& pair : tTypeToProto)
-	{
-		CTexture* pTexture = dynamic_cast<CTexture*>(
-			CProtoMgr::GetInstance()->Clone_Prototype(pair.second));
-		if (!pTexture)
-		{
-			MSG_BOX("Block Texture Clone Failed");
-			return E_FAIL;
-		}
-		m_mapTextures.insert({ pair.first, pTexture });
-	}
-
 	return S_OK;
 }
 
@@ -80,58 +49,107 @@ void CBlockMgr::Update(const _float& fTimeDelta)
 
 void CBlockMgr::Render()
 {
+	if (m_bEditorMode)
+	{
+		Render_Editor();
+	}
+	else
+	{
+		Render_Stage();
+	}
+}
+
+void CBlockMgr::Render_Editor()
+{
+	//기존 최적화 X 렌더링
 	for (auto& pair : m_mapBlocks)
 		pair.second->Render_GameObject();
+}
 
-	//if (m_mapBatchBuffers.empty())
-	//	return;
-	//
-	////정정이 이미 월드 좌표로 bake되어있으므로 단위 행렬을 설정
-	//D3DXMATRIX matIdentity;
-	//D3DXMatrixIdentity(&matIdentity);
-	//m_pGraphicDev->SetTransform(D3DTS_WORLD, &matIdentity);
+void CBlockMgr::Render_Stage()
+{
+	if (!m_pBatchBuffer)
+		return;
 
-	////타입별 텍스쳐 바인딩 후 렌더링
-	//for (auto& pair : m_mapBatchBuffers)
-	//{
-	//	//해당 타입 텍스쳐 바인딩
-	//	auto itTex = m_mapTextures.find(pair.first);
-	//	if (itTex != m_mapTextures.end())
-	//	{
-	//		itTex->second->Set_Texture(0);
-	//	}
-	//	pair.second->Render_Buffer();
-	//}
+	_matrix matIdentity;
+
+	D3DXMatrixIdentity(&matIdentity);
+
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matIdentity);
+
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+	if (m_pTexture)
+		m_pTexture->Set_Texture(0);
+
+	m_pBatchBuffer->Render_Buffer();   // 드로우콜 1번
+
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+}
+
+void CBlockMgr::SetEditorMode(bool bEditor)
+{
+	m_bEditorMode = bEditor;
+	if (!bEditor)
+		RebuildBatchMesh();
 }
 
 void CBlockMgr::RebuildBatchMesh()
 {
-	//타입별 위치 목록 분리
-	map<eBlockType, vector<_vec3>> mapByType;
+	//면컬링용 인접 방향 오프셋
+	//BatchBuffer::EFace 순서와 일치 시키기
+	//인접한 면에 블럭 면이 있는지 판단해서 있으면 그리지 않기!
+	static const BlockPos s_NeighborDir[CBatchBuffer::FACE_END] =
+	{
+		{0, 1, 0}, //FACE_TOP
+		{0, -1, 0}, //FACE_BOTTOM
+		{1, 0, 0}, //FACE_RIGHT
+		{-1, 0, 0}, //FACE_LEFT
+		{0, 0, 1}, //FACE_FRONT
+		{0, 0, -1} //FACE_BACK
+	};
+
+	if (!m_pBatchBuffer)
+	{
+		m_pBatchBuffer = CBatchBuffer::Create(m_pGraphicDev);
+		if (!m_pBatchBuffer)
+			return;
+	}
+
+	if (m_mapBlocks.empty())
+	{
+		m_pBatchBuffer->Rebuild({}, {}, {});
+		return;
+	}
+
+	vector<_vec3> vecPos;
+	vector<eBlockType> vecType;
+	vector<bool> vecFaceVisible;
 
 	for (const auto& pair : m_mapBlocks)
 	{
+		const BlockPos& pos = pair.first;
 		eBlockType eType = pair.second->GetBlockType();
-		mapByType[eType].push_back({
-			static_cast<float>(pair.first.x),
-			static_cast<float>(pair.first.y),
-			static_cast<float>(pair.first.z)
-			});
-	}
 
-	//타입별로 각 배치버퍼 rebuild
-	for (auto& pair : m_mapBatchBuffers)
-	{
-		auto it = mapByType.find(pair.first);
-		if (it != mapByType.end())
+		vecPos.push_back({ (float)pos.x, (float)pos.y, (float)pos.z });
+		vecType.push_back(eType);
+		
+		for (int f = 0; f < CBatchBuffer::FACE_END; ++f)
 		{
-			pair.second->Rebuild(it->second);
-		}
-		else//해당 타입의 블럭이 존재하지 않을 경우 블록 비움
-		{
-			pair.second->Rebuild({});
+			BlockPos neighbor = {
+				pos.x + s_NeighborDir[f].x,
+				pos.y + s_NeighborDir[f].y,
+				pos.z + s_NeighborDir[f].z
+			};
+			vecFaceVisible.push_back(!HasBlock(neighbor));
 		}
 	}
+	//vecType 쪽 분리
+	m_pBatchBuffer->Rebuild(vecPos, vecType, vecFaceVisible);
 }
 
 void CBlockMgr::AddBlock(const _vec3& vPos, eBlockType eType)
@@ -170,8 +188,11 @@ void CBlockMgr::AddBlock(const _vec3& vPos, eBlockType eType)
 
 	m_mapBlocks.insert({ tPos, pBlock });
 
-	//블럭이 갱신될 때마다 배치 매쉬 갱신
-	RebuildBatchMesh();
+	if (!m_bEditorMode)
+	{
+		//블럭이 갱신될 때마다 배치 매쉬 갱신
+		RebuildBatchMesh();
+	}
 }
 
 void CBlockMgr::RemoveBlock(const _vec3& vPos)
@@ -185,8 +206,11 @@ void CBlockMgr::RemoveBlock(const _vec3& vPos)
 	Safe_Release(iter->second);
 	m_mapBlocks.erase(iter);
 
-	//블럭이 제거될 때마다 배치 매쉬 갱신
-	RebuildBatchMesh();
+	if (!m_bEditorMode)
+	{
+		//블럭이 갱신될 때마다 배치 매쉬 갱신
+		RebuildBatchMesh();
+	}
 }
 
 void CBlockMgr::RemoveBlockByPos(const BlockPos& pos)
@@ -196,7 +220,11 @@ void CBlockMgr::RemoveBlockByPos(const BlockPos& pos)
 		return;
 	Safe_Release(iter->second);
 	m_mapBlocks.erase(iter);
-	RebuildBatchMesh();
+	if (!m_bEditorMode)
+	{
+		//블럭이 갱신될 때마다 배치 매쉬 갱신
+		RebuildBatchMesh();
+	}
 }
 
 void CBlockMgr::ClearBlocks()
@@ -211,8 +239,11 @@ void CBlockMgr::ClearBlocks()
 		});
 	m_mapBlocks.clear();
 
-	//배치 매쉬 갱신 - 비어있으므로 버퍼가 0으로 리셋
-	RebuildBatchMesh();
+	if (!m_bEditorMode)
+	{
+		//블럭이 갱신될 때마다 배치 매쉬 갱신
+		RebuildBatchMesh();
+	}
 }
 
 HRESULT CBlockMgr::SaveBlocks(const _tchar* pFilePath)
@@ -283,9 +314,11 @@ HRESULT CBlockMgr::LoadBlocks(const _tchar* pFilePath)
 	}
 
 	fclose(pFile);
-
-	// 전체 로드 완료 후 딱 1번만 Rebuild
-	RebuildBatchMesh();
+	if (!m_bEditorMode)
+	{
+		// 전체 로드 완료 후 딱 1번만 Rebuild
+		RebuildBatchMesh();
+	}
 
 	return S_OK;
 }
@@ -374,18 +407,7 @@ BlockPos CBlockMgr::ToPos(const _vec3& vPos)
 void CBlockMgr::Free()
 {
 	ClearBlocks();
-
-	for (auto& pair : m_mapBatchBuffers)
-	{
-		Safe_Release(pair.second);
-	}
-	m_mapBatchBuffers.clear();
-
-	for (auto& pair : m_mapTextures)
-	{
-		Safe_Release(pair.second);
-	}
-	m_mapTextures.clear();
-
+	Safe_Release(m_pBatchBuffer);
+	Safe_Release(m_pTexture);
 	Safe_Release(m_pGraphicDev);
 }

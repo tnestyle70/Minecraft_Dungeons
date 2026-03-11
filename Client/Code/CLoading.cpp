@@ -48,7 +48,7 @@ _uint CLoading::Loading_Stage()
     lstrcpy(m_szLoading, L"Texture Loading.....................................");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
-        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/Ma.jpg"))))
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
         return E_FAIL;
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
@@ -111,6 +111,11 @@ _uint CLoading::Loading_Stage()
     //stonebrick
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_StoneBrickTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/StoneBrickTexture.dds"))))
+        return E_FAIL;
+
+    //블럭 텍스쳐 아틀라스
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BlockAtlasTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
         return E_FAIL;
 
 #pragma region 좀비
@@ -185,7 +190,6 @@ _uint CLoading::Loading_Stage()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
         return E_FAIL;
 #pragma endregion
-
 
     lstrcpy(m_szLoading, L"Etc Loading.....................................");
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "CProtoMgr.h"
 #include "CBlockPlacer.h"
 #include "CBlock.h"
 #include "CIronBar.h"
@@ -21,7 +22,13 @@ public:
 	HRESULT Ready_Textures();
 	void Update(const _float& fTimeDelta);
 	void Render();
-	
+private:
+	void Render_Editor();
+	void Render_Stage();
+public:
+	void SetEditorMode(bool bEditor);
+	bool IsEditorMode() { return m_bEditorMode; };
+
 	const map<BlockPos, CBlock*>& Get_Blocks() { return m_mapBlocks; }
 	void AddBlock(const _vec3& vPos, eBlockType eType);
 	void RemoveBlock(const _vec3& vPos);
@@ -43,10 +50,10 @@ public:
 private: //블럭의 위치 - 키, 실제 블럭 - 값으로 저장
 	LPDIRECT3DDEVICE9 m_pGraphicDev;
 	map<BlockPos, CBlock*> m_mapBlocks;
+	//Atlas Texture
+	CTexture* m_pTexture = nullptr;
 	CBatchBuffer* m_pBatchBuffer = nullptr;
-	//타입별로 배치 버퍼를 분리
-	map<eBlockType, CBatchBuffer*> m_mapBatchBuffers;
-	map<eBlockType, CTexture*> m_mapTextures;
+	bool m_bEditorMode = true;
 private:
 	virtual void Free();
 };

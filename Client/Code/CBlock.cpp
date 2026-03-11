@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CBlock.h"
 #include "CRenderer.h"
+#include "CBlockMgr.h"
 
 CBlock::CBlock(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -51,7 +52,10 @@ _int CBlock::Update_GameObject(const _float& fTimeDelta)
 
 	//디버깅용 - 나중에 RENDER_PRIORITY로 변경
 	//최적화 이후 주석
-	CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
+	if (CBlockMgr::GetInstance()->IsEditorMode())
+	{
+		CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
+	}
 
 	return iExit;
 }
@@ -78,7 +82,7 @@ void CBlock::Render_GameObject()
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
 	//디버깅용으로 일단 렌더링
-	m_pColliderCom->Render_Collider();
+	//m_pColliderCom->Render_Collider();
 }
 
 HRESULT CBlock::Add_Component()
@@ -102,8 +106,6 @@ HRESULT CBlock::Add_Component()
 	m_mapComponent[ID_DYNAMIC].insert({ L"Com_Transform", pComponent });
 
 	// Texture
-	//pComponent = m_pTextureCom = dynamic_cast<CTexture*>
-	//	(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RockTexture"));
 	pComponent = m_pTextureCom = dynamic_cast<CTexture*>
 		(CProtoMgr::GetInstance()->Clone_Prototype(GetTextureName()));
 

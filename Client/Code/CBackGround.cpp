@@ -57,7 +57,8 @@ HRESULT CBackGround::Add_Component(const _tchar* pPath)
 	Engine::CComponent* pComponent = nullptr;
 
 	// RcTex
-	pComponent = m_pBufferCom = dynamic_cast<CRcTex*>(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
+	pComponent = m_pBufferCom = dynamic_cast<CRcTex*>(
+		CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
 
 	if (nullptr == pComponent)
 		return E_FAIL;
