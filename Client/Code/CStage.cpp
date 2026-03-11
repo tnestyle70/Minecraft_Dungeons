@@ -66,7 +66,7 @@ void CStage::LateUpdate_Scene(const _float& fTimeDelta)
 void CStage::Render_Scene()
 {
     //최적화 이후 주석 해제
-    //CBlockMgr::GetInstance()->Render();
+    CBlockMgr::GetInstance()->Render();
 }
 
 HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -109,8 +109,18 @@ HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
         MSG_BOX("block mgr create failed");
         return E_FAIL;
     }
+    //Atlas는 Ready에서 등록되니까 따로 Texture설정할 필요 없음
+    //if (FAILED(CBlockMgr::GetInstance()->Ready_Textures()))
+    //{
+    //    MSG_BOX("block mgr create failed");
+    //    return E_FAIL;
+    //}
 
     CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+
+    //SetEditorMode 내부에서 rebuildbatchmesh를 해야 하는데,
+    //그 시점에는 블럭이 없는 상태이므로, LoadBlocks를 먼저 해야 함
+    CBlockMgr::GetInstance()->SetEditorMode(false);
 
     return S_OK;
 }

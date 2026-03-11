@@ -1,8 +1,32 @@
 #include "pch.h"
 #include "CBatchBuffer.h"
-
 //블럭 중심 기준으로 +-0.5 정도의 위치로 월드 좌표를 직접 써넣기
 //world matrix를 identity로 두고 그리기 떄문에 settransform이 필요 없음
+
+//face offsets
+static const _vec3 g_FaceVerts[CBatchBuffer::FACE_END][4] =
+{
+	// FACE_TOP    (+Y)
+	{ {-0.5f, 0.5f,  0.5f}, { 0.5f, 0.5f,  0.5f}, { 0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f} },
+	// FACE_BOTTOM (-Y)
+	{ {-0.5f,-0.5f, -0.5f}, { 0.5f,-0.5f, -0.5f}, { 0.5f,-0.5f,  0.5f}, {-0.5f,-0.5f,  0.5f} },
+	// FACE_RIGHT  (+X)
+	{ { 0.5f, 0.5f, -0.5f}, { 0.5f, 0.5f,  0.5f}, { 0.5f,-0.5f,  0.5f}, { 0.5f,-0.5f, -0.5f} },
+	// FACE_LEFT   (-X)
+	{ {-0.5f, 0.5f,  0.5f}, {-0.5f, 0.5f, -0.5f}, {-0.5f,-0.5f, -0.5f}, {-0.5f,-0.5f,  0.5f} },
+	// FACE_FRONT  (+Z)
+	{ {-0.5f, 0.5f,  0.5f}, { 0.5f, 0.5f,  0.5f}, { 0.5f,-0.5f,  0.5f}, {-0.5f,-0.5f,  0.5f} },  // 기존 Z+ 뒷면과 동일
+	// FACE_BACK   (-Z)
+	{ { 0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}, {-0.5f,-0.5f, -0.5f}, { 0.5f,-0.5f, -0.5f} },  // 기존 Z- 앞면과 동일
+};
+
+static const _vec2 g_FaceUVs[4] =
+{
+	{0.f, 0.f}, //Left Top
+	{1.f, 0.f}, //Right Top
+	{1.f, 1.f}, //Right Bottom
+	{0.f, 1.f}  //Left Bottom
+};
 
 CBatchBuffer::CBatchBuffer(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CVIBuffer(pGraphicDev)
@@ -13,125 +37,207 @@ CBatchBuffer::~CBatchBuffer()
 {
 }
 
-HRESULT CBatchBuffer::Rebuild(const vector<_vec3>& vecPositions)
+TileUV CBatchBuffer::MakeTile(int col, int row)
+{
+	//타일 크기(4열 기준)
+	const float s = 1.f / 4.f;
+
+	return { col * s, row * s, (col + 1) * s, (row + 1) * s };
+}
+
+TileUV CBatchBuffer::GetTileUV(eBlockType eType, eFace eFace)
+{
+	switch (eType)
+	{
+	case BLOCK_GRASS:
+		if (eFace == CBatchBuffer::FACE_TOP)
+			return MakeTile(3, 0);
+		if (eFace == CBatchBuffer::FACE_BOTTOM)
+			return MakeTile(1, 0);
+		return MakeTile(0, 1);
+	case BLOCK_DIRT:
+		return MakeTile(1, 0);
+	case BLOCK_ROCK:
+		return MakeTile(3, 1);
+	case BLOCK_SAND:
+		return MakeTile(0, 2);
+	case BLOCK_BEDROCK:
+		return MakeTile(0, 0);
+	case BLOCK_OBSIDIAN:
+		return MakeTile(2, 0);
+	case BLOCK_STONEBRICK:
+		return MakeTile(1, 2);
+	case BLOCK_IRONBAR:
+		return MakeTile(1, 2);
+	case BLOCK_TNT:
+		if (eFace == CBatchBuffer::FACE_TOP)
+			return MakeTile(0, 3);
+		if (eFace == CBatchBuffer::FACE_BOTTOM)
+			return MakeTile(2, 2);
+		return MakeTile(3, 2);
+	default:
+		return MakeTile(1, 0);
+	}
+
+	return MakeTile(1, 0);
+}
+
+HRESULT CBatchBuffer::Rebuild(const vector<_vec3>& vecPositions,
+	const vector<eBlockType>& vecType, 
+	const vector<bool>& vecFaceVisible)
 {
 	//블럭들의 위치 목록을 받아서 Vertex Buffer, Index Buffer를 다시 채우기
 	//AddBlock / RemoveBlock / LoadBlocks 직후 CBlockMgr이 호출
-	const DWORD dwCount = static_cast<DWORD>(vecPositions.size());
-
+	const DWORD dwBlockCount = static_cast<DWORD>(vecPositions.size());
+	const bool bCulling = !vecFaceVisible.empty();
+	
 	//블럭이 0개면 버퍼를 비우고 종료
-	if (dwCount == 0)
+	if (dwBlockCount == 0)
 	{
 		Safe_Release(m_pVB);
 		Safe_Release(m_pIB);
 		m_dwVtxCnt = 0;
 		m_dwTriCnt = 0;
-		m_dwBlockCount = 0;
+		m_dwFaceCount = 0;
 		return S_OK;
 	}
-	//블럭 수가 달라졌을 때만 GPU 버퍼를 재할당
-	if (dwCount != m_dwBlockCount)
+
+	//Calculate the rendering faces
+	DWORD dwVisibleFaces = 0;
+
+	for (DWORD i = 0; i < dwBlockCount; ++i)
 	{
-		if (FAILED(ReallocBuffers(dwCount)))
+		for (int face = 0; face < FACE_END; ++face)
+		{
+			bool bVisible = bCulling ? vecFaceVisible[i * FACE_END + face] : true;
+
+			if (bVisible)
+			{
+				++dwVisibleFaces;
+			}
+		}
+	}
+	
+	//if block's face stuck from other blocks, don't render
+	if (dwVisibleFaces == 0)
+	{
+		Safe_Release(m_pVB);
+		Safe_Release(m_pIB);
+		m_dwVtxCnt = 0;
+		m_dwTriCnt = 0;
+		m_dwFaceCount = 0;
+		return S_OK;
+	}
+
+	//Reallocate GPU buffer, when face actually change
+	if (dwVisibleFaces != m_dwFaceCount)
+	{
+		if (FAILED(ReallocBuffers(dwVisibleFaces)))
 			return E_FAIL;
 	}
-	//정점 인덱스 채우기
-	VTXBLOCK* pVertex = nullptr;
+	
+	//Buffer Lock -> Write Visible Faces
+	VERTEXBLOCK* pVertex = nullptr;
 	m_pVB->Lock(0, 0, reinterpret_cast<void**>(&pVertex), 0);
 	
 	INDEX32* pIndex = nullptr;
 	m_pIB->Lock(0, 0, reinterpret_cast<void**>(&pIndex), 0);
+	
+	DWORD dwFaceSlot = 0;
 
-	for (DWORD i = 0; i < dwCount; ++i)
+	for (DWORD i = 0; i < dwBlockCount; ++i)
 	{
-		WriteBlockMesh(pVertex, pIndex, i,
-			vecPositions[i].x,
-			vecPositions[i].y,
-			vecPositions[i].z);
+		float batchX = vecPositions[i].x;
+		float batchY = vecPositions[i].y;
+		float batchZ = vecPositions[i].z;
+		
+		for (int face = 0; face < FACE_END; ++face)
+		{
+			bool bVisible = bCulling ? vecFaceVisible[i * FACE_END + face] : true;
+			if (!bVisible)
+				continue;
+
+			WriteFace(pVertex, pIndex, dwFaceSlot, static_cast<eFace>(face),
+				batchX, batchY, batchZ, vecType[i]);
+
+			++dwFaceSlot;
+		}
 	}
-	m_pIB->Unlock();
+
 	m_pVB->Unlock();
+	m_pIB->Unlock();
 
 	return S_OK;
 }
 
-HRESULT CBatchBuffer::ReallocBuffers(DWORD dwBlockCount)
+//face count를 기준으로 VB/IB 크기를 결정해서 재할당
+HRESULT CBatchBuffer::ReallocBuffers(DWORD dwFaceCount)
 {
 	Safe_Release(m_pVB);
 	Safe_Release(m_pIB);
 
-	m_dwVtxCnt = dwBlockCount * 24; // 면당 4정점 × 6면
-	m_dwTriCnt = dwBlockCount * 12; // 면당 2삼각형 × 6면 (동일)
-	m_dwVtxSize = sizeof(VTXBLOCK);  //  변경
-	m_dwIdxSize = sizeof(INDEX32);
-	m_dwFVF = FVF_BLOCK;         //  변경
+	m_dwVtxCnt = dwFaceCount * 4; // face vertex 4
+	m_dwTriCnt = dwFaceCount * 2; // face tri 2
+	m_dwVtxSize = sizeof(VERTEXBLOCK); 
+	m_dwIdxSize = sizeof(INDEX32); //triangle size = dword * 3
+	m_dwFVF = FVF_BLOCK;         
 	m_IdxFmt = D3DFMT_INDEX32;
 
 	if (FAILED(CVIBuffer::Ready_Buffer()))
 		return E_FAIL;
 
-	m_dwBlockCount = dwBlockCount;
+	m_dwFaceCount = dwFaceCount;
+
 	return S_OK;
 }
 
-void CBatchBuffer::WriteBlockMesh(VTXBLOCK* pVtx, INDEX32* pIndex,
-	DWORD blockIndex, float bx, float by, float bz)
+void CBatchBuffer::WriteFace(VERTEXBLOCK* pVertex, INDEX32* pIndex, 
+	DWORD dwFaceSlot, eFace eFace,
+	float bakeX, float bakeY, float bakeZ, 
+	eBlockType eType)
 {
-	const DWORD vBase = blockIndex * 24;
-	const DWORD iBase = blockIndex * 12;
+	//N번째 면의 인덱스는 N * 4부터 시작해야 함, 안 하면 모든 면이 첫번째 면 정점을 
+	//공유해서 텍스쳐가 깨지게 됨
+	const DWORD vtxBase = dwFaceSlot * 4;
+	const DWORD idxBase = dwFaceSlot * 2;
 
-	// 각 면: 정점 4개, UV (0,0)(1,0)(1,1)(0,1) 순서
-	// 인덱스: 0,1,2 / 0,2,3 패턴
+	//해당 면의 아틀라스 범위 가지고 오기
+	TileUV tile = GetTileUV(eType, eFace);
 
-	// Z- 앞면 (0,0,0 기준)
-	pVtx[vBase + 0] = { {bx - 0.5f, by + 0.5f, bz - 0.5f}, {0,0} };
-	pVtx[vBase + 1] = { {bx + 0.5f, by + 0.5f, bz - 0.5f}, {1,0} };
-	pVtx[vBase + 2] = { {bx + 0.5f, by - 0.5f, bz - 0.5f}, {1,1} };
-	pVtx[vBase + 3] = { {bx - 0.5f, by - 0.5f, bz - 0.5f}, {0,1} };
-
-	// Z+ 뒷면
-	pVtx[vBase + 4] = { {bx + 0.5f, by + 0.5f, bz + 0.5f}, {0,0} };
-	pVtx[vBase + 5] = { {bx - 0.5f, by + 0.5f, bz + 0.5f}, {1,0} };
-	pVtx[vBase + 6] = { {bx - 0.5f, by - 0.5f, bz + 0.5f}, {1,1} };
-	pVtx[vBase + 7] = { {bx + 0.5f, by - 0.5f, bz + 0.5f}, {0,1} };
-
-	// X+ 오른쪽
-	pVtx[vBase + 8] = { {bx + 0.5f, by + 0.5f, bz - 0.5f}, {0,0} };
-	pVtx[vBase + 9] = { {bx + 0.5f, by + 0.5f, bz + 0.5f}, {1,0} };
-	pVtx[vBase + 10] = { {bx + 0.5f, by - 0.5f, bz + 0.5f}, {1,1} };
-	pVtx[vBase + 11] = { {bx + 0.5f, by - 0.5f, bz - 0.5f}, {0,1} };
-
-	// X- 왼쪽
-	pVtx[vBase + 12] = { {bx - 0.5f, by + 0.5f, bz + 0.5f}, {0,0} };
-	pVtx[vBase + 13] = { {bx - 0.5f, by + 0.5f, bz - 0.5f}, {1,0} };
-	pVtx[vBase + 14] = { {bx - 0.5f, by - 0.5f, bz - 0.5f}, {1,1} };
-	pVtx[vBase + 15] = { {bx - 0.5f, by - 0.5f, bz + 0.5f}, {0,1} };
-
-	// Y+ 위
-	pVtx[vBase + 16] = { {bx - 0.5f, by + 0.5f, bz + 0.5f}, {0,0} };
-	pVtx[vBase + 17] = { {bx + 0.5f, by + 0.5f, bz + 0.5f}, {1,0} };
-	pVtx[vBase + 18] = { {bx + 0.5f, by + 0.5f, bz - 0.5f}, {1,1} };
-	pVtx[vBase + 19] = { {bx - 0.5f, by + 0.5f, bz - 0.5f}, {0,1} };
-
-	// Y- 아래
-	pVtx[vBase + 20] = { {bx - 0.5f, by - 0.5f, bz - 0.5f}, {0,0} };
-	pVtx[vBase + 21] = { {bx + 0.5f, by - 0.5f, bz - 0.5f}, {1,0} };
-	pVtx[vBase + 22] = { {bx + 0.5f, by - 0.5f, bz + 0.5f}, {1,1} };
-	pVtx[vBase + 23] = { {bx - 0.5f, by - 0.5f, bz + 0.5f}, {0,1} };
-
-	// 인덱스 - 면당 0,1,2 / 0,2,3 패턴
-	for (DWORD f = 0; f < 6; ++f)
+	//타일 범위로 UV 4개 계산
+	_vec2 uvs[4] =
 	{
-		DWORD v = vBase + f * 4;
-		pIndex[iBase + f * 2 + 0] = { v + 0, v + 1, v + 2 };
-		pIndex[iBase + f * 2 + 1] = { v + 0, v + 2, v + 3 };
+		{tile.u0, tile.v0}, //LT
+		{tile.u1, tile.v0}, //RT
+		{tile.u1, tile.v1}, //RB
+		{tile.u0, tile.v1} //LB
+	};
+
+	//write 4 vertexs, center pos -> offset -> world coord
+	//정점 정보 자체에 월드 위치를 bake
+	//vertex에 애초에 월드 위치를 저장했기 때문에, 월드 행렬을 곱해줄 필요가 없으므로 
+	//단위 행렬을 곱해줌
+	//모든 정점을 하나의 월드 좌표로 베이킹을 해서 한 번의 DrawCall을 호출
+	for (int vtx = 0; vtx < 4; ++vtx)
+	{
+		pVertex[vtxBase + vtx].vPos =
+		{
+			bakeX + g_FaceVerts[eFace][vtx].x,
+			bakeY + g_FaceVerts[eFace][vtx].y,
+			bakeZ + g_FaceVerts[eFace][vtx].z
+		};
+		//pVertex[vtxBase + vtx].vUV = g_FaceUVs[vtx];
+		pVertex[vtxBase + vtx].vUV = uvs[vtx];
 	}
+	//삼각형 2개 기록 - 덮어쓰기 방지
+	pIndex[idxBase] = { vtxBase, vtxBase + 1, vtxBase + 2 };
+	pIndex[idxBase + 1] = { vtxBase, vtxBase + 2, vtxBase + 3 };
 }
 
 void CBatchBuffer::Render_Buffer()
 {
 	// 블럭이 없으면 그리지 않는다
-	if (m_dwBlockCount == 0 || !m_pVB || !m_pIB)
+	if (m_dwFaceCount == 0 || !m_pVB || !m_pIB)
 		return;
 	// 부모(CVIBuffer)의 구현을 그대로 사용한다.
 	// SetStreamSource → SetFVF → SetIndices → DrawIndexedPrimitive

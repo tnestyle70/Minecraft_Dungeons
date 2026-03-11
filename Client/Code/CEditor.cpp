@@ -25,6 +25,12 @@ HRESULT CEditor::Ready_Scene()
 		return E_FAIL;
 	}
 
+	if (FAILED(CBlockMgr::GetInstance()->Ready_Textures()))
+	{
+		MSG_BOX("block mgr create failed");
+		return E_FAIL;
+	}
+
 	//block placer 연결
 	m_pBlockPlacer = new CBlockPlacer(m_pGraphicDev);
 
@@ -79,11 +85,14 @@ void CEditor::Render_Scene()
 	{
 		return;
 	}
+
 	Render_MenuBar();
 	Render_Hierarchy();
 	Render_Inspector();
 	Render_Viewport();
 
+	//에디터냐 스테이지냐에 따라서 서로 다른 렌더링 방식 사용
+	//DDS or png
 	CBlockMgr::GetInstance()->Render();
 }
 
@@ -117,8 +126,12 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 void CEditor::SetEditorMode(bool editorMode)
 {
 	m_bEditorMode = !m_bEditorMode;
-
-	CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+	//에디터가 꺼질 경우 스테이지 진입하면서 LoadBlocks 호출
+	CBlockMgr::GetInstance()->SetEditorMode(m_bEditorMode);
+	if (m_bEditorMode)
+	{
+		CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+	}
 }
 
 void CEditor::Render_MenuBar()

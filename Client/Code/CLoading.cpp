@@ -20,12 +20,12 @@ HRESULT CLoading::Ready_Loading(LOADINGID eID)
 
     m_eLoadingID = eID;
 
-    m_hThread = (HANDLE)_beginthreadex(NULL, // º¸¾È ¼Ó¼º(ÇÚµéÀÇ »ó¼Ó ¿©ºÎ, NULLÀÎ °æ¿ì »ó¼Ó¿¡¼­ Á¦¿Ü)
-                                        0,  // µğÆúÆ® ½ºÅÃ »çÀÌÁî(1 ¹ÙÀÌÆ®)
-                                        Thread_Main, // ±¸µ¿ÇÒ ¾²·¹µå ÇÔ¼ö
-                                        this,          // 3¹ø ¸Å°³ º¯¼ö ÇÔ¼ö¸¦ ÅëÇØ °¡°øÇÒ µ¥ÀÌÅÍ ÁÖ¼Ò
-                                        0,             // ¾²·¹µå »ı¼º ¹× ½ÇÇàÀ» Á¶Á¤ÇÏ±â À§ÇÑ ¿É¼Ç
-                                        NULL);         // ¾²·¹µå ID
+    m_hThread = (HANDLE)_beginthreadex(NULL, // ë³´ì•ˆ ì†ì„±(í•¸ë“¤ì˜ ìƒì† ì—¬ë¶€, NULLì¸ ê²½ìš° ìƒì†ì—ì„œ ì œì™¸)
+                                        0,  // ë””í´íŠ¸ ìŠ¤íƒ ì‚¬ì´ì¦ˆ(1 ë°”ì´íŠ¸)
+                                        Thread_Main, // êµ¬ë™í•  ì“°ë ˆë“œ í•¨ìˆ˜
+                                        this,          // 3ë²ˆ ë§¤ê°œ ë³€ìˆ˜ í•¨ìˆ˜ë¥¼ í†µí•´ ê°€ê³µí•  ë°ì´í„° ì£¼ì†Œ
+                                        0,             // ì“°ë ˆë“œ ìƒì„± ë° ì‹¤í–‰ì„ ì¡°ì •í•˜ê¸° ìœ„í•œ ì˜µì…˜
+                                        NULL);         // ì“°ë ˆë“œ ID
     return S_OK;
 }
 
@@ -47,8 +47,6 @@ _uint CLoading::Loading_Stage()
 
     lstrcpy(m_szLoading, L"Texture Loading.....................................");
 
-    
-
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Terrain/Grass_%d.tga", 2))))
         return E_FAIL;
@@ -61,40 +59,40 @@ _uint CLoading::Loading_Stage()
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Explosion/Explosion%d.png", 90))))
         return E_FAIL;
 
-    //¿ÀÂ¡¾î ÇØ¾È ·Îµù ÅØ½ºÃÄ
+    //ì˜¤ì§•ì–´ í•´ì•ˆ ë¡œë”© í…ìŠ¤ì³
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
         return E_FAIL;
 
-    //Ä·ÇÁ ·Îµù ÅØ½ºÃÄ
+    //ìº í”„ ë¡œë”© í…ìŠ¤ì³
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampLoadingTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png"))))
         return E_FAIL;
 
-    // ÇÃ·¹ÀÌ¾î ÅØ½ºÃÄ
+    // í”Œë ˆì´ì–´ í…ìŠ¤ì³
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
         return E_FAIL;
   
-    // ´ß ÅØ½ºÃÄ
+    // ë‹­ í…ìŠ¤ì³
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))
         return E_FAIL;
 
-    //ºí·° ÅØ½ºÃÄ
-    //ÀÜµğ 
+    //ë¸”ëŸ­ í…ìŠ¤ì³
+    //ì”ë”” 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_GrassTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/GrassSideTexture.dds"))))
         return E_FAIL;
-    //Èë
+    //í™
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_DirtTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/DirtTexture.dds"))))
         return E_FAIL;
-    //¸ğ·¡
+    //ëª¨ë˜
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SandTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/SandTexture.dds"))))
         return E_FAIL;
-    //µ¹
+    //ëŒ
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RockTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/RockTexture.dds"))))
         return E_FAIL;
@@ -111,13 +109,18 @@ _uint CLoading::Loading_Stage()
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/StoneBrickTexture.dds"))))
         return E_FAIL;
 
-#pragma region Á»ºñ
-    // Á»ºñ ÅØ½ºÃ³
+    //ë¸”ëŸ­ í…ìŠ¤ì³ ì•„í‹€ë¼ìŠ¤
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BlockAtlasTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
+        return E_FAIL;
+
+#pragma region ì¢€ë¹„
+    // ì¢€ë¹„ í…ìŠ¤ì²˜
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
         return E_FAIL;
 
-    // Á»ºñ ÆÄÃ÷ ¹öÆÛ
+    // ì¢€ë¹„ íŒŒì¸  ë²„í¼
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_Head",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::HEAD))))
         return E_FAIL;
@@ -142,7 +145,7 @@ _uint CLoading::Loading_Stage()
         Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
         return E_FAIL;
 #pragma endregion
-#pragma region ½ºÄÌ·¹Åæ
+#pragma region ìŠ¤ì¼ˆë ˆí†¤
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
         return E_FAIL;
@@ -184,7 +187,6 @@ _uint CLoading::Loading_Stage()
         return E_FAIL;
 #pragma endregion
 
-
     lstrcpy(m_szLoading, L"Etc Loading.....................................");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Transform", Engine::CTransform::Create(m_pGraphicDev))))
@@ -222,7 +224,7 @@ unsigned int CLoading::Thread_Main(void* pArg)
 
     //_endthreadex(0);
 
-    return iFlag;       // 0 ¸®ÅÏ ½Ã, _endthreadex°¡ ÀÚµ¿ È£Ãâ
+    return iFlag;       // 0 ë¦¬í„´ ì‹œ, _endthreadexê°€ ìë™ í˜¸ì¶œ
 }
 
 CLoading* CLoading::Create(LPDIRECT3DDEVICE9 pGraphicDev, LOADINGID eID)

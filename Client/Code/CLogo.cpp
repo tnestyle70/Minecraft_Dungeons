@@ -34,16 +34,13 @@ HRESULT CLogo::Ready_Scene()
     if (nullptr == m_pLoading)
         return E_FAIL;
 
-    //m_pEditor = CEditor::Create(m_pGraphicDev);
-    //if (!m_pEditor)
-    //    return E_FAIL;
-
     return S_OK;
 }
 
 _int CLogo::Update_Scene(const _float& fTimeDelta)
 {
     bool bF1 = CDInputMgr::GetInstance()->Get_DIKeyState(DIK_F1);
+
     //에디터 모드로 변경
     if (bF1 && !m_bF1Toggle)
     {

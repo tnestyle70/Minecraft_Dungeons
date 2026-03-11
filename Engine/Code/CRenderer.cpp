@@ -32,7 +32,6 @@ void CRenderer::Render_GameObject(LPDIRECT3DDEVICE9& pGraphicDev)
 
 void CRenderer::Render_Priority(LPDIRECT3DDEVICE9& pGraphicDev)
 {
-
 	for (auto& pObj : m_RenderGroup[RENDER_PRIORITY])
 		pObj->Render_GameObject();
 }
