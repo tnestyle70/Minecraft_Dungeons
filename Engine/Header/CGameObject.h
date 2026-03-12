@@ -15,6 +15,8 @@ public:
 	CComponent* Get_Component(COMPONENTID eID, const _tchar* pComponentTag);
 	_float Get_ViewZ() { return m_fViewZ; }
 
+
+
 public:
 	virtual			HRESULT		Ready_GameObject();
 	virtual			_int		Update_GameObject(const _float& fTimeDelta);

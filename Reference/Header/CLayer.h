@@ -17,7 +17,8 @@ public:
 public:
 	HRESULT			Ready_Layer();
 	_int			Update_Layer(const _float& fTimeDelta);
-	void			LateUpdate_Layer(const _float& fTimeDelta);
+	void			LateUpdate_Layer(const _float& fTimeDelta); 
+	
 
 private:
 	multimap<const _tchar*, CGameObject*>			m_mapObject;

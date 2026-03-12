@@ -105,37 +105,94 @@ HRESULT CMonsterBody::Ready_Body()
         pRLeg = L"Proto_Skeleton_RLeg";
         pLLeg = L"Proto_Skeleton_LLeg";
         break;
-
+    case EMonsterType::CREEPER:
+        pHead = L"Proto_creeper_Head";
+        pBody = L"Proto_creeper_Body";
+        pRArm = L"Proto_creeper_RFLeg";  // 앞다리 오른쪽
+        pLArm = L"Proto_creeper_LFLeg";  // 앞다리 왼쪽
+        pRLeg = L"Proto_creeper_RBLeg";  // 뒷다리 오른쪽
+        pLLeg = L"Proto_creeper_LBLeg";  // 뒷다리 왼쪽
+        break; 
+    case EMonsterType::SPIDER:
+        pHead = L"Proto_Spider_Head";
+        pBody = L"Proto_Spider_Body";
+        pRArm = L"Proto_Spider_RFLeg";  // 앞다리 오른쪽
+        pLArm = L"Proto_Spider_LFLeg";  // 앞다리 왼쪽
+        pRLeg = L"Proto_Spider_RBLeg";  // 뒷다리 오른쪽
+        pLLeg = L"Proto_Spider_LBLeg";  // 뒷다리 왼쪽
+        break;
     default:
         return E_FAIL;
     }
 
     // 파츠 등록
-    if (FAILED(Register_Part(MonsterPart::HEAD,
-        { pHead, { 0.f,   fHeadCenterY, 0.f }, { 0.f, -m_fHeadHeight * 0.5f, 0.f } })))
-        return E_FAIL;
+    if (m_eType == EMonsterType::SPIDER)
+    {
+        float fSpiderBodyY = 0.5f;
+        float fLegSpread = 0.55f;
 
-    if (FAILED(Register_Part(MonsterPart::BODY,
-        { pBody, { 0.f,   fBodyCenterY, 0.f }, { 0.f, 0.f, 0.f } })))
-        return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::HEAD,
+            { pHead, { 0.f, fSpiderBodyY + 0.1f, 0.5f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::BODY,
+            { pBody, { 0.f, fSpiderBodyY, 0.f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_ARM,
+            { pRArm, { fLegSpread, fSpiderBodyY, 0.2f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_ARM,
+            { pLArm, { -fLegSpread, fSpiderBodyY, 0.2f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_LEG,
+            { pRLeg, { fLegSpread, fSpiderBodyY, -0.2f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_LEG,
+            { pLLeg, { -fLegSpread, fSpiderBodyY, -0.2f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+    }
+    else if (m_eType == EMonsterType::CREEPER)
+    {
+        if (FAILED(Register_Part(MonsterPart::HEAD,
+            { pHead, { 0.f, fHeadCenterY, 0.f }, { 0.f, -m_fHeadHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::BODY,
+            { pBody, { 0.f, fBodyCenterY, 0.f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_ARM,
+            { pRArm, { fLegX, fLegCenterY, 0.3f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_ARM,
+            { pLArm, { -fLegX, fLegCenterY, 0.3f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_LEG,
+            { pRLeg, { fLegX, fLegCenterY, -0.3f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_LEG,
+            { pLLeg, { -fLegX, fLegCenterY, -0.3f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+    }
+    else // ZOMBIE, SKELETON
+    {
+        if (FAILED(Register_Part(MonsterPart::HEAD,
+            { pHead, { 0.f, fHeadCenterY, 0.f }, { 0.f, -m_fHeadHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::BODY,
+            { pBody, { 0.f, fBodyCenterY, 0.f }, { 0.f, 0.f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_ARM,
+            { pRArm, { fArmX, fArmCenterY, 0.f }, { 0.f, -m_fArmHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_ARM,
+            { pLArm, { -fArmX, fArmCenterY, 0.f }, { 0.f, -m_fArmHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::RIGHT_LEG,
+            { pRLeg, { fLegX, fLegCenterY, 0.f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+        if (FAILED(Register_Part(MonsterPart::LEFT_LEG,
+            { pLLeg, { -fLegX, fLegCenterY, 0.f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
+            return E_FAIL;
+    }
 
-    if (FAILED(Register_Part(MonsterPart::RIGHT_ARM,
-        { pRArm, { fArmX,  fArmCenterY, 0.f }, { 0.f, -m_fArmHeight * 0.5f, 0.f } })))
-        return E_FAIL;
-
-    if (FAILED(Register_Part(MonsterPart::LEFT_ARM,
-        { pLArm, { -fArmX, fArmCenterY, 0.f }, { 0.f, -m_fArmHeight * 0.5f, 0.f } })))
-        return E_FAIL;
-
-    if (FAILED(Register_Part(MonsterPart::RIGHT_LEG,
-        { pRLeg, { fLegX,  fLegCenterY, 0.f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
-        return E_FAIL;
-
-    if (FAILED(Register_Part(MonsterPart::LEFT_LEG,
-        { pLLeg, { -fLegX, fLegCenterY, 0.f }, { 0.f, -m_fLegHeight * 0.5f, 0.f } })))
-        return E_FAIL;
-
-    
     m_pAnim = new CMonsterAnim(m_eType);
 
     return S_OK;

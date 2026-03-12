@@ -124,7 +124,7 @@ _uint CLoading::Loading_Stage()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
         return E_FAIL;
 
-#pragma region 
+  
     // 좀비 텍스처
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
@@ -154,8 +154,8 @@ _uint CLoading::Loading_Stage()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_LLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
         return E_FAIL;
-#pragma endregion
-#pragma region 스켈레톤
+
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
         return E_FAIL;
@@ -195,7 +195,38 @@ _uint CLoading::Loading_Stage()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
         return E_FAIL;
-#pragma endregion
+
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CreeperTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/creeper.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_Head",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::HEAD))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_Body",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::BODY))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_RFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_LFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_RBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Creeper_LBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+
+
 
     lstrcpy(m_szLoading, L"Etc Loading.....................................");
 
@@ -307,8 +338,8 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
         return E_FAIL;
 
-#pragma region 
-    // 좀비 텍스처
+
+    // Zobie
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
         return E_FAIL;
@@ -337,8 +368,7 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_LLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
         return E_FAIL;
-#pragma endregion
-#pragma region 스켈레톤
+    //Skeleton
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
         return E_FAIL;
@@ -366,7 +396,7 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_LEG))))
         return E_FAIL;
-
+    //arrow
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandbyTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_standby.png"))))
         return E_FAIL;
@@ -378,7 +408,66 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
         return E_FAIL;
-#pragma endregion
+
+    // Creeper
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeperTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/creeper.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_Head",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::HEAD))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_Body",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::BODY))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_RFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_LFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_RBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_LBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+        return E_FAIL; 
+
+    // Spider
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SpiderTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/T_Spider_Skin.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_Head",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::HEAD))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_Body",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::BODY))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_RFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_LFLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_RBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_LBLeg",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+        return E_FAIL;
+
+
 
     lstrcpy(m_szLoading, L"Etc Loading.....................................");
 
