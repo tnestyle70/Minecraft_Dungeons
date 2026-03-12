@@ -6,18 +6,20 @@
 #include "CCollider.h"
 #include "CArrow.h"
 
+
 class CMonster : public CGameObject
 {
 private:
     explicit CMonster(LPDIRECT3DDEVICE9 pGraphicDev);
     explicit CMonster(const CGameObject& rhs);
     virtual ~CMonster();
-
+    
 public:
-    virtual HRESULT     Ready_GameObject();
+    virtual HRESULT     Ready_GameObject(_vec3& vPos);
     virtual _int        Update_GameObject(const _float& fTimeDelta);
     virtual void        LateUpdate_GameObject(const _float& fTimeDelta);
-    virtual void        Render_GameObject();
+    virtual void        Render_GameObject(); 
+   
 
 private:
     HRESULT             Add_Component();
@@ -47,9 +49,12 @@ private:
     EMonsterType            m_eType = EMonsterType::ZOMBIE;
     bool                    m_bIsMoving = false;
 
-    
+    float                   m_fKnockbackAccum = 0.f;
     float                   m_fVelocityY = 0.f;
-    bool                    m_bOnGround = false;
+    float                   m_fDeadAngleY = 0.f;
+    bool                    m_bOnGround = false;  
+    bool                    m_bDeadDone = false; // 몬스터 삭제용도 
+
 
     static constexpr float  m_fGravity = -20.f;
     static constexpr float  m_fMaxFall = -20.f; 
@@ -61,7 +66,7 @@ private:
 
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
-        EMonsterType eType = EMonsterType::ZOMBIE); 
+        EMonsterType eType = EMonsterType::ZOMBIE, _vec3 vPos = { -1.f, 10.f, 3.f }); //위치값 좌표?
 
 private:
     virtual void Free();

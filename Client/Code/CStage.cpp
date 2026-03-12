@@ -146,22 +146,33 @@ HRESULT CStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
     if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
         return E_FAIL;
 
-    // monster
+ 
     pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::ZOMBIE);
-
     if (nullptr == pGameObject)
         return E_FAIL;
-
-    if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+    if (FAILED(pLayer->Add_GameObject(L"Monster_Zombie", pGameObject)))
         return E_FAIL;
 
     pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SKELETON);
-
     if (nullptr == pGameObject)
         return E_FAIL;
-
-    if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+    if (FAILED(pLayer->Add_GameObject(L"Monster_Skeleton", pGameObject)))
         return E_FAIL;
+
+    pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::CREEPER);
+    if (nullptr == pGameObject)
+        return E_FAIL;
+    if (FAILED(pLayer->Add_GameObject(L"Monster_creeper", pGameObject)))
+        return E_FAIL; 
+
+    pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SPIDER);
+    if (nullptr == pGameObject)
+        return E_FAIL;
+    if (FAILED(pLayer->Add_GameObject(L"Monster_Spider", pGameObject)))
+        return E_FAIL;
+    
+
+   
 
     m_mapLayer.insert({ pLayerTag, pLayer });
 

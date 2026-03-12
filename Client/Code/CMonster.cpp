@@ -20,15 +20,17 @@ CMonster::~CMonster()
 {
 }
 
-HRESULT CMonster::Ready_GameObject()
+HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 {
     if (FAILED(Add_Component()))
         return E_FAIL;
 
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 5.f, 3.f); break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 5.f, 3.f); break;
+    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 10.f, 3.f); break;
+    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 10.f, 3.f); break; 
+    case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(-2.f, 10.f, 3.f); break;
+    case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(2.f, 10.f, 3.f); break;
     }
 
     return S_OK;
@@ -37,21 +39,24 @@ HRESULT CMonster::Ready_GameObject()
 _int CMonster::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
-
-    // [추가] 중력 + 블록 충돌
     Apply_Gravity(fTimeDelta);
-    Resolve_BlockCollision(); 
-    
+    Resolve_BlockCollision();
 
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
 
     if (pAnim && pAnim->Get_State() == EMonsterState::DEAD && pAnim->Get_DeadRotX() != 0.f)
     {
-        D3DXMATRIX matRot, matWorld;
-        D3DXMatrixRotationX(&matRot, pAnim->Get_DeadRotX());
+        // 사망 첫 프레임에 방향 저장
+        if (m_fDeadAngleY == 0.f)
+            m_fDeadAngleY = D3DXToRadian(m_pTransformCom->m_vAngle.y);
+
+        D3DXMATRIX matRotY, matRotX, matWorld;
+        D3DXMatrixRotationY(&matRotY, m_fDeadAngleY);
+        D3DXMatrixRotationX(&matRotX, pAnim->Get_DeadRotX());
+
         _vec3 vPos;
         m_pTransformCom->Get_Info(INFO_POS, &vPos);
-        matWorld = matRot;
+        matWorld = matRotX * matRotY;
         matWorld._41 = vPos.x;
         matWorld._42 = vPos.y;
         matWorld._43 = vPos.z;
@@ -60,10 +65,32 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
     if (pAnim && pAnim->Get_KnockbackDelta() > 0.f)
     {
-        _vec3 vPos;
-        m_pTransformCom->Get_Info(INFO_POS, &vPos);
-        vPos.z -= pAnim->Get_KnockbackDelta();
-        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+        Engine::CComponent* pCom = CManagement::GetInstance()->Get_Component(
+            ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform");
+        Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(pCom);
+
+        if (pPlayerTrans)
+        {
+            _vec3 vMyPos, vPlayerPos;
+            m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+            pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
+
+            _vec3 vKnockDir = vMyPos - vPlayerPos;
+            vKnockDir.y = 0.f;
+            D3DXVec3Normalize(&vKnockDir, &vKnockDir);
+
+            float fMove = min(pAnim->Get_KnockbackDelta(), 2.f - m_fKnockbackAccum);
+            if (fMove > 0.f)
+            {
+                m_fKnockbackAccum += fMove;
+                vMyPos += vKnockDir * fMove;
+                m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
+            }
+        }
+    }
+    else
+    {
+        m_fKnockbackAccum = 0.f;
     }
 
     if (m_eType == EMonsterType::SKELETON)
@@ -80,7 +107,6 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         {
             m_bFired = false;
         }
-
         Update_Arrow(fTimeDelta);
     }
 
@@ -99,8 +125,9 @@ void CMonster::LateUpdate_GameObject(const _float& fTimeDelta)
 
 }
 
-void CMonster::Render_GameObject()
+void CMonster::Render_GameObject() 
 {
+    
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
 
     if (pAnim && pAnim->Is_HitFlash())
@@ -135,7 +162,16 @@ void CMonster::Render_GameObject()
 
         m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
     }
-    else
+    else if (m_eType == EMonsterType::CREEPER)
+    {
+        m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom); 
+
+    } 
+    else if (m_eType == EMonsterType::SPIDER)
+    {
+        m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
+    }
+    else  // ZOMBIE
     {
         m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
     }
@@ -249,7 +285,6 @@ void CMonster::Update_Arrow(const _float& fTimeDelta)
 void CMonster::Apply_Gravity(const _float& fTimeDelta)
 {
     if (m_bOnGround) return;
-
     m_fVelocityY += m_fGravity * fTimeDelta;
     if (m_fVelocityY < m_fMaxFall)
         m_fVelocityY = m_fMaxFall;
@@ -309,43 +344,48 @@ void CMonster::Update_AI(const _float& fTimeDelta)
 {
     Engine::CComponent* pCom = CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform");
     Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(pCom);
-
     if (!pPlayerTrans) return;
 
-    _vec3  vMyPos, vPlayerPos;
+    _vec3 vMyPos, vPlayerPos;
     m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
-    pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos); 
-    
+    pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
 
-    _vec3 vDir = vPlayerPos - vMyPos; 
+    _vec3 vDir = vPlayerPos - vMyPos;
     float fDist = D3DXVec3Length(&vDir);
 
-  
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
     if (!pAnim) return;
-
     if (pAnim->Get_State() == EMonsterState::DEAD) return;
+
+    // 항상 플레이어 방향 바라보기
+    _vec3 vLookDir = vPlayerPos - vMyPos;
+    vLookDir.y = 0.f;
+    D3DXVec3Normalize(&vLookDir, &vLookDir);
+    m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z));
 
     if (fDist <= m_fAttackRange)
     {
-        // 공격 범위 → 이동 멈추고 공격
-        m_bIsMoving = false;
         pAnim->Set_State(EMonsterState::ATTACK);
+
+        if (m_eType == EMonsterType::CREEPER)
+        {
+            m_bIsMoving = true;
+            m_pTransformCom->Move_Pos(&vLookDir, m_fMoveSpeed * 2.5f, fTimeDelta);
+        }
+        else
+        {
+            m_bIsMoving = false;
+        }
     }
     else if (fDist <= m_fDetectRange)
     {
-        // 감지 범위 → 바라보면서 이동
         m_bIsMoving = true;
-        _vec3 vDir = vPlayerPos - vMyPos;
-        vDir.y = 0.f;
-        D3DXVec3Normalize(&vDir, &vDir);
-        m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z));
-        m_pTransformCom->Move_Pos(&vDir, m_fMoveSpeed, fTimeDelta);
+        m_pTransformCom->Move_Pos(&vLookDir, m_fMoveSpeed, fTimeDelta);
     }
     else
     {
-        // 감지 범위 밖 → 아이들
         m_bIsMoving = false;
+        pAnim->Set_State(EMonsterState::IDLE);
     }
 }
 
@@ -363,6 +403,8 @@ HRESULT CMonster::Add_Component()
     {
     case EMonsterType::ZOMBIE:   pTexTag = L"Proto_ZombieTexture";   break;
     case EMonsterType::SKELETON: pTexTag = L"Proto_SkeletonTexture"; break;
+    case EMonsterType::CREEPER:  pTexTag = L"Proto_creeperTexture";  break;
+    case EMonsterType::SPIDER:   pTexTag = L"Proto_SpiderTexture";   break;
     default: return E_FAIL;
     }
 
@@ -396,12 +438,12 @@ HRESULT CMonster::Add_Component()
     return S_OK;
 }
 
-CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType)
+CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType, _vec3 vPos)
 {
     CMonster* pMonster = new CMonster(pGraphicDev);
     pMonster->m_eType = eType;
 
-    if (FAILED(pMonster->Ready_GameObject()))
+    if (FAILED(pMonster->Ready_GameObject(vPos)))
     {
         Safe_Release(pMonster);
         MSG_BOX("pMonster Create Failed");

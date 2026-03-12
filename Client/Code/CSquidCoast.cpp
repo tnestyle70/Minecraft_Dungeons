@@ -136,6 +136,20 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+		return E_FAIL; 
+
+	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::CREEPER);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+		return E_FAIL; 
+	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SPIDER);
+
+	if (!pGameObject)
+		return E_FAIL;
+	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
