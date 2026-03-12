@@ -3,6 +3,7 @@
 #include "CBlockMgr.h"
 #include "CDynamicCamera.h"
 #include "CMonsterUV.h"
+#include "CSceneChanger.h"
 
 CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
@@ -50,9 +51,25 @@ HRESULT CEditor::Ready_Scene()
 _int CEditor::Update_Scene(const _float& fTimeDelta)
 {
 	if (!m_bEditorMode)
+	{
 		return 0;
+	}
 
 	_int iExit = CScene::Update_Scene(fTimeDelta);
+
+	//TriggerBox, Monster Rendering
+	for (auto& pair : m_mapTriggerBoxes)
+	{
+		pair.second->Update_GameObject(fTimeDelta);
+	}
+	for (auto& pair : m_mapMonsters)
+	{
+		pair.second->Update_GameObject(fTimeDelta);
+	}
+	for (auto& pair : m_mapIronBars)
+	{
+		pair.second->Update_GameObject(fTimeDelta);
+	}
 
 	switch (m_eEditMode)
 	{
@@ -65,8 +82,9 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 		UpdateMonsterMode();
 		break;
 	case MODE_IRONBAR:
-		m_pBlockPlacer->Update_Placer(BLOCK_IRONBAR);
-		CBlockMgr::GetInstance()->Update(fTimeDelta);
+		UpdateIronBarMode();
+		//m_pBlockPlacer->Update_Placer(BLOCK_IRONBAR);
+		//CBlockMgr::GetInstance()->Update(fTimeDelta);
 		break;
 	case MODE_TRIGGERBOX:
 		UpdateTriggerBoxMode();
@@ -130,11 +148,13 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 void CEditor::SetEditorMode(bool editorMode)
 {
 	m_bEditorMode = !m_bEditorMode;
+
 	//에디터가 꺼질 경우 스테이지 진입하면서 LoadBlocks 호출
 	CBlockMgr::GetInstance()->SetEditorMode(m_bEditorMode);
+
 	if (m_bEditorMode)
 	{
-		CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage));
+		LoadStageData(GetStagePath(m_eCurrentStage));
 	}
 }
 
@@ -163,13 +183,19 @@ void CEditor::SwitchStage(eStageType eNewStage)
 		return;
 
 	//현재 스테이지 자동 저장
-	CBlockMgr::GetInstance()->SaveBlocks(GetStagePath(m_eCurrentStage));
+	SaveStageData(GetStagePath(m_eCurrentStage));
 	
 	//스테이지 전환
 	m_eCurrentStage = eNewStage;
 
 	//블럭 클리어 후 새 스테이지 로딩
-	CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage));
+	if (FAILED(LoadStageData(GetStagePath(m_eCurrentStage))))
+	{
+		//If there is no file, clear stage
+		CBlockMgr::GetInstance()->ClearBlocks();
+		m_mapMonsters.clear();
+		m_mapIronBars.clear();
+	}
 }
 
 void CEditor::Render_MenuBar()
@@ -186,7 +212,7 @@ void CEditor::Render_MenuBar()
 			//블럭 저장
 			if (ImGui::MenuItem("Save Scene")) 
 			{
-				if (FAILED(CBlockMgr::GetInstance()->SaveBlocks(GetStagePath(m_eCurrentStage))))
+				if (SaveStageData(GetStagePath(m_eCurrentStage)))
 				{
 					MSG_BOX("Save Failed");
 				}
@@ -198,7 +224,7 @@ void CEditor::Render_MenuBar()
 			//블럭 불러오기
 			if (ImGui::MenuItem("Load Scene"))
 			{
-				if (FAILED(CBlockMgr::GetInstance()->LoadBlocks(GetStagePath(m_eCurrentStage))))
+				if (LoadStageData(GetStagePath(m_eCurrentStage)))
 				{
 					MSG_BOX("Load Failed");
 				}
@@ -232,9 +258,9 @@ void CEditor::Render_Hierarchy()
 	ImGui::Begin("Hierarchy");
 
 	ImGui::Text("Block Count: %d", (int)CBlockMgr::GetInstance()->Get_Blocks().size());
-	ImGui::Text("Monster Spawn: %d", (int)m_vecMonsterData.size());
-	ImGui::Text("IronBar: %d", (int)m_vecIronBarsData.size());
-	ImGui::Text("TriggerBox: %d", (int)m_vecTriggerBoxData.size());
+	ImGui::Text("Monster Spawn: %d", (int)m_mapMonsters.size());
+	ImGui::Text("IronBar: %d", (int)m_mapIronBars.size());
+	ImGui::Text("TriggerBox: %d", (int)m_mapTriggerBoxes.size());
 
 	ImGui::End();
 }
@@ -277,7 +303,7 @@ void CEditor::Render_Inspector()
 		Render_MonsterPalette();
 		break;
 	case MODE_IRONBAR:
-		Reneder_IronBarPalette();
+		Render_IronBarPalette();
 		break;
 	case MODE_TRIGGERBOX:
 		Render_TriggerPalette();
@@ -368,10 +394,12 @@ void CEditor::Render_MonsterPalette()
 	//몬스터 타입 선택
 	const char* szMonsters[] =
 	{
-		"Zombie", "Creeper", "Skeleton"
+		"Zombie", "Skeleton", "Creeper", "Spider"
 	};
+
 	ImGui::Text("Type:");
-	for (int i = 0; i < 3; ++i)
+	
+	for (int i = 0; i < 4; ++i)
 	{
 		//Allign Buttons to Coloum
 		if (i > 0)
@@ -385,44 +413,75 @@ void CEditor::Render_MonsterPalette()
 			ImGui::PopStyleColor();
 	}
 	ImGui::Separator();
-	ImGui::Text("Spawns : %d", (int)m_vecMonsterData.size());
+	ImGui::Text("Spawns : %d", (int)m_mapMonsters.size());
+
+	MonsterData* pPendingDelete = nullptr;
+
 	//배치된 스폰 목록
-	for (int i = 0; i < (int)m_vecMonsterData.size(); ++i)
+	for (auto& pair : m_mapMonsters)
 	{
-		auto& data = m_vecMonsterData[i];
-		ImGui::Text("[%d] %s (%d %d %d)",
-			i, szMonsters[data.iMonsterType],
-			data.x, data.y, data.z);
+		MonsterData tData = pair.first;
+		ImGui::Text("[%s] (%d %d %d)",
+			szMonsters[tData.iMonsterType],
+			tData.x, tData.y, tData.z);
+
 		ImGui::SameLine();
+
 		char szBtn[32];
-		sprintf_s(szBtn, "X %d", i);
+		sprintf_s(szBtn, "X %d", (int)tData.iMonsterType);
 		if (ImGui::Button(szBtn))
 		{
-			m_vecMonsterData.erase(m_vecMonsterData.begin() + i);
-			break;
+			pPendingDelete = const_cast<MonsterData*>(&tData);
 		}
+	}
+	
+	if (pPendingDelete)
+	{
+		auto iter = m_mapMonsters.find(*pPendingDelete);
+		if (iter != m_mapMonsters.end())
+		{
+			//CMonster Release
+			Safe_Release(iter->second);
+			m_mapMonsters.erase(iter);
+		}
+		pPendingDelete = nullptr;
 	}
 }
 
-void CEditor::Reneder_IronBarPalette()
+void CEditor::Render_IronBarPalette()
 {
 	ImGui::Text("IronBar Placement");
 	ImGui::Separator();
 	ImGui::Text("LBtn: Place  RBtn: Remove");
-	ImGui::Text("Placed: %d", (int)m_vecIronBarsData.size());
+	ImGui::Text("Placed: %d", (int)m_mapIronBars.size());
 
-	for (int i = 0; i < (int)m_vecIronBarsData.size(); ++i)
+	IronBarData* pPendingDelete = nullptr;
+
+	for (auto& pair : m_mapIronBars)
 	{
-		auto& d = m_vecIronBarsData[i];
-		ImGui::Text("[%d] (%d,%d,%d) TrigID:%d", i, d.x, d.y, d.z, d.iTriggerID);
+		const IronBarData& tData = pair.first;
+
+		ImGui::Text("TriggerID:[%d] (%d %d %d)",
+			tData.iTriggerID, tData.x, tData.y, tData.z);
+
 		ImGui::SameLine();
+
 		char szBtn[32];
-		sprintf_s(szBtn, "X##b%d", i);
+		sprintf_s(szBtn, "X##%d_%d_%d", tData.x, tData.y, tData.z);
+
 		if (ImGui::Button(szBtn))
+			pPendingDelete = const_cast<IronBarData*>(&tData);
+	}
+
+	if (pPendingDelete)
+	{
+		auto iter = m_mapIronBars.find(*pPendingDelete);
+		if (iter != m_mapIronBars.end())
 		{
-			m_vecIronBarsData.erase(m_vecIronBarsData.begin() + i);
-			break;
+			Safe_Release(iter->second);  // CIronBar 해제
+			m_mapIronBars.erase(iter);
 		}
+		pPendingDelete = nullptr;
 	}
 }
 
@@ -430,29 +489,37 @@ void CEditor::Render_TriggerPalette()
 {
 	ImGui::Text("TriggerBox Placement");
 	ImGui::Separator();
+	ImGui::Text("LBtn: Place  RBtn: Remove");
+	ImGui::Text("Placed: %d", (int)m_mapTriggerBoxes.size());
 
-	// 트리거 박스 크기 설정
-	ImGui::Text("Size:");
-	ImGui::InputInt("W", &m_iTriggerWidth);
-	ImGui::InputInt("H", &m_iTriggerHeight);
-	ImGui::InputInt("D", &m_iTriggerDepth);
+	TriggerBoxData* pPendingDelete = nullptr;
 
-	ImGui::Separator();
-	ImGui::Text("Triggers: %d", (int)m_vecTriggerBoxData.size());
-
-	for (int i = 0; i < (int)m_vecTriggerBoxData.size(); ++i)
+	for (auto& pair : m_mapTriggerBoxes)
 	{
-		auto& d = m_vecTriggerBoxData[i];
-		ImGui::Text("[%d] (%d,%d,%d) %dx%dx%d",
-			i, d.x, d.y, d.z, d.width, d.height, d.depth);
+		const TriggerBoxData& tData = pair.first;
+
+		ImGui::Text("(%d %d %d) %dx%dx%d",
+			tData.x, tData.y, tData.z,
+			tData.width, tData.height, tData.depth);
+
 		ImGui::SameLine();
+
 		char szBtn[32];
-		sprintf_s(szBtn, "X##t%d", i);
+		sprintf_s(szBtn, "X##%d_%d_%d", tData.x, tData.y, tData.z);
+
 		if (ImGui::Button(szBtn))
+			pPendingDelete = const_cast<TriggerBoxData*>(&tData);
+	}
+
+	if (pPendingDelete)
+	{
+		auto iter = m_mapTriggerBoxes.find(*pPendingDelete);
+		if (iter != m_mapTriggerBoxes.end())
 		{
-			m_vecTriggerBoxData.erase(m_vecTriggerBoxData.begin() + i);
-			break;
+			Safe_Release(iter->second);  // CTriggerBox 해제
+			m_mapTriggerBoxes.erase(iter);
 		}
+		pPendingDelete = nullptr;
 	}
 }
 
@@ -476,10 +543,14 @@ void CEditor::UpdateMonsterMode()
 		{
 			MonsterData tData;
 			tData.x = tHitPos.x;
-			tData.y = tHitPos.y;
+			tData.y = tHitPos.y + 1;
 			tData.z = tHitPos.z;
 			tData.iMonsterType = m_iSelectedMonster;
-			m_vecMonsterData.push_back(tData);
+
+			//Add Monster
+			_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+			CMonster* pMonster = CMonster::Create(m_pGraphicDev, (EMonsterType)m_iSelectedMonster ,vPos);
+			m_mapMonsters.insert({ tData, pMonster });
 		}
 	}
 	//Right Btn -> Select the closet spawn point
@@ -494,15 +565,80 @@ void CEditor::UpdateMonsterMode()
 			&tHitPos, &fT))
 		{
 			//delete the spawn point of hit point
-			auto iter = remove_if(m_vecMonsterData.begin(), m_vecMonsterData.end(),
-				[&](const MonsterData& data)
+			for (auto iter = m_mapMonsters.begin(); iter != m_mapMonsters.end(); ++iter)
+			{
+				const MonsterData& tData = iter->first;
+				if (tData.x == tHitPos.x && tData.y == tHitPos.y && tData.z == tHitPos.z)
 				{
-					return data.x == tHitPos.x && data.y == tHitPos.y &&
-						data.z == tHitPos.z;
-				});
-			m_vecMonsterData.erase(iter, m_vecMonsterData.end());
+					Safe_Release(iter->second);
+					m_mapMonsters.erase(iter);
+					break;
+				}
+			}
 		}
 	}
+	m_bLBtnPrev = bLBtn;
+	m_bRBtnPrev = bRBtn;
+}
+
+void CEditor::UpdateIronBarMode()
+{
+	if (ImGui::GetIO().WantCaptureMouse) return;
+
+	bool bLBtn = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+	bool bRBtn = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
+	if (bLBtn && !m_bLBtnPrev)
+	{
+		_vec3 vRayPos, vRayDir;
+		m_pBlockPlacer->Compute_Ray(&vRayPos, &vRayDir);
+
+		BlockPos tHitPos;
+		float fT = 0.f;
+		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
+		{
+			IronBarData tData;
+			tData.x = tHitPos.x;
+			tData.y = tHitPos.y + 1;
+			tData.z = tHitPos.z;
+			tData.iTriggerID = 0;
+
+			//Add IronBar
+			if (m_mapIronBars.find(tData) == m_mapIronBars.end())
+			{
+				_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+				CIronBar* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
+				if (pIronBar)
+					m_mapIronBars.insert({ tData, pIronBar });
+			}
+
+		}
+	}
+
+	if (bRBtn && !m_bRBtnPrev)
+	{
+		_vec3 vRayPos, vRayDir;
+		m_pBlockPlacer->Compute_Ray(&vRayPos, &vRayDir);
+
+		BlockPos tHitPos;
+		float fT = 0.f;
+		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
+		{
+			for (auto iter = m_mapIronBars.begin(); iter != m_mapIronBars.end(); ++iter)
+			{
+				const IronBarData& tData = iter->first;
+				if (tData.x == tHitPos.x &&
+					tData.y == tHitPos.y + 1 &&
+					tData.z == tHitPos.z)
+				{
+					Safe_Release(iter->second);
+					m_mapIronBars.erase(iter);
+					break;
+				}
+			}
+		}
+	}
+
 	m_bLBtnPrev = bLBtn;
 	m_bRBtnPrev = bRBtn;
 }
@@ -530,7 +666,11 @@ void CEditor::UpdateTriggerBoxMode()
 			tData.width = m_iTriggerWidth;
 			tData.height = m_iTriggerHeight;
 			tData.depth = m_iTriggerDepth;
-			m_vecTriggerBoxData.push_back(tData);
+
+			//Add Trigger Box
+			_vec3 vPos = {(float)tData.x, (float)tData.y, (float)tData.z};
+			CTriggerBox* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
+			m_mapTriggerBoxes.insert({ tData, pTriggerBox });
 		}
 	}
 	
@@ -543,13 +683,17 @@ void CEditor::UpdateTriggerBoxMode()
 		float fT = 0.f;
 		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
 		{
-			auto it = remove_if(m_vecTriggerBoxData.begin(), m_vecTriggerBoxData.end(),
-				[&](const TriggerBoxData& d) {
-					return d.x == tHitPos.x &&
-						d.y == tHitPos.y + 1 &&
-						d.z == tHitPos.z;
-				});
-			m_vecTriggerBoxData.erase(it, m_vecTriggerBoxData.end());
+			//delete same hit point trigger box data
+			for (auto iter = m_mapTriggerBoxes.begin(); iter == m_mapTriggerBoxes.end(); ++iter)
+			{
+				const TriggerBoxData& tData = iter->first;
+				if (tData.x == tHitPos.x && tData.y == tHitPos.y && tData.z == tHitPos.z)
+				{
+					Safe_Release(iter->second);
+					m_mapTriggerBoxes.erase(iter);
+					break;
+				}
+			}
 		}
 	}
 
@@ -559,44 +703,107 @@ void CEditor::UpdateTriggerBoxMode()
 
 HRESULT CEditor::SaveStageData(const _tchar* szPath)
 {
-	CBlockMgr::GetInstance()->SaveBlocks(szPath);
-
-	return S_OK;
-	/*
 	FILE* pFile = nullptr;
 	_wfopen_s(&pFile, szPath, L"wb");
 	if (!pFile)
 		return E_FAIL;
-	//블럭 저장
-	int iCount = (int)CBlockMgr::GetInstance()->Get_Blocks().size();
+	//1. 블럭 저장
+	CBlockMgr::GetInstance()->SaveBlocks(pFile);
+
+	//2. 몬스터 저장
+	int iCount = (int)m_mapMonsters.size();
 	fwrite(&iCount, sizeof(int), 1, pFile);
-	for (auto& pair : CBlockMgr::GetInstance()->Get_Blocks())
+	for (auto& pair : m_mapMonsters)
 	{
-		BlockData tData = { pair.first.x, pair.first.y, pair.first.z,
-		(int)pair.second->GetBlockType() };
-		fwrite(&tData, sizeof(BlockData), 1, pFile);
+		MonsterData tData = pair.first;
+		fwrite(&tData, sizeof(MonsterData), 1, pFile);
 	}
-	//몬스터 저장
-	iCount = (int)m_vecMonsterData.size();
-	fwrite(&iCount, sizeof(int), 1, pFile);
-	for (auto& d : m_vecMonsterData)
-		fwrite(&d, sizeof(MonsterData), 1, pFile);
 
-	// 창살 저장
-	iCount = (int)m_vecIronBarsData.size();
+	//3. 창살 저장
+	iCount = (int)m_mapIronBars.size();
 	fwrite(&iCount, sizeof(int), 1, pFile);
-	for (auto& d : m_vecIronBarsData)
-		fwrite(&d, sizeof(IronBarsData), 1, pFile);
+	for (auto& pair : m_mapIronBars)
+	{
+		IronBarData tData = pair.first;
+		fwrite(&tData, sizeof(IronBarData), 1, pFile);
+	}
 
-	// 트리거 저장
-	iCount = (int)m_vecTriggerBoxData.size();
+	//4. 트리거 박스 저장
+	iCount = (int)m_mapTriggerBoxes.size();
 	fwrite(&iCount, sizeof(int), 1, pFile);
-	for (auto& d : m_vecTriggerBoxData)
-		fwrite(&d, sizeof(TriggerBoxData), 1, pFile);
+	for (auto& pair : m_mapTriggerBoxes)
+	{
+		TriggerBoxData tData = pair.first;
+		fwrite(&tData, sizeof(TriggerBoxData), 1, pFile);
+	}
 
 	fclose(pFile);
 	return S_OK;
-	*/
+}
+
+HRESULT CEditor::LoadStageData(const _tchar* szPath)
+{
+	FILE* pFile = nullptr;
+	_wfopen_s(&pFile, szPath, L"rb");
+	if (!pFile)
+		return E_FAIL;
+	//1. 블럭 로드
+	CBlockMgr::GetInstance()->LoadBlocks(pFile);
+	//2. 몬스터 로드 - 기존 몬스터 해제
+	for (auto& pair : m_mapMonsters)
+	{
+		Safe_Release(pair.second);
+	}
+	m_mapMonsters.clear();
+	
+	int iCount = 0;
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		MonsterData tData;
+		fread(&tData, sizeof(MonsterData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+		CMonster* pMonster = CMonster::Create(m_pGraphicDev,
+			(EMonsterType)tData.iMonsterType, vPos);
+		if (pMonster)
+			m_mapMonsters.insert({ tData, pMonster });
+	}
+
+	// 3. 창살
+	for (auto& pair : m_mapIronBars)
+	{
+		Safe_Release(pair.second);
+	}
+	m_mapIronBars.clear();
+	
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		IronBarData tData;
+		fread(&tData, sizeof(IronBarData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+		CIronBar* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
+		if (pIronBar)
+			m_mapIronBars.insert({ tData, pIronBar });
+	}
+	// 4. 트리거 박스
+	for (auto& pair : m_mapTriggerBoxes)
+		Safe_Release(pair.second);
+	m_mapTriggerBoxes.clear();
+
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		TriggerBoxData tData;
+		fread(&tData, sizeof(TriggerBoxData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+		CTriggerBox* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
+		if (pTriggerBox)
+			m_mapTriggerBoxes.insert({ tData, pTriggerBox });
+	}
+
+	fclose(pFile);
+	return S_OK;
 }
 
 CEditor* CEditor::Create(LPDIRECT3DDEVICE9 pGraphicDev)
@@ -618,7 +825,6 @@ void CEditor::Free()
 	Safe_Release(m_pBlockPlacer);
 	CScene::Free();
 }
-
 
 
 

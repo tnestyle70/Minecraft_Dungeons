@@ -32,6 +32,7 @@ public:
 	_uint Loading_Camp();
 	_uint Loading_RedStone();
 	_uint Loading_Obsidian();
+
 public:
 	static unsigned int CALLBACK Thread_Main(void* pArg);
 

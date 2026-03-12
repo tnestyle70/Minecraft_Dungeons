@@ -20,15 +20,17 @@ CMonster::~CMonster()
 {
 }
 
-HRESULT CMonster::Ready_GameObject()
+HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 {
     if (FAILED(Add_Component()))
         return E_FAIL;
 
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 5.f, 3.f); break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 5.f, 3.f); break;
+         case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
+         case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
+    //case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(-1.f, 5.f, 3.f); break;
+    //case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(1.f, 5.f, 3.f); break;
     }
 
     return S_OK;
@@ -396,12 +398,12 @@ HRESULT CMonster::Add_Component()
     return S_OK;
 }
 
-CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType)
+CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType, _vec3 vPos)
 {
     CMonster* pMonster = new CMonster(pGraphicDev);
     pMonster->m_eType = eType;
 
-    if (FAILED(pMonster->Ready_GameObject()))
+    if (FAILED(pMonster->Ready_GameObject(vPos)))
     {
         Safe_Release(pMonster);
         MSG_BOX("pMonster Create Failed");

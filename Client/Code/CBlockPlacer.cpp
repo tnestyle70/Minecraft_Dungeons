@@ -64,7 +64,8 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 		{
 			//히트된 블럭 위에 배치
 			_vec3 vPlacePos = { (float)tHitPos.x, (float)tHitPos.y + 1.f,
-			(float)tHitPos.z };
+				(float)tHitPos.z };
+
 			CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
 			//실제 삽입된 PlacePos를 stack에 저장
 			m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
@@ -129,41 +130,6 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 	m_bRBtnPrev = bRBtn;
 
 	return 0;
-
-	/*
-	_vec3 vHit;
-
-	if (!RayOnGround(&vRayPos, &vRayDir, &vHit))
-	{
-		m_bLBtnPrev = bLBtn;
-		m_bRBtnPrev = bRBtn;
-		return 0;
-	}
-
-	_vec3 vPlacePos = SnapToGrid(&vHit);
-
-	char szBuf[256];
-	sprintf_s(szBuf, 256, "Hit: %.2f %.2f %.2f | Snap: %.2f %.2f %.2f\n",
-		vHit.x, vHit.y, vHit.z,
-		vPlacePos.x, vPlacePos.y, vPlacePos.z);
-	OutputDebugStringA(szBuf);
-
-	if (bLBtn && !m_bLBtnPrev)
-	{
-		CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
-		m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
-	}
-	
-	if (bRBtn && !m_bRBtnPrev)
-	{
-		CBlockMgr::GetInstance()->RemoveBlock(vPlacePos);
-	}
-	
-	m_bLBtnPrev = bLBtn;
-	m_bRBtnPrev = bRBtn;
-
-	return 0;
-	*/
 }
 
 void CBlockPlacer::Compute_Ray(_vec3* pRayPos, _vec3* pRayDir)
@@ -233,7 +199,6 @@ _vec3 CBlockPlacer::SnapToGrid(_vec3* pHit, eBlockType eType)
 	{
 		fBlockSize = 0.5f;
 	}
-
 	//ceilf로 블럭 크기 단위에 맞춰서 스냅 시키기
 	_vec3 vSnapPos = _vec3(ceilf(pHit->x / fBlockSize) * fBlockSize,
 		ceilf(pHit->y / fBlockSize) * fBlockSize,

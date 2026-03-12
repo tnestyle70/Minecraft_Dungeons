@@ -246,19 +246,11 @@ void CBlockMgr::ClearBlocks()
 	}
 }
 
-HRESULT CBlockMgr::SaveBlocks(const _tchar* pFilePath)
+HRESULT CBlockMgr::SaveBlocks(FILE* pFile)
 {
-	//파일에 블럭들의 위치, 타입 정보 저장
-	FILE* filePath = nullptr;
-	_wfopen_s(&filePath, pFilePath, L"wb");
-	if (!filePath)
-	{
-		MSG_BOX("File Open Failed");
-		return E_FAIL;
-	}
-	//블럭 개수, 블럭 데이터 저장
-	int iCount = m_mapBlocks.size();
-	fwrite(&iCount, sizeof(int), 1, filePath);
+	//매개 변수로 넘겨 받은 파일에 정보 저장
+	int iCount = (int)m_mapBlocks.size();
+	fwrite(&iCount, sizeof(int), 1, pFile);
 	
 	for (auto& pair : m_mapBlocks)
 	{
@@ -266,23 +258,14 @@ HRESULT CBlockMgr::SaveBlocks(const _tchar* pFilePath)
 		tData.x = pair.first.x;
 		tData.y = pair.first.y;
 		tData.z = pair.first.z;
-		tData.eType = pair.second->GetBlockType();
-		fwrite(&tData, sizeof(BlockData), 1, filePath);
+		tData.eType = (int)pair.second->GetBlockType();
+		fwrite(&tData, sizeof(BlockData), 1, pFile);
 	}
-	fclose(filePath);
 	return S_OK;
 }
 
-HRESULT CBlockMgr::LoadBlocks(const _tchar* pFilePath)
+HRESULT CBlockMgr::LoadBlocks(FILE* pFile)
 {
-	FILE* pFile = nullptr;
-	_wfopen_s(&pFile, pFilePath, L"rb");
-	if (!pFile)
-	{
-		MSG_BOX("Load File Failed");
-		return E_FAIL;
-	}
-
 	// 기존 블럭 전부 제거 (내부에서 Rebuild 1번 호출되지만 무시)
 	for_each(m_mapBlocks.begin(), m_mapBlocks.end(), [](auto& pair)
 		{
@@ -292,7 +275,7 @@ HRESULT CBlockMgr::LoadBlocks(const _tchar* pFilePath)
 
 	int iCount = 0;
 	fread(&iCount, sizeof(int), 1, pFile);
-
+	
 	for (int i = 0; i < iCount; ++i)
 	{
 		BlockData tData;
@@ -313,7 +296,6 @@ HRESULT CBlockMgr::LoadBlocks(const _tchar* pFilePath)
 		}
 	}
 
-	fclose(pFile);
 	if (!m_bEditorMode)
 	{
 		// 전체 로드 완료 후 딱 1번만 Rebuild

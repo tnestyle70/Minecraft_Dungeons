@@ -14,7 +14,7 @@ private:
     virtual ~CMonster();
 
 public:
-    virtual HRESULT     Ready_GameObject();
+    virtual HRESULT     Ready_GameObject(_vec3& vPos);
     virtual _int        Update_GameObject(const _float& fTimeDelta);
     virtual void        LateUpdate_GameObject(const _float& fTimeDelta);
     virtual void        Render_GameObject();
@@ -61,7 +61,7 @@ private:
 
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
-        EMonsterType eType = EMonsterType::ZOMBIE); 
+        EMonsterType eType = EMonsterType::ZOMBIE, _vec3 vPos = { -1.f, 5.f, 3.f });
 
 private:
     virtual void Free();

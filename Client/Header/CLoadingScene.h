@@ -22,6 +22,10 @@ private:
 	eSceneType m_eNextScene = eSceneType::SCENE_END;
 	const _tchar* m_pTextureName = nullptr;
 	bool m_bSceneChanged = false;
+
+	//로딩씬 체크
+	_int m_iFrameCount = 0;
+	bool m_bRenderOnce = false;
 public:
 	static CLoadingScene* Create(LPDIRECT3DDEVICE9 pGraphicDev,
 		CLoading::LOADINGID eLoadingID,

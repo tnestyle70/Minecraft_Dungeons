@@ -11,6 +11,7 @@
 #include "CEditor.h"
 #include "CBlockMgr.h"
 #include "CSceneChanger.h"
+#include "CRenderer.h"
 
 CLogo::CLogo(LPDIRECT3DDEVICE9 pGraphicDev)
     : Engine::CScene(pGraphicDev), m_pEditor(nullptr)
@@ -63,6 +64,8 @@ _int CLogo::Update_Scene(const _float& fTimeDelta)
 
     if (GetAsyncKeyState(VK_RETURN))
     {
+        //Render Group Clear Before Change Scene!!!!
+        CRenderer::GetInstance()->Clear_RenderGroup();
         if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_SQUIDCOAST)))
         {
             MSG_BOX("SquidCoast Create Failed");

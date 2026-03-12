@@ -24,7 +24,7 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 			pGraphicDev,
 			CLoading::LOADING_STAGE,
 			SCENE_STAGE_PLAY,
-			L"Proto_SquidCoastLoadingTexture");
+			L"Proto_ObsidianLoadingTexture");
 		break;
 	case SCENE_SQUIDCOAST:
 		pScene = CLoadingScene::Create(
@@ -70,6 +70,7 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 		pScene = CObsidian::Create(pGraphicDev);
 		break;	
 	}
+
 	if (!pScene)
 		return E_FAIL;
 

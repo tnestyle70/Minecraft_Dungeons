@@ -3,6 +3,10 @@
 #include "CScene.h"
 #include "CProtoMgr.h"
 #include "CBlockPlacer.h"
+#include "CMonster.h"
+#include "CTriggerBox.h"
+#include "CIronBar.h"
+#include "StageData.h"
 
 enum eStageType
 {
@@ -25,40 +29,65 @@ enum eMonsterType
 {
 	MONSTER_ZOMBIE,
 	MONSTER_SKELETON,
-	MONSTER_CREEPER
+	MONSTER_CREEPER,
+	MONSTER_SPIDER
 };
 
+/*
 struct MonsterData
 {
 	int x, y, z;
 	int iMonsterType;
+	bool operator<(const MonsterData& other) const
+	{
+		if (x != other.x) return x < other.x;
+		if (y != other.y) return y < other.y;
+		return z < other.z;
+	}
 };
 
 struct TriggerBoxData
 {
 	int x, y, z;
 	int width, height, depth;
+	bool operator<(const TriggerBoxData& other) const
+	{
+		if (x != other.x) return x < other.x;
+		if (y != other.y) return y < other.y;
+		return z < other.z;
+	}
 };
 
-struct IronBarsData
+struct IronBarData
 {
 	int x, y, z;
 	int iTriggerID;
+	
+	bool operator<(const IronBarData& other) const
+	{
+		if (x != other.x) return x < other.x;
+		if (y != other.y) return y < other.y;
+		return z < other.z;
+	}
 };
+*/
 
 class CEditor : public CScene
 {
 protected:
 	explicit CEditor(LPDIRECT3DDEVICE9 pGraphicDev);
 	virtual ~CEditor();
+
 public:
 	virtual			HRESULT		Ready_Scene();
 	virtual			_int		Update_Scene(const _float& fTimeDelta);
 	virtual			void		LateUpdate_Scene(const _float& fTimeDelta);
 	virtual			void		Render_Scene();
+
 private:
 	HRESULT Ready_Environment_Layer(const _tchar* pLayerTag);
 	HRESULT Ready_ProtoType();
+
 public:
 	bool IsEditorMode() { return m_bEditorMode; }
 	void SetEditorMode(bool editorMode);
@@ -76,22 +105,25 @@ private:
 	
 	void Render_BlockPalette();
 	void Render_MonsterPalette();
-	void Reneder_IronBarPalette();
+	void Render_IronBarPalette();
 	void Render_TriggerPalette();
 private:
 	void UpdateMonsterMode();
+	void UpdateIronBarMode();
 	void UpdateTriggerBoxMode();
-private:
+public:
 	HRESULT SaveStageData(const _tchar* szPath);
+	HRESULT LoadStageData(const _tchar* szPath);
 private:
 	eStageType m_eCurrentStage = STAGE_SQUIDCOAST;
-	//스테이지별 데이터
-	vector<MonsterData> m_vecMonsterData;
-	vector<IronBarsData> m_vecIronBarsData;
-	vector<TriggerBoxData> m_vecTriggerBoxData;
+
+	//Monster, IronBar ,TriggerBox Instance Data 
+	map<MonsterData, CMonster*> m_mapMonsters;
+	map<IronBarData, CIronBar*> m_mapIronBars;
+	map<TriggerBoxData, CTriggerBox*> m_mapTriggerBoxes;
 
 	CBlockPlacer* m_pBlockPlacer = nullptr;
-	bool m_bEditorMode;
+	bool m_bEditorMode = true;
 	eEditMode m_eEditMode = MODE_BLOCK;
 	eBlockType m_eSelectedBlock = BLOCK_GRASS;
 	int m_iSelectedMonster = 0;

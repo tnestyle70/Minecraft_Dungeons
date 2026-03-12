@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CLoadingScene.h"
 #include "CFontMgr.h"
+#include "CRenderer.h"
 
 CLoadingScene::CLoadingScene(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -13,6 +14,13 @@ CLoadingScene::~CLoadingScene()
 
 HRESULT CLoadingScene::Ready_Scene()
 {
+	//Initialize Camera!!
+	_matrix matView, matProj;
+	D3DXMatrixIdentity(&matView);
+	D3DXMatrixIdentity(&matProj);
+	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &matProj);
+	m_pGraphicDev->SetTransform(D3DTS_VIEW, &matView);
+
 	//로딩 텍스쳐
 	m_pLoadingTexture = CBackGround::Create(m_pGraphicDev, m_pTextureName);
 	if (!m_pLoadingTexture)
@@ -28,12 +36,14 @@ HRESULT CLoadingScene::Ready_Scene()
 
 _int CLoadingScene::Update_Scene(const _float& fTimeDelta)
 {
-	m_pLoadingTexture->Update_GameObject(fTimeDelta);
+	CRenderer::GetInstance()->Add_RenderGroup(RENDER_UI, m_pLoadingTexture);
 
-	//로딩 완료
-	if (m_pLoading->Get_Finish() && !m_bSceneChanged)
+	if (m_bRenderOnce &&  !m_bSceneChanged && m_pLoading->Get_Finish())
 	{
 		m_bSceneChanged = true;
+
+		//Render Group Clear Before Change Scene!!!!
+		CRenderer::GetInstance()->Clear_RenderGroup();
 
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, m_eNextScene)))
 		{
@@ -47,12 +57,11 @@ _int CLoadingScene::Update_Scene(const _float& fTimeDelta)
 
 void CLoadingScene::LateUpdate_Scene(const _float& fTimeDelta)
 {
-	m_pLoadingTexture->LateUpdate_GameObject(fTimeDelta);
 }
 
 void CLoadingScene::Render_Scene()
-{
-	m_pLoadingTexture->Render_GameObject();
+{	
+	m_bRenderOnce = true;
 
 	//로딩 진행 텍스트
 	_vec2 vPos{ 0.f, 0.f };

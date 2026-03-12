@@ -57,7 +57,6 @@ HRESULT CTexture::Ready_Texture(TEXTUREID eID, const _tchar* pPath, const _uint&
     }
 
     return S_OK;
-
 }
 
 void CTexture::Set_Texture(const _uint& iIndex)

@@ -204,6 +204,12 @@
     <ClInclude Include="..\Header\CLoadingScene.h">
       <Filter>01. Scene\02. Loading</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CTriggerBox.h">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\StageData.h">
+      <Filter>01. Scene\03. Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -316,6 +322,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CLoadingScene.cpp">
       <Filter>01. Scene\02. Loading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CTriggerBox.cpp">
+      <Filter>01. Scene\03. Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

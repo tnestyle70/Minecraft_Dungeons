@@ -13,6 +13,8 @@
 #include "CBlockMgr.h" 
 #include "CMonsterAnim.h"
 #include "CSceneChanger.h"
+#include "CRenderer.h"
+#include "StageData.h"
 
 CStage::CStage(LPDIRECT3DDEVICE9 pGraphicDev)
     : Engine::CScene(pGraphicDev)
@@ -48,6 +50,8 @@ _int CStage::Update_Scene(const _float& fTimeDelta)
 
     if (GetAsyncKeyState(VK_RETURN))
     {
+        //Render Group Clear Before Change Scene!!!!
+        CRenderer::GetInstance()->Clear_RenderGroup();
         if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_LOGO)))
         {
             MSG_BOX("SquidCoast Create Failed");
@@ -110,11 +114,19 @@ HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
         return E_FAIL;
     }
 
-    CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage1.dat");
+    CBlockMgr::GetInstance()->SetEditorMode(false); // 먼저 모드 설정
+
+    FILE* pFile = nullptr;
+    _wfopen_s(&pFile, L"../Bin/Data/Stage1.dat", L"rb");
+    if (pFile)
+    {
+        CBlockMgr::GetInstance()->LoadBlocks(pFile); // 내부에서 Rebuild까지 처리
+        fclose(pFile);
+    }
 
     //SetEditorMode 내부에서 rebuildbatchmesh를 해야 하는데,
     //그 시점에는 블럭이 없는 상태이므로, LoadBlocks를 먼저 해야 함
-    CBlockMgr::GetInstance()->SetEditorMode(false);
+    //CBlockMgr::GetInstance()->SetEditorMode(false);
 
     return S_OK;
 }

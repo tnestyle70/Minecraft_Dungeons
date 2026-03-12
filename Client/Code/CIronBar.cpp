@@ -23,6 +23,7 @@ HRESULT CIronBar::Ready_GameObject(const _vec3& vPos)
 
 	m_pTransCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 	m_pTransCom->m_vScale = { 0.5f, 10.f, 0.5f };
+	m_pCollider->Update_AABB(vPos);
 
 	return S_OK;
 }
@@ -85,7 +86,7 @@ HRESULT CIronBar::Add_Component()
 	//pComponent = m_pTextureCom = dynamic_cast<CTexture*>
 	//	(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RockTexture"));
 	pComponent = m_pTextureCom = dynamic_cast<CTexture*>
-		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_PlayerTexture"));
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_StoneBrickTexture"));
 
 	if (nullptr == pComponent)
 		return E_FAIL;
@@ -93,10 +94,12 @@ HRESULT CIronBar::Add_Component()
 	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
 
 	//Collider
+	_vec3 vSize, vOffset;
+	vSize = { 1.f, 10.f, 1.f };
+	vOffset = { 0.f, 0.f, 0.f };
 
 	pComponent = m_pCollider = CCollider::Create(m_pGraphicDev,
-		_vec3(1.f, 10.f, 1.f),
-		_vec3(0.f, 0.f, 0.f));
+		vSize, vOffset);
 	if (!pComponent)
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", pComponent });

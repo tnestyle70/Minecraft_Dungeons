@@ -37,7 +37,6 @@ _int CBackGround::Update_GameObject(const _float& fTimeDelta)
 
 void CBackGround::LateUpdate_GameObject(const _float& fTimeDelta)
 {
-
 	CGameObject::LateUpdate_GameObject(fTimeDelta);
 }
 

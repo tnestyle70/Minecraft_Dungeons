@@ -2,10 +2,15 @@
 #include "CObsidian.h"
 #include "CMonster.h"
 #include "CPlayer.h"
+#include "CIronBar.h"
+#include "CTriggerBox.h"
 #include "CMonsterAnim.h"
+#include "CEditor.h"
 #include "CBlockMgr.h"
 #include "CDynamicCamera.h"
 #include "CSceneChanger.h"
+#include "CRenderer.h"
+#include "StageData.h"
 
 CObsidian::CObsidian(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -30,6 +35,8 @@ HRESULT CObsidian::Ready_Scene()
 	if (FAILED(Ready_UI_Layer(L"UI_Layer")))
 		return E_FAIL;
 
+	Ready_StageData(L"../Bin/Data/Stage4.dat");
+
 	return S_OK;
 }
 
@@ -41,6 +48,8 @@ _int CObsidian::Update_Scene(const _float& fTimeDelta)
 
 	if (GetAsyncKeyState(VK_RETURN))
 	{
+		//Render Group Clear Before Change Scene!!!!
+		CRenderer::GetInstance()->Clear_RenderGroup();
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_CAMP)))
 		{
 			MSG_BOX("Camp Create Failed");
@@ -86,17 +95,6 @@ HRESULT CObsidian::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	//SkyBox 추가
-
-	//BlockMgr
-	if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
-	{
-		MSG_BOX("block mgr create failed");
-		return E_FAIL;
-	}
-
-	CBlockMgr::GetInstance()->LoadBlocks(L"../Bin/Data/Stage4.dat");
-
-	CBlockMgr::GetInstance()->SetEditorMode(false);
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
@@ -150,6 +148,72 @@ HRESULT CObsidian::Ready_UI_Layer(const _tchar* pLayerTag)
 
 HRESULT CObsidian::Ready_Light()
 {
+	return S_OK;
+}
+
+HRESULT CObsidian::Ready_StageData(const _tchar* szPath)
+{
+	FILE* pFile = nullptr;
+	_wfopen_s(&pFile, szPath, L"rb");
+	if (!pFile)
+		return E_FAIL;
+
+	// 1. 블럭 (LoadBlocks 내부에서 RebuildBatchMesh까지)
+
+	//BlockMgr
+	if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
+	{
+		MSG_BOX("block mgr create failed");
+		return E_FAIL;
+	}
+
+	CBlockMgr::GetInstance()->SetEditorMode(false); // 먼저 모드 설정
+
+	CBlockMgr::GetInstance()->LoadBlocks(pFile);
+
+	// 2. 몬스터 - map에 안 담고 레이어에 바로 추가
+	int iCount = 0;
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		MonsterData tData;
+		fread(&tData, sizeof(MonsterData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+
+		CGameObject* pMonster = CMonster::Create(
+			m_pGraphicDev, (EMonsterType)tData.iMonsterType, vPos);
+		if (pMonster)
+			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"Monster", pMonster);
+		// 레이어가 소유권 가짐 → 씬 종료 시 자동 해제
+	}
+
+	// 3. 창살
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		IronBarData tData;
+		fread(&tData, sizeof(IronBarData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+
+		CGameObject* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
+		if (pIronBar)
+			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"IronBar", pIronBar);
+	}
+
+	// 4. 트리거박스
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		TriggerBoxData tData;
+		fread(&tData, sizeof(TriggerBoxData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+
+		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
+		if (pTriggerBox)
+			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"TriggerBox", pTriggerBox);
+	}
+
+	fclose(pFile);
 	return S_OK;
 }
 

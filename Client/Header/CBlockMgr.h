@@ -2,7 +2,6 @@
 #include "CProtoMgr.h"
 #include "CBlockPlacer.h"
 #include "CBlock.h"
-#include "CIronBar.h"
 #include "CBatchBuffer.h"
 
 struct BlockData
@@ -35,8 +34,8 @@ public:
 	void RemoveBlockByPos(const BlockPos& pos);
 	void ClearBlocks();
 
-	HRESULT SaveBlocks(const _tchar* pFilePath);
-	HRESULT LoadBlocks(const _tchar* pFilePath);
+	HRESULT SaveBlocks(FILE* pFile);
+	HRESULT LoadBlocks(FILE* pFile);
 public:
 	bool RayAABBIntersect(const _vec3& vRayPos, const _vec3& vRayDir, 
 		BlockPos* pOutBlockPos, float* pOutT);

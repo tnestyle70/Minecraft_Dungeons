@@ -67,7 +67,7 @@ void CGameObject::Compute_ViewZ(const _vec3* pPos)
 CComponent* CGameObject::Find_Component(COMPONENTID eID, const _tchar* pComponentTag)
 {
     auto        iter = find_if(m_mapComponent[eID].begin(),
-                                m_mapComponent[eID].end(), 
+                                m_mapComponent[eID].end(),
                                  CTag_Finder(pComponentTag));
 
     if (iter == m_mapComponent[eID].end())
