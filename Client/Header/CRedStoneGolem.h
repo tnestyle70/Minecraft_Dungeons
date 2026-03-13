@@ -17,10 +17,35 @@ public:
 
 private:
 	HRESULT			Add_Component();
+	void Set_PartsPos();
+	void Set_DefaultScale();
 	
 private:
-	Engine::CBossTex* m_pBufferCom;
-	Engine::CTransform* m_pTransformCom;
+	// Buffer
+	Engine::CRedStoneGolemHeadTex* m_pHeadBufferCom;
+	Engine::CRedStoneGolemBodyTex* m_pBodyBufferCom;
+	Engine::CRedStoneGolemShoulderTex* m_pLeftShoulderBufferCom;
+	Engine::CRedStoneGolemShoulderTex* m_pRightShoulderBufferCom;
+	Engine::CRedStoneGolemHipTex* m_pHipBufferCom;
+	Engine::CRedStoneGolemCoreTex* m_pCoreBufferCom;
+	Engine::CRedStoneGolemArmTex* m_pLeftArmBufferCom;
+	Engine::CRedStoneGolemArmTex* m_pRightArmBufferCom;
+	Engine::CRedStoneGolemLegTex* m_pLeftLegBufferCom;
+	Engine::CRedStoneGolemLegTex* m_pRightLegBufferCom;
+
+	// Transform
+	Engine::CTransform* m_pHeadTransformCom;
+	Engine::CTransform* m_pBodyTransformCom;
+	Engine::CTransform* m_pLeftShoulderTransformCom;
+	Engine::CTransform* m_pRightShoulderTransformCom;
+	Engine::CTransform* m_pHipTransformCom;
+	Engine::CTransform* m_pCoreTransformCom;
+	Engine::CTransform* m_pLeftArmTransformCom;
+	Engine::CTransform* m_pRightArmTransformCom;
+	Engine::CTransform* m_pLeftLegTransformCom;
+	Engine::CTransform* m_pRightLegTransformCom;
+
+	// Texture
 	Engine::CTexture* m_pTextureCom;
 
 public:

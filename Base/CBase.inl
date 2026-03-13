@@ -1,4 +1,4 @@
-CBase::CBase() : m_dwRefCnt(0)
+ï»¿CBase::CBase() : m_dwRefCnt(0)
 {
 
 }
@@ -24,7 +24,3 @@ unsigned	long		CBase::Release()
 
 	return m_dwRefCnt--;
 }
-
-
-
-//±èÁÖ½Â ³ª ¾È¾Æ!!!!!!!!!

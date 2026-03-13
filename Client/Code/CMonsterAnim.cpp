@@ -205,7 +205,8 @@ void CMonsterAnim::Pose_Dead()
         m_fDeadRotX = D3DXToRadian(-90.f * fProgress);
         for (int i = 0; i < 6; ++i)
             m_tPose.SetRot(i, 0.f, 0.f, 0.f);
-        if (fProgress >= 1.f) m_bDeadDone = true;
+
+        if (fProgress >= 1.f) m_bDeadDone = true; // 트리거 
     }
     else if (m_eType == EMonsterType::SKELETON)
     {
@@ -225,7 +226,8 @@ void CMonsterAnim::Pose_Dead()
         m_vDeadOffset[3] = { 1.0f,  0.f,  0.f };
         m_vDeadOffset[4] = { -0.9f,  0.f,  0.f };
         m_vDeadOffset[5] = { 0.9f,  0.f,  0.f };
-        if (fSplitClamped >= 1.f) m_bDeadDone = true;
+
+        if (fSplitClamped >= 1.f) m_bDeadDone = true;// 트리거 
     }
     else if (m_eType == EMonsterType::CREEPER)
     {
@@ -233,7 +235,8 @@ void CMonsterAnim::Pose_Dead()
         m_fDeadRotX = D3DXToRadian(-90.f * fProgrees);
         for (int i = 0; i < 6; ++i)
             m_tPose.SetRot(i, 0.f, 0.f, 0.f);
-        if (fProgrees >= 1.f) m_bDeadDone = true;
+
+        if (fProgrees >= 1.f) m_bDeadDone = true; // 트리거 
     }
     else if (m_eType == EMonsterType::SPIDER)
     {
@@ -241,6 +244,7 @@ void CMonsterAnim::Pose_Dead()
         m_fDeadRotX = D3DXToRadian(180.f * fProgress);
         for (int i = 0; i < 6; ++i)
             m_tPose.SetRot(i, 0.f, 0.f, 0.f);
-        if (fProgress >= 1.f) m_bDeadDone = true;
+
+        if (fProgress >= 1.f) m_bDeadDone = true; // 트리거 
     }
 }

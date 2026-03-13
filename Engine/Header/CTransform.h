@@ -35,6 +35,11 @@ public:
 		m_vInfo[INFO_POS] = { fX, fY, fZ };
 	}
 
+	void Set_Scale(_float fScale)
+	{
+		m_vScale *= fScale;
+	}
+
 public:
 	HRESULT		 Ready_Transform();
 	virtual _int Update_Component(const _float& fTimeDelta);

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.3.11520.95 d18.3
+VisualStudioVersion = 18.3.11520.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client", "Client\Include\Client.vcxproj", "{0BA4CD4E-9555-4D9B-BC2D-945722B4C4A4}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -19,6 +19,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01. Engine", "01. Engine", "{B46CC52A-E9AA-490E-8706-C62CBF6888EA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Include\Engine.vcxproj", "{3760200D-B29E-4C2F-9FDC-102F137BEC16}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UI_EDITOR", "UI_EDITOR\UI_EDITOR.vcxproj", "{EC3B249E-0322-4B15-8139-628CF2C1AD2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,14 @@ Global
 		{3760200D-B29E-4C2F-9FDC-102F137BEC16}.Release|x64.Build.0 = Release|x64
 		{3760200D-B29E-4C2F-9FDC-102F137BEC16}.Release|x86.ActiveCfg = Release|Win32
 		{3760200D-B29E-4C2F-9FDC-102F137BEC16}.Release|x86.Build.0 = Release|Win32
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Debug|x64.ActiveCfg = Debug|x64
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Debug|x64.Build.0 = Debug|x64
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Debug|x86.ActiveCfg = Debug|Win32
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Debug|x86.Build.0 = Debug|Win32
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Release|x64.ActiveCfg = Release|x64
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Release|x64.Build.0 = Release|x64
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Release|x86.ActiveCfg = Release|Win32
+		{EC3B249E-0322-4B15-8139-628CF2C1AD2D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

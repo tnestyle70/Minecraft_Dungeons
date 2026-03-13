@@ -13,7 +13,7 @@ private:
 public:
 	CComponent*		Get_Component(COMPONENTID eID, const _tchar* pObjTag, const _tchar* pComponentTag);
 	HRESULT			Add_GameObject(const _tchar* pObjTag, CGameObject* pGameObject);
-
+	_int			Delete_GameObject(const _float& fTimeDelta); // 몬스터 삭제 
 public:
 	HRESULT			Ready_Layer();
 	_int			Update_Layer(const _float& fTimeDelta);

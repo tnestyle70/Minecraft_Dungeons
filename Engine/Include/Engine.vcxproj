@@ -145,7 +145,8 @@ call Copy.bat</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Header\CBossTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemArmTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemBodyTex.h" />
     <ClInclude Include="..\Header\CCalculator.h" />
     <ClInclude Include="..\Header\CCamera.h" />
     <ClInclude Include="..\Header\CCollider.h" />
@@ -167,6 +168,11 @@ call Copy.bat</Command>
     <ClInclude Include="..\Header\CProtoMgr.h" />
     <ClInclude Include="..\Header\CRcCol.h" />
     <ClInclude Include="..\Header\CRcTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemCoreTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemHeadTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemHipTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemLegTex.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemShoulderTex.h" />
     <ClInclude Include="..\Header\CRenderer.h" />
     <ClInclude Include="..\Header\CScene.h" />
     <ClInclude Include="..\Header\CSoundMgr.h" />
@@ -183,9 +189,11 @@ call Copy.bat</Command>
     <ClInclude Include="..\Header\Engine_Macro.h" />
     <ClInclude Include="..\Header\Engine_Struct.h" />
     <ClInclude Include="..\Header\Engine_Typedef.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Code\CBossTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemArmTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemBodyTex.cpp" />
     <ClCompile Include="..\Code\CCalculator.cpp" />
     <ClCompile Include="..\Code\CCamera.cpp" />
     <ClCompile Include="..\Code\CCollider.cpp" />
@@ -207,6 +215,11 @@ call Copy.bat</Command>
     <ClCompile Include="..\Code\CProtoMgr.cpp" />
     <ClCompile Include="..\Code\CRcCol.cpp" />
     <ClCompile Include="..\Code\CRcTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemCoreTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemHeadTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemHipTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemLegTex.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolemShoulderTex.cpp" />
     <ClCompile Include="..\Code\CRenderer.cpp" />
     <ClCompile Include="..\Code\CScene.cpp" />
     <ClCompile Include="..\Code\CSoundMgr.cpp" />
@@ -217,6 +230,9 @@ call Copy.bat</Command>
     <ClCompile Include="..\Code\CTransform.cpp" />
     <ClCompile Include="..\Code\CTriCol.cpp" />
     <ClCompile Include="..\Code\CVIBuffer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

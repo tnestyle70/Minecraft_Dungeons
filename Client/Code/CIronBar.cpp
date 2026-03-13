@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CIronBar.h"
 #include "CRenderer.h"
 
@@ -89,8 +89,10 @@ HRESULT CIronBar::Add_Component()
 		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_StoneBrickTexture"));
 
 	if (nullptr == pComponent)
+	{
+		MSG_BOX("PlayerTexture Failed");
 		return E_FAIL;
-
+	}
 	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
 
 	//Collider

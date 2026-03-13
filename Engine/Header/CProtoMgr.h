@@ -7,7 +7,17 @@
 #include "CTerrainTex.h"
 #include "CCubeTex.h"
 #include "CCubeBodyTex.h"
-#include "CBossTex.h"
+
+// RedStoneGolem
+#include "CRedStoneGolemBodyTex.h"
+#include "CRedStoneGolemHeadTex.h"
+#include "CRedStoneGolemShoulderTex.h"
+#include "CRedStoneGolemHipTex.h"
+#include "CRedStoneGolemCoreTex.h"
+#include "CRedStoneGolemArmTex.h"
+#include "CRedStoneGolemLegTex.h"
+
+//
 
 #include "CTransform.h"
 #include "CTexture.h"

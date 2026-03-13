@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CMonster.h"
 #include "CManagement.h"
 #include "CProtoMgr.h"
@@ -25,6 +25,7 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
     if (FAILED(Add_Component()))
         return E_FAIL;
 
+    //몬스터 소환 온 오프
     switch (m_eType)
     {
         case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
@@ -91,6 +92,11 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     else
     {
         m_fKnockbackAccum = 0.f;
+    } 
+
+    if (pAnim && pAnim->Is_DeadDone()) // 애니메이션 사망플러그를 몬스터에게 전달 
+    {
+        return true;
     }
 
     if (m_eType == EMonsterType::SKELETON)

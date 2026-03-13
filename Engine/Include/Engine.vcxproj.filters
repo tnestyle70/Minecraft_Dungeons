@@ -106,8 +106,11 @@
     <Filter Include="03. Component\00. VIBuffer\05. CubeBodyTex">
       <UniqueIdentifier>{b8ab2d6e-271f-45e1-ae88-8334806763e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03. Component\00. VIBuffer\06. BossTex">
+    <Filter Include="03. Component\00. VIBuffer\06. Boss">
       <UniqueIdentifier>{c38acc3d-0dc8-4496-83a4-d1a1d162ee13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem">
+      <UniqueIdentifier>{160779b1-8928-47a8-851b-b633bb821476}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -204,8 +207,26 @@
     <ClCompile Include="..\Code\CCollider.cpp">
       <Filter>03. Component\04. Collider</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CBossTex.cpp">
-      <Filter>03. Component\00. VIBuffer\06. BossTex</Filter>
+    <ClCompile Include="..\Code\CRedStoneGolemBodyTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemHeadTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemShoulderTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemHipTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemCoreTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemArmTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolemLegTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -320,8 +341,30 @@
     <ClInclude Include="..\Header\CCollider.h">
       <Filter>03. Component\04. Collider</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CBossTex.h">
-      <Filter>03. Component\00. VIBuffer\06. BossTex</Filter>
+    <ClInclude Include="..\Header\CRedStoneGolemBodyTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolemHeadTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolemShoulderTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\Header\CRedStoneGolemHipTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolemCoreTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolemArmTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolemLegTex.h">
+      <Filter>03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc" />
   </ItemGroup>
 </Project>

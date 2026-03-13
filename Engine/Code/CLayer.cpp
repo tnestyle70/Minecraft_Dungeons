@@ -29,6 +29,21 @@ HRESULT CLayer::Add_GameObject(const _tchar* pObjTag, CGameObject* pGameObject)
 	return S_OK;
 }
 
+_int CLayer::Delete_GameObject(const _float& fTimeDelta) // 몬스터 삭제 
+{
+	for (auto iter = m_mapObject.begin(); iter != m_mapObject.end();)
+	{
+		if (iter->second->Is_Dead())
+		{
+			Safe_Release(iter->second);
+			iter = m_mapObject.erase(iter);
+		}
+		else
+			++iter;
+	}
+	return 0;
+}
+
 HRESULT CLayer::Ready_Layer()
 {
 	return S_OK;
