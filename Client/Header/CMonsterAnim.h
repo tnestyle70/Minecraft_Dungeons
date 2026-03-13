@@ -30,7 +30,8 @@ public:
     float Get_DeadRotX() const { return m_fDeadRotX; } 
     EMonsterState Get_State() const { return m_eState; } 
     const _vec3* Get_DeadOffsets() const { return m_vDeadOffset; } 
-    bool Is_DeadDone() const { return m_bDeadDone; }
+
+    bool Is_DeadDone() const { return m_bDeadDone; }// 몬스터 삭제 
   
 
 private:
@@ -60,7 +61,8 @@ private:
     float m_fSpeed = 0.f;
 
     bool  m_bHitFlash = false;  
-    bool m_bDeadDone = false;
+
+    bool m_bDeadDone = false; // 삭제 트리거 
 
     _vec3 m_vDeadOffset[6] = {
     { 0.f, 0.f, 0.f },

@@ -91,6 +91,11 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     else
     {
         m_fKnockbackAccum = 0.f;
+    } 
+
+    if (pAnim && pAnim->Is_DeadDone()) // 애니메이션 사망플러그를 몬스터에게 전달 
+    {
+        return true;
     }
 
     if (m_eType == EMonsterType::SKELETON)

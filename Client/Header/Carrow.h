@@ -23,10 +23,10 @@ private:
     Engine::CTexture* m_pTextureCom = nullptr;
     Engine::CRcTex* m_pBufferCom = nullptr;
 
-    _vec3   m_vDir = { 0.f, 0.f, 1.f }; // 날아갈 방향
-    float   m_fSpeed = 20.f;               // 화살 속도
-    float   m_fLifeTime = 0.f;                // 생존 시간
-    float   m_fMaxLifeTime = 3.f;                // 최대 생존 시간 (3초 후 삭제)
+    _vec3   m_vDir = { 0.f, 0.f, 1.f };      // 날아갈 방향
+    float   m_fSpeed = 20.f;                 // 화살 속도
+    float   m_fLifeTime = 0.f;               // 생존 시간
+    float   m_fMaxLifeTime = 3.f;            // 최대 생존 시간 (3초 후 삭제)
     bool    m_bDead = false;
 
 public:

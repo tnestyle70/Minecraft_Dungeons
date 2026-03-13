@@ -20,7 +20,7 @@ public:
     virtual void        LateUpdate_GameObject(const _float& fTimeDelta);
     virtual void        Render_GameObject(); 
    
-
+    virtual bool        Is_Dead() override { return m_bDeadDone; } // 몬스터 삭제 
 private:
     HRESULT             Add_Component();
     void                Update_Arrow(const _float& fTimeDelta);
@@ -53,6 +53,7 @@ private:
     float                   m_fVelocityY = 0.f;
     float                   m_fDeadAngleY = 0.f;
     bool                    m_bOnGround = false;  
+
     bool                    m_bDeadDone = false; // 몬스터 삭제용도 
 
 

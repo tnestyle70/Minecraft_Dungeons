@@ -13,7 +13,8 @@ protected:
 
 public:
 	CComponent* Get_Component(COMPONENTID eID, const _tchar* pComponentTag);
-	_float Get_ViewZ() { return m_fViewZ; }
+	_float Get_ViewZ() { return m_fViewZ; } 
+	virtual bool Is_Dead() { return false; } // 몬스터 삭제 판별
 
 
 
