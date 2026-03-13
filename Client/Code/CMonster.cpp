@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CMonster.h"
 #include "CManagement.h"
 #include "CProtoMgr.h"
@@ -25,12 +25,13 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
     if (FAILED(Add_Component()))
         return E_FAIL;
 
+    //몬스터 소환 온 오프
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break; 
-    case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(-2.f, 10.f, 3.f); break;
-    case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(2.f, 10.f, 3.f); break;
+    //case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
+    //case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break; 
+    //case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(-2.f, 10.f, 3.f); break;
+    //case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(2.f, 10.f, 3.f); break;
     }
 
     return S_OK;
