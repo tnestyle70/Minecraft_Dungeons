@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CLoading.h"
 #include "CProtoMgr.h"
 #include "CMonsterUV.h"
@@ -21,11 +21,11 @@ HRESULT CLoading::Ready_Loading(LOADINGID eID)
     m_eLoadingID = eID;
 
     m_hThread = (HANDLE)_beginthreadex(NULL, // 보안 속성(핸들의 상속 여부, NULL인 경우 상속에서 제외)
-                                        0,  // 디폴트 스택 사이즈(1 바이트)
-                                        Thread_Main, // 구동할 쓰레드 함수
-                                        this,          // 3번 매개 변수 함수를 통해 가공할 데이터 주소
-                                        0,             // 쓰레드 생성 및 실행을 조정하기 위한 옵션
-                                        NULL);         // 쓰레드 ID
+        0,  // 디폴트 스택 사이즈(1 바이트)
+        Thread_Main, // 구동할 쓰레드 함수
+        this,          // 3번 매개 변수 함수를 통해 가공할 데이터 주소
+        0,             // 쓰레드 생성 및 실행을 조정하기 위한 옵션
+        NULL);         // 쓰레드 ID
     return S_OK;
 }
 
@@ -83,7 +83,11 @@ _uint CLoading::Loading_Stage()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
         return E_FAIL;
-  
+    //칼 텍스쳐
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/iron_sword.png"))))
+        return E_FAIL;
+
     // 닭 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))
@@ -163,11 +167,11 @@ _uint CLoading::Loading_Stage()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Head",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::HEAD))))
         return E_FAIL;
-    
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_Body",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::BODY))))
-        return E_FAIL; 
-    
+        return E_FAIL;
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RArm",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_ARM))))
         return E_FAIL;
@@ -175,23 +179,23 @@ _uint CLoading::Loading_Stage()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LArm",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_ARM))))
         return E_FAIL;
-    
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_RLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::R_LEG))))
         return E_FAIL;
-    
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_LEG))))
-        return E_FAIL; 
+        return E_FAIL;
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandbyTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_standby.png"))))
         return E_FAIL;
-    
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPullingTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_pulling_0.png"))))
         return E_FAIL;
-    
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
         return E_FAIL;
@@ -305,6 +309,10 @@ _uint CLoading::Loading_SquidCoast()
     // 플레이어 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/iron_sword.png"))))
         return E_FAIL;
 
     // 닭 텍스쳐
@@ -543,6 +551,7 @@ _uint CLoading::Loading_Obsidian()
 
 unsigned int CLoading::Thread_Main(void* pArg)
 {
+    OutputDebugString(L"Thread_Main 시작\n");
     CLoading* pLoading = reinterpret_cast<CLoading*>(pArg);
 
     int iFlag(0);
