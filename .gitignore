@@ -83,3 +83,6 @@ ipch/
 
 # Ignore cursor rules
 .cursorrules
+
+# Ignore ImGui ini
+Imgui.ini
