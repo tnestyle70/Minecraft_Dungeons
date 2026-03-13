@@ -233,7 +233,7 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 		fread(&tData, sizeof(TriggerBoxData), 1, pFile);
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 
-		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
+		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos, (eTriggerBoxType)tData.iTriggerBoxType);
 		if (pTriggerBox)
 			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"TriggerBox", pTriggerBox);
 	}

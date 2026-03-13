@@ -20,19 +20,20 @@ public:
     virtual void        LateUpdate_GameObject(const _float& fTimeDelta);
     virtual void        Render_GameObject(); 
    
+
+
     virtual bool        Is_Dead() override { return m_bDeadDone; } // 몬스터 삭제 
+
 private:
     HRESULT             Add_Component();
     void                Update_Arrow(const _float& fTimeDelta);
     void                Fire_Arrow();
     void                Render_Bow();
-
     // 중력
     void                Apply_Gravity(const _float& fTimeDelta);
     void                Resolve_BlockCollision();
     // AI 시스템 
     void                Update_AI(const _float& fTimeDelta);
-
 private:
     CMonsterBody* m_pBodyCom = nullptr;
     Engine::CTransform* m_pTransformCom = nullptr;
@@ -55,8 +56,8 @@ private:
     bool                    m_bOnGround = false;  
 
     bool                    m_bDeadDone = false; // 몬스터 삭제용도 
-
-
+    
+    
     static constexpr float  m_fGravity = -20.f;
     static constexpr float  m_fMaxFall = -20.f; 
 

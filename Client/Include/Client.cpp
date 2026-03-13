@@ -180,6 +180,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    // ImGui에 전달하기 전에 TAB 차단
+    if (message == WM_KEYDOWN && wParam == VK_TAB)
+        return 0;  // ImGui는 못 받음
+
     if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
         return true;
 

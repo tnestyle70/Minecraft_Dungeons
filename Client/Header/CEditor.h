@@ -33,45 +33,6 @@ enum eMonsterType
 	MONSTER_SPIDER
 };
 
-/*
-struct MonsterData
-{
-	int x, y, z;
-	int iMonsterType;
-	bool operator<(const MonsterData& other) const
-	{
-		if (x != other.x) return x < other.x;
-		if (y != other.y) return y < other.y;
-		return z < other.z;
-	}
-};
-
-struct TriggerBoxData
-{
-	int x, y, z;
-	int width, height, depth;
-	bool operator<(const TriggerBoxData& other) const
-	{
-		if (x != other.x) return x < other.x;
-		if (y != other.y) return y < other.y;
-		return z < other.z;
-	}
-};
-
-struct IronBarData
-{
-	int x, y, z;
-	int iTriggerID;
-	
-	bool operator<(const IronBarData& other) const
-	{
-		if (x != other.x) return x < other.x;
-		if (y != other.y) return y < other.y;
-		return z < other.z;
-	}
-};
-*/
-
 class CEditor : public CScene
 {
 protected:
@@ -128,10 +89,15 @@ private:
 	eBlockType m_eSelectedBlock = BLOCK_GRASS;
 	int m_iSelectedMonster = 0;
 
+	//Monster TriggerID 
+	int m_iMonsterTriggerID = -1;
+
 	//Trigger Box Settings
 	int m_iTriggerWidth = 1;
 	int m_iTriggerHeight = 1;
 	int m_iTriggerDepth = 1;
+	int m_iCurTriggerID = 0;
+	int m_iTriggerType = TRIGGER_IRONBAR;
 	bool m_bLBtnPrev = false;
 	bool m_bRBtnPrev = false;
 public:

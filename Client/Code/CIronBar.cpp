@@ -109,6 +109,21 @@ HRESULT CIronBar::Add_Component()
 	return S_OK;
 }
 
+void CIronBar::Update_Animation(eIronBarAnimState eState)
+{
+	switch (eState)
+	{
+	case MOVE_UP:
+		//올라가는 애니메이션
+		break;
+	case MOVE_DOWN:
+		//내려가는 애니메이션
+		break;
+	default:
+		break;
+	}
+}
+
 CIronBar* CIronBar::Create(LPDIRECT3DDEVICE9 pGraphicDev, const _vec3& vPos)
 {
 	CIronBar* pIronBar = new CIronBar(pGraphicDev);

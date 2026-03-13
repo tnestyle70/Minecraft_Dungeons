@@ -156,6 +156,7 @@
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
     <ClInclude Include="..\Header\CIronBar.h" />
+    <ClInclude Include="..\Header\CIronBarMgr.h" />
     <ClInclude Include="..\Header\CLoading.h" />
     <ClInclude Include="..\Header\CLoadingScene.h" />
     <ClInclude Include="..\Header\CLogo.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="..\Header\CMonster.h" />
     <ClInclude Include="..\Header\CMonsterAnim.h" />
     <ClInclude Include="..\Header\CMonsterBody.h" />
+    <ClInclude Include="..\Header\CMonsterMgr.h" />
     <ClInclude Include="..\Header\CMonsterUV.h" />
     <ClInclude Include="..\Header\CNavNode.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="..\Header\CStage.h" />
     <ClInclude Include="..\Header\CTerrain.h" />
     <ClInclude Include="..\Header\CTriggerBox.h" />
+    <ClInclude Include="..\Header\CTriggerBoxMgr.h" />
     <ClInclude Include="..\Header\StageData.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="framework.h" />
@@ -198,6 +201,7 @@
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />
     <ClCompile Include="..\Code\CIronBar.cpp" />
+    <ClCompile Include="..\Code\CIronBarMgr.cpp" />
     <ClCompile Include="..\Code\CLoading.cpp" />
     <ClCompile Include="..\Code\CLoadingScene.cpp" />
     <ClCompile Include="..\Code\CLogo.cpp" />
@@ -205,6 +209,7 @@
     <ClCompile Include="..\Code\CMonster.cpp" />
     <ClCompile Include="..\Code\CMonsterAnim.cpp" />
     <ClCompile Include="..\Code\CMonsterBody.cpp" />
+    <ClCompile Include="..\Code\CMonsterMgr.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />
     <ClCompile Include="..\Code\CPlayer.cpp" />
@@ -217,6 +222,7 @@
     <ClCompile Include="..\Code\CStage.cpp" />
     <ClCompile Include="..\Code\CTerrain.cpp" />
     <ClCompile Include="..\Code\CTriggerBox.cpp" />
+    <ClCompile Include="..\Code\CTriggerBoxMgr.cpp" />
     <ClCompile Include="..\Code\imgui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

@@ -97,6 +97,15 @@
     <Filter Include="02. GameObject\08 Boss\00. RedStoneGolem">
       <UniqueIdentifier>{ab32831a-1c13-4ad2-8667-42b53f24c8cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03. Manager\01. MonsterMgr">
+      <UniqueIdentifier>{38196cc1-ed33-4a15-ba0c-43389d929c96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\02. IronBarMgr">
+      <UniqueIdentifier>{ba356d4e-4aff-4c20-9df0-fa8a8ea5e430}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\03. TriggerBoxMgr">
+      <UniqueIdentifier>{79084ad4-631d-42d1-a168-4dcdca639e47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -186,9 +195,6 @@
     <ClInclude Include="..\Header\CBatchBuffer.h">
       <Filter>01. Scene\03. Editor\04. BatchBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CIronBar.h">
-      <Filter>01. Scene\03. Editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\CSceneChanger.h">
       <Filter>01. Scene</Filter>
     </ClInclude>
@@ -210,14 +216,26 @@
     <ClInclude Include="..\Header\CLoadingScene.h">
       <Filter>01. Scene\02. Loading</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CTriggerBox.h">
-      <Filter>01. Scene\03. Editor</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\StageData.h">
       <Filter>01. Scene\03. Editor</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CRedStoneGolem.h">
       <Filter>02. GameObject\08 Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CTriggerBoxMgr.h">
+      <Filter>03. Manager\03. TriggerBoxMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CTriggerBox.h">
+      <Filter>03. Manager\03. TriggerBoxMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CIronBar.h">
+      <Filter>03. Manager\02. IronBarMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CIronBarMgr.h">
+      <Filter>03. Manager\02. IronBarMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CMonsterMgr.h">
+      <Filter>03. Manager\01. MonsterMgr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -305,9 +323,6 @@
     <ClCompile Include="..\Code\CBatchBuffer.cpp">
       <Filter>01. Scene\03. Editor\04. BatchBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CIronBar.cpp">
-      <Filter>01. Scene\03. Editor</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CMonsterAnim.cpp">
       <Filter>02. GameObject\01. Monster</Filter>
     </ClCompile>
@@ -332,11 +347,23 @@
     <ClCompile Include="..\Code\CLoadingScene.cpp">
       <Filter>01. Scene\02. Loading</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CTriggerBox.cpp">
-      <Filter>01. Scene\03. Editor</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CRedStoneGolem.cpp">
       <Filter>02. GameObject\08 Boss\00. RedStoneGolem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CTriggerBox.cpp">
+      <Filter>03. Manager\03. TriggerBoxMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CTriggerBoxMgr.cpp">
+      <Filter>03. Manager\03. TriggerBoxMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CIronBar.cpp">
+      <Filter>03. Manager\02. IronBarMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CIronBarMgr.cpp">
+      <Filter>03. Manager\02. IronBarMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CMonsterMgr.cpp">
+      <Filter>03. Manager\01. MonsterMgr</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

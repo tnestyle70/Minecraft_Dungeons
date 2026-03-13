@@ -4,6 +4,7 @@
 #include "CDynamicCamera.h"
 #include "CMonsterUV.h"
 #include "CSceneChanger.h"
+#include "CTriggerBox.h"
 
 CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
@@ -390,7 +391,16 @@ void CEditor::Render_MonsterPalette()
 {
 	ImGui::Text("Monster Spawn");
 	ImGui::Separator();
+	//TriggerID 설정 추가
+	ImGui::Separator();
+	ImGui::Text("TriggerID: ");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60.f);
+	ImGui::InputInt("##MonsterTriggerID", &m_iMonsterTriggerID, 0, 0);
+	ImGui::SameLine();
+	ImGui::TextDisabled("(-1 = 즉시스폰)");
 
+	ImGui::Separator();
 	//몬스터 타입 선택
 	const char* szMonsters[] =
 	{
@@ -420,19 +430,37 @@ void CEditor::Render_MonsterPalette()
 	//배치된 스폰 목록
 	for (auto& pair : m_mapMonsters)
 	{
-		MonsterData tData = pair.first;
+		const MonsterData& tData = pair.first;
 		ImGui::Text("[%s] (%d %d %d)",
 			szMonsters[tData.iMonsterType],
 			tData.x, tData.y, tData.z);
 
 		ImGui::SameLine();
 
-		char szBtn[32];
-		sprintf_s(szBtn, "X %d", (int)tData.iMonsterType);
-		if (ImGui::Button(szBtn))
+		// TriggerID 인라인 수정
+		char szID[32];
+		sprintf_s(szID, "##mid_%d_%d_%d", tData.x, tData.y, tData.z);
+		ImGui::SetNextItemWidth(40.f);
+		int iID = tData.iTriggerID;
+		if (ImGui::InputInt(szID, &iID, 0, 0))
 		{
-			pPendingDelete = const_cast<MonsterData*>(&tData);
+			MonsterData tNew = tData;
+			tNew.iTriggerID = iID;
+			auto pObj = pair.second;
+			m_mapMonsters.erase(pair.first);
+			m_mapMonsters.insert({ tNew, pObj });
+			break;  // iterator 무효화
 		}
+
+		ImGui::SameLine();
+		ImGui::Text("(%d,%d,%d)", tData.x, tData.y, tData.z);
+		ImGui::SameLine();
+
+		char szBtn[32];
+		sprintf_s(szBtn, "X##%d_%d_%d", tData.x, tData.y, tData.z);
+		if (ImGui::Button(szBtn))
+			pPendingDelete = const_cast<MonsterData*>(&pair.first);
+
 	}
 	
 	if (pPendingDelete)
@@ -452,7 +480,6 @@ void CEditor::Render_IronBarPalette()
 {
 	ImGui::Text("IronBar Placement");
 	ImGui::Separator();
-	ImGui::Text("LBtn: Place  RBtn: Remove");
 	ImGui::Text("Placed: %d", (int)m_mapIronBars.size());
 
 	IronBarData* pPendingDelete = nullptr;
@@ -489,26 +516,76 @@ void CEditor::Render_TriggerPalette()
 {
 	ImGui::Text("TriggerBox Placement");
 	ImGui::Separator();
-	ImGui::Text("LBtn: Place  RBtn: Remove");
+	//타입 선택
+	const char* szTypes[] = { "IronBar", "Monster", "SceneChange" };
+	ImGui::Text("Type:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(120.f);
+	ImGui::Combo("##TriggerType", &m_iTriggerType, szTypes, IM_ARRAYSIZE(szTypes));
+	// TriggerID 설정
+	ImGui::Text("TriggerID:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60.f);
+	ImGui::InputInt("##TriggerID", &m_iCurTriggerID), 0, 0;
+	ImGui::SameLine();
+	if (ImGui::Button("Auto"))  // 클릭마다 자동 증가
+		m_iCurTriggerID++;
+
+	ImGui::Separator();
+
+	// 배치된 목록
 	ImGui::Text("Placed: %d", (int)m_mapTriggerBoxes.size());
 
 	TriggerBoxData* pPendingDelete = nullptr;
 
 	for (auto& pair : m_mapTriggerBoxes)
 	{
-		const TriggerBoxData& tData = pair.first;
+		TriggerBoxData& tData = const_cast<TriggerBoxData&>(pair.first);
 
-		ImGui::Text("(%d %d %d) %dx%dx%d",
-			tData.x, tData.y, tData.z,
-			tData.width, tData.height, tData.depth);
+		// 타입 표시 + 변경
+		const char* szTypes2[] = { "IronBar", "Monster", "SceneChange" };
+		char szCombo[32];
+		sprintf_s(szCombo, "##type_%d_%d_%d", tData.x, tData.y, tData.z);
+
+		ImGui::SetNextItemWidth(90.f);
+		int iType = tData.iTriggerBoxType;
+		if (ImGui::Combo(szCombo, &iType, szTypes2, IM_ARRAYSIZE(szTypes2)))
+		{
+			// map은 key 변경 불가 → 지우고 다시 삽입
+			TriggerBoxData tNew = tData;
+			tNew.iTriggerBoxType = iType;
+			auto pObj = pair.second;
+			m_mapTriggerBoxes.erase(pair.first);
+			m_mapTriggerBoxes.insert({ tNew, pObj });
+			break;  // iterator 무효화됐으니 이번 프레임 중단
+		}
 
 		ImGui::SameLine();
 
-		char szBtn[32];
-		sprintf_s(szBtn, "X##%d_%d_%d", tData.x, tData.y, tData.z);
+		// TriggerID 변경
+		char szID[32];
+		sprintf_s(szID, "##id_%d_%d_%d", tData.x, tData.y, tData.z);
+		ImGui::SetNextItemWidth(40.f);
+		int iID = tData.iTriggerID;
+		if (ImGui::InputInt(szID, &iID, 0))
+		{
+			TriggerBoxData tNew = tData;
+			tNew.iTriggerID = iID;
+			auto pObj = pair.second;
+			m_mapTriggerBoxes.erase(pair.first);
+			m_mapTriggerBoxes.insert({ tNew, pObj });
+			break;
+		}
 
+		ImGui::SameLine();
+		ImGui::Text("(%d,%d,%d)", tData.x, tData.y, tData.z);
+		ImGui::SameLine();
+
+		// 삭제 버튼
+		char szBtn[32];
+		sprintf_s(szBtn, "X##tb_%d_%d_%d", tData.x, tData.y, tData.z);
 		if (ImGui::Button(szBtn))
-			pPendingDelete = const_cast<TriggerBoxData*>(&tData);
+			pPendingDelete = &tData;
 	}
 
 	if (pPendingDelete)
@@ -516,10 +593,9 @@ void CEditor::Render_TriggerPalette()
 		auto iter = m_mapTriggerBoxes.find(*pPendingDelete);
 		if (iter != m_mapTriggerBoxes.end())
 		{
-			Safe_Release(iter->second);  // CTriggerBox 해제
+			Safe_Release(iter->second);
 			m_mapTriggerBoxes.erase(iter);
 		}
-		pPendingDelete = nullptr;
 	}
 }
 
@@ -546,7 +622,8 @@ void CEditor::UpdateMonsterMode()
 			tData.y = tHitPos.y + 1;
 			tData.z = tHitPos.z;
 			tData.iMonsterType = m_iSelectedMonster;
-
+			tData.iTriggerID = m_iMonsterTriggerID;
+			
 			//Add Monster
 			_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 			CMonster* pMonster = CMonster::Create(m_pGraphicDev, (EMonsterType)m_iSelectedMonster ,vPos);
@@ -666,11 +743,17 @@ void CEditor::UpdateTriggerBoxMode()
 			tData.width = m_iTriggerWidth;
 			tData.height = m_iTriggerHeight;
 			tData.depth = m_iTriggerDepth;
+			tData.iTriggerBoxType = m_iTriggerType;
+			tData.iTriggerID = m_iCurTriggerID;
 
 			//Add Trigger Box
 			_vec3 vPos = {(float)tData.x, (float)tData.y, (float)tData.z};
-			CTriggerBox* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
-			m_mapTriggerBoxes.insert({ tData, pTriggerBox });
+			CTriggerBox* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos,
+				eTriggerBoxType(m_iTriggerType));
+			if (pTriggerBox)
+			{
+				m_mapTriggerBoxes.insert({ tData, pTriggerBox });
+			}
 		}
 	}
 	
@@ -684,7 +767,7 @@ void CEditor::UpdateTriggerBoxMode()
 		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
 		{
 			//delete same hit point trigger box data
-			for (auto iter = m_mapTriggerBoxes.begin(); iter == m_mapTriggerBoxes.end(); ++iter)
+			for (auto iter = m_mapTriggerBoxes.begin(); iter != m_mapTriggerBoxes.end(); ++iter)
 			{
 				const TriggerBoxData& tData = iter->first;
 				if (tData.x == tHitPos.x && tData.y == tHitPos.y && tData.z == tHitPos.z)
