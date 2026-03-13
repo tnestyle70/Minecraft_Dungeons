@@ -8,6 +8,8 @@
 #include <map>
 #include <memory>
 
+#include "External/imgui/imgui.h"
+
 struct Texture2D {
 	void* texture = nullptr;
 	std::string name;
@@ -40,19 +42,31 @@ public:
 
 	void LoadUnrealTexture2D(void* device, const std::string& fullPath, const std::string& relativePath);
 	void LoadUI(const std::string& path);
+	void SaveUI(const std::string& path);
 	void LoadFolder(void* device, const std::string& path);
 
+	void DuplicateSelected();
+	void DeleteSelected();
+
+	ImVec2 GetGlobalPos(int index);
+	int FindEntityIndexById(int id);
+	void SetParent(int childIdx, int parentId);
+
 private:
+	void HandleInputs();
 	void RefreshUIFileList();
 	void RenderTextureFolder(TextureFolder& folder);
 	void ReleaseFolder(TextureFolder& folder);
+	void RenderHierarchyRecursive(int parentId);
 
 	void* d3dDevice = nullptr;
 	std::string currentPath = "../Client/Bin/Resource/Texture/UI/Materials";
+	std::string lastLoadedPath = "";
 
 	TextureFolder rootLibrary;
 	std::mutex libraryMutex;
 
+	int nextId = 0;
 	std::atomic<int> totalFilesToLoad = 0;
 	std::atomic<int> currentFilesLoaded = 0;
 	std::atomic<bool> isLoading = false;
