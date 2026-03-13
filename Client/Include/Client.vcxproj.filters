@@ -91,6 +91,12 @@
     <Filter Include="01. Scene\01. Stage\03. Obsidian">
       <UniqueIdentifier>{aef9c0eb-bd5a-4923-8992-9f0174a7408d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02. GameObject\08 Boss">
+      <UniqueIdentifier>{a34e32f4-55d5-4d81-856e-87d1c8fd9820}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\08 Boss\00. RedStoneGolem">
+      <UniqueIdentifier>{ab32831a-1c13-4ad2-8667-42b53f24c8cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -210,6 +216,9 @@
     <ClInclude Include="..\Header\StageData.h">
       <Filter>01. Scene\03. Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CRedStoneGolem.h">
+      <Filter>02. GameObject\08 Boss\00. RedStoneGolem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -325,6 +334,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CTriggerBox.cpp">
       <Filter>01. Scene\03. Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRedStoneGolem.cpp">
+      <Filter>02. GameObject\08 Boss\00. RedStoneGolem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,7 @@
 #include "CSceneChanger.h"
 #include "CRenderer.h"
 #include "StageData.h"
+#include "CRedStoneGolem.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -148,6 +149,15 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	if (!pGameObject)
 		return E_FAIL;
 	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
+		return E_FAIL;
+
+	//Boss
+	pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });

@@ -171,6 +171,7 @@
     <ClInclude Include="..\Header\CPlayerBody.h" />
     <ClInclude Include="..\Header\CPlayerUV.h" />
     <ClInclude Include="..\Header\CRedStone.h" />
+    <ClInclude Include="..\Header\CRedStoneGolem.h" />
     <ClInclude Include="..\Header\CSceneChanger.h" />
     <ClInclude Include="..\Header\CSkyBox.h" />
     <ClInclude Include="..\Header\CSquidCoast.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="..\Code\CPlayer.cpp" />
     <ClCompile Include="..\Code\CPlayerBody.cpp" />
     <ClCompile Include="..\Code\CRedStone.cpp" />
+    <ClCompile Include="..\Code\CRedStoneGolem.cpp" />
     <ClCompile Include="..\Code\CSceneChanger.cpp" />
     <ClCompile Include="..\Code\CSkyBox.cpp" />
     <ClCompile Include="..\Code\CSquidCoast.cpp" />
