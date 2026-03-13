@@ -106,6 +106,9 @@
     <Filter Include="03. Component\00. VIBuffer\05. CubeBodyTex">
       <UniqueIdentifier>{b8ab2d6e-271f-45e1-ae88-8334806763e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03. Component\00. VIBuffer\06. BossTex">
+      <UniqueIdentifier>{c38acc3d-0dc8-4496-83a4-d1a1d162ee13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\CGraphicDev.cpp">
@@ -200,6 +203,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CCollider.cpp">
       <Filter>03. Component\04. Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBossTex.cpp">
+      <Filter>03. Component\00. VIBuffer\06. BossTex</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -313,6 +319,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CCollider.h">
       <Filter>03. Component\04. Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBossTex.h">
+      <Filter>03. Component\00. VIBuffer\06. BossTex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
