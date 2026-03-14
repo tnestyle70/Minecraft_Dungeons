@@ -19,7 +19,8 @@ CTriggerBox::~CTriggerBox()
 {
 }
 
-HRESULT CTriggerBox::Ready_GameObject(const _vec3 & vPos, eTriggerBoxType& triggerType)
+HRESULT CTriggerBox::Ready_GameObject(const _vec3 & vPos, _int iTriggerID
+	,eTriggerBoxType& triggerType)
 {
 	if (FAILED(Add_Component()))
 		return E_FAIL;
@@ -27,6 +28,7 @@ HRESULT CTriggerBox::Ready_GameObject(const _vec3 & vPos, eTriggerBoxType& trigg
 	//Setting Collider, Transform
 	m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 	m_pColliderCom->Update_AABB(vPos);
+	m_iTriggerID = iTriggerID;
 	m_eTrigger = triggerType;
 
 	return S_OK;
@@ -38,18 +40,29 @@ _int CTriggerBox::Update_GameObject(const _float& fTimeDelta)
 
 	CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
-	//플레이어 콜라이더 받아와서 충돌처리
-	CComponent* pComponent = CManagement::GetInstance()->Get_Component(
-		ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_Collider");
-	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(pComponent);
+	return iExit;
+}
 
-	if (!pPlayerCollider)
-		return 0;
-	//충돌 처리
-	bool bCollidng = m_pColliderCom->IsColliding(pPlayerCollider->Get_AABB());
+void CTriggerBox::LateUpdate_GameObject(const _float& fTimeDelta)
+{
+	CGameObject::LateUpdate_GameObject(fTimeDelta);
+}
 
-	if (bCollidng)
+void CTriggerBox::Render_GameObject()
+{
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, m_pTransformCom->Get_World());
+
+	m_pColliderCom->Render_Collider();
+}
+
+void CTriggerBox::CheckCollide(CCollider* pCollider)
+{
+	bool bColliding = m_pColliderCom->IsColliding(pCollider->Get_AABB());
+
+	if (bColliding && !m_bTriggered)
 	{
+		m_bTriggered = true;
+
 		switch (m_eTrigger)
 		{
 		case TRIGGER_IRONBAR:
@@ -67,20 +80,10 @@ _int CTriggerBox::Update_GameObject(const _float& fTimeDelta)
 			break;
 		}
 	}
-
-	return iExit;
-}
-
-void CTriggerBox::LateUpdate_GameObject(const _float& fTimeDelta)
-{
-	CGameObject::LateUpdate_GameObject(fTimeDelta);
-}
-
-void CTriggerBox::Render_GameObject()
-{
-	m_pGraphicDev->SetTransform(D3DTS_WORLD, m_pTransformCom->Get_World());
-
-	m_pColliderCom->Render_Collider();
+	else if (!bColliding && m_bTriggered)
+	{
+		m_bTriggered = false;
+	}
 }
 
 HRESULT CTriggerBox::Add_Component()
@@ -109,14 +112,21 @@ HRESULT CTriggerBox::Add_Component()
 
 void CTriggerBox::Trigger_Ironbar()
 {
-	//IronbarMgr로 IronBar 상태 돌리기
-	MSG_BOX("IronBarTrigger");
+	//IronbarMgr에게 이벤트 발생만 전달
+	if (CIronBarMgr::GetInstance()->IsClosed())
+	{
+		CIronBarMgr::GetInstance()->Open();
+	}
+	else
+	{
+		CIronBarMgr::GetInstance()->Close();
+	}
 }
 
 void CTriggerBox::Trigger_Monster()
 {
-	//몬스터 스폰 데이터 불러오기
-
+	//MonsterMgr의 TriggerID 설정
+	CMonsterMgr::GetInstance()->SetTriggerID(m_iTriggerID);
 }
 
 void CTriggerBox::Trigger_SceneChange()
@@ -126,11 +136,11 @@ void CTriggerBox::Trigger_SceneChange()
 }
 
 CTriggerBox* CTriggerBox::Create(LPDIRECT3DDEVICE9 pGraphicDev, 
-	const _vec3& vPos, eTriggerBoxType triggerType)
+	const _vec3& vPos, _int iTriggerID, eTriggerBoxType triggerType)
 {
 	CTriggerBox* pTriggerBox = new CTriggerBox(pGraphicDev);
 
-	if (FAILED(pTriggerBox->Ready_GameObject(vPos, triggerType)))
+	if (FAILED(pTriggerBox->Ready_GameObject(vPos, iTriggerID ,triggerType)))
 	{
 		Safe_Release(pTriggerBox);
 		MSG_BOX("pTriggerBox Create Failed");

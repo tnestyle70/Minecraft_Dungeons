@@ -30,8 +30,8 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
     {
         case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
         case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break; 
-        case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(-2.f, 10.f, 3.f); break;
-        case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(2.f, 10.f, 3.f); break;
+        case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
+        case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
     }
 
     return S_OK;

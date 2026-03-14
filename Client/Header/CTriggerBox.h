@@ -18,7 +18,7 @@ private:
 	explicit CTriggerBox(const CGameObject& rhs);
 	virtual ~CTriggerBox();
 public: //Initialize pos
-	virtual HRESULT Ready_GameObject(const _vec3& vPos, 
+	virtual HRESULT Ready_GameObject(const _vec3& vPos, _int iTriggerID,
 		eTriggerBoxType& triggerType);
 	virtual _int Update_GameObject(const _float& fTimeDelta);
 	virtual void LateUpdate_GameObject(const _float& fTimeDelta);
@@ -26,6 +26,7 @@ public: //Initialize pos
 public:
 	bool IsTriggered() { return m_bTriggered; }
 	void SetTrigger(bool bTriggered) { m_bTriggered = bTriggered; }
+	void CheckCollide(CCollider* pCollider);
 private:
 	HRESULT Add_Component();
 private:
@@ -36,6 +37,8 @@ private:
 	CTransform* m_pTransformCom = nullptr;
 	CCollider* m_pColliderCom = nullptr;
 
+	_int m_iTriggerID = 0;
+
 	eTriggerBoxType m_eTrigger = TRIGGER_END;
 
 	bool m_bTriggered = false;
@@ -44,7 +47,7 @@ private:
 public://Decide box type, when it created, so that TriggerBoxMgr only 
 	//turn on trigger
 	static CTriggerBox* Create(LPDIRECT3DDEVICE9 pGraphicDev,
-		const _vec3& vPos, eTriggerBoxType triggerType = TRIGGER_END);
+		const _vec3& vPos, _int iTriggerID = 0 ,eTriggerBoxType triggerType = TRIGGER_END);
 private:
 	virtual void Free();
 };

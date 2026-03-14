@@ -73,7 +73,7 @@ _int CTransform::Update_Component(const _float& fTimeDelta)
         }
     }
 
-    // 월드 행렬 구성
+    // 마지막 이동 반영해서 월드 행렬 구성
 
     for (_uint i = 0; i < INFO_END; ++i)
     {

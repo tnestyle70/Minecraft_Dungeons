@@ -6,7 +6,6 @@
 #include "CCollider.h"
 #include "CArrow.h"
 
-
 class CMonster : public CGameObject
 {
 private:
@@ -18,8 +17,8 @@ public:
     virtual HRESULT     Ready_GameObject(_vec3& vPos);
     virtual _int        Update_GameObject(const _float& fTimeDelta);
     virtual void        LateUpdate_GameObject(const _float& fTimeDelta);
-    virtual void        Render_GameObject(); 
-   
+    virtual void        Render_GameObject();
+    
 
 
     virtual bool        Is_Dead() override { return m_bDeadDone; } // 몬스터 삭제 
