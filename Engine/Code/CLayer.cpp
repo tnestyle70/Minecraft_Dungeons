@@ -35,6 +35,7 @@ _int CLayer::Delete_GameObject(const _float& fTimeDelta) // 몬스터 삭제
 	{
 		if (iter->second->Is_Dead())
 		{
+
 			Safe_Release(iter->second);
 			iter = m_mapObject.erase(iter);
 		}

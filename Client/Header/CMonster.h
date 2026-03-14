@@ -3,7 +3,6 @@
 #include "CProtoMgr.h"
 #include "CMonsterBody.h"
 #include "CMonsterAnim.h"
-#include "CCollider.h"
 #include "CArrow.h"
 
 class CMonster : public CGameObject
