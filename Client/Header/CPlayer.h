@@ -2,6 +2,7 @@
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CPlayerBody.h"
+#include "CPlayerArrow.h"
 
 enum BODYPART
 {
@@ -35,7 +36,7 @@ private:
 	_vec3			Picking_OnBlock();
 	void			Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float fAngleZ, const _matrix& matRootWorld);
 
-
+	void			Render_Sword(float fAtkX, float fAtkY, float fSwing);
 
 private:
 	//플레이어 정보
@@ -47,15 +48,20 @@ private:
 	int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
 	float m_fAtkTime = 0.f;    // 현재 공격 경과 시간
 	float m_fAtkDuration = 0.3f;   // 공격 지속 시간
-	float m_fComboWindow = 0.5f;   // 다음 공격 입력 대기 시간
+	float m_fComboWindow = 0.6f;   // 다음 공격 입력 대기 시간
 	float m_fComboTimer = 0.f;    // 콤보 타이머
 	bool  m_bAtkInput = false;  // 공격 입력 감지
 	bool  m_bAtkKeyPrev = false;
 
+	//화살 발사 변수
+	float m_fCharge = 0.f;
+	float m_fMaxCharge = 2.f;
+	bool  m_bCharging = false;
+	vector<CPlayerArrow*> m_vecArrows;
+
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
 	bool m_bAtkColliderActive = false; // 공격 콜라이더 온오프 플래그
 
-	void Attack_Collision();
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
 	Engine::CTransform* m_pTransformCom;
@@ -112,6 +118,12 @@ private: //중력 적용과 충돌시 위치값 보정
 
 	//구르기
 	void Roll_Update(const _float& fTimeDelta);
+
+	void Attack_Collision();
+
+	//공격 모션 계산함수
+	void Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY);
+
 
 public:
 	static CPlayer* Create(LPDIRECT3DDEVICE9 pGraphicDev);

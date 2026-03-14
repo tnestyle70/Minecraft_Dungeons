@@ -56,9 +56,9 @@ HRESULT CPlayer::Ready_GameObject()
 
 	m_vPartOffset[PART_HEAD] = { 0.00f, 1.10f, 0.00f };
 	m_vPartOffset[PART_BODY] = { 0.00f, 0.60f, 0.00f };
-	m_vPartOffset[PART_LARM] = { 0.35f, 0.60f, 0.00f };	
+	m_vPartOffset[PART_LARM] = { 0.35f, 0.60f, 0.00f };
 	m_vPartOffset[PART_RARM] = { -0.35f, 0.60f, 0.00f };
-	m_vPartOffset[PART_LLEG] = { 0.13f, 0.30f, 0.00f };	
+	m_vPartOffset[PART_LLEG] = { 0.13f, 0.30f, 0.00f };
 	m_vPartOffset[PART_RLEG] = { -0.13f, 0.30f, 0.00f };
 #pragma endregion
 	return S_OK;
@@ -74,18 +74,25 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 		m_fAtkTime += fTimeDelta;
 		if (m_fAtkTime >= m_fAtkDuration)
 		{
-			m_fAtkTime = m_fAtkDuration;	// 끝자리 고정 (반복 방지)
-			m_fComboTimer = m_fComboWindow;
-			if (m_iComboStep == 3)
-				m_iComboStep = 0;
+			m_fAtkTime = m_fAtkDuration;
+			if (m_fComboTimer <= 0.f)
+				m_fComboTimer = m_fComboWindow;
 		}
 	}
+
 	if (m_fComboTimer > 0.f)
 	{
 		m_fComboTimer -= fTimeDelta;
 		if (m_fComboTimer <= 0.f)
+		{
 			m_iComboStep = 0;
+			m_fAtkTime = 0.f;
+		}
 	}
+
+	//화살
+	for (auto& pArrow : m_vecArrows)
+		pArrow->Update_GameObject(fTimeDelta);
 
 	// 이동
 	if (m_bMoving)
@@ -107,6 +114,17 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	m_pColliderCom->Update_AABB(vPos);
 
 	Attack_Collision();
+	for (auto& pArrow : m_vecArrows)
+		pArrow->Update_GameObject(fTimeDelta);
+
+	m_vecArrows.erase(
+		remove_if(m_vecArrows.begin(), m_vecArrows.end(),
+			[](CPlayerArrow* p) {
+				if (p->Is_Dead()) { Safe_Release(p); return true; }
+				return false;
+			}),
+		m_vecArrows.end());
+
 	Apply_Gravity(fTimeDelta);
 	Roll_Update(fTimeDelta);
 	Resolve_BlockCollision();
@@ -144,6 +162,10 @@ void CPlayer::Render_GameObject()
 	if (m_bAtkColliderActive && m_pAtkColliderCom)
 		m_pAtkColliderCom->Render_Collider();
 
+	//화살 렌더링
+	for (auto& pArrow : m_vecArrows)
+		pArrow->Render_GameObject();
+
 	// 180도 보정 (atan2 +180 제거로 인한 시각 보정)
 	_matrix matRootWorld = *m_pTransformCom->Get_World();
 	_matrix mat180;
@@ -153,82 +175,30 @@ void CPlayer::Render_GameObject()
 	const _float fMaxAngle = D3DXToRadian(30.f);
 	_float fSwing = (m_bMoving && !m_bRolling) ? sinf(m_fWalkTime) * fMaxAngle : 0.f;
 
-	// 공격 모션
-	float fAtkX = 0.f;
-	float fAtkZ = 0.f;
-	float fTorsoY = 0.f;
+	// 공격 모션 각도 계산
+	float fAtkX = 0.f, fAtkY = 0.f, fTorsoY = 0.f;
+	Calc_AttackMotion(fAtkX, fAtkY, fTorsoY);
 
 	if (m_iComboStep > 0)
 	{
-		float fRatio = min(m_fAtkTime / m_fAtkDuration, 1.f);
-		float fDir = (m_iComboStep == 2) ? 1.f : -1.f;
-
-		if (m_iComboStep == 1 || m_iComboStep == 2)
-		{
-			if (fRatio < 0.3f)	// 예비: 팔 올리고 옆으로 벌리고 허리 뒤틀기
-			{
-				float t = fRatio / 0.3f;
-				fAtkX = D3DXToRadian(-90.f * t);
-				fAtkZ = D3DXToRadian(-40.f * fDir * t);
-				fTorsoY = D3DXToRadian(40.f * fDir * t);
-			}
-			else				// 휘두르기: 팔 내리치고 허리 반대로
-			{
-				float t = (fRatio - 0.3f) / 0.7f;
-				fAtkX = D3DXToRadian(-90.f + 150.f * t);
-				fAtkZ = D3DXToRadian(-40.f * fDir * (1.f - t));
-				fTorsoY = D3DXToRadian(40.f * fDir - 80.f * fDir * t);
-			}
-		}
-		else if (m_iComboStep == 3)	// 찌르기
-		{
-			fAtkX = D3DXToRadian(-30.f * fRatio);
-			fAtkZ = 0.f;
-			fTorsoY = 0.f;
-		}
-
 		_matrix matTorsoRot;
 		D3DXMatrixRotationY(&matTorsoRot, fTorsoY);
 		matRootWorld = matTorsoRot * matRootWorld;
 	}
 
+
+
+
 	// 몸체 6부위 렌더
-	Render_Part(PART_RARM, m_iComboStep > 0 ? fAtkX : -fSwing, 0.f, m_iComboStep > 0 ? fAtkZ : 0.f, matRootWorld);
+	Render_Part(PART_RARM, m_iComboStep > 0 ? fAtkX : -fSwing, m_iComboStep > 0 ? fAtkY : 0.f, 0.f, matRootWorld);
 	Render_Part(PART_HEAD, 0.f, 0.f, 0.f, matRootWorld);
 	Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld);
 	Render_Part(PART_LARM, fSwing, 0.f, 0.f, matRootWorld);
 	Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld);
 	Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld);
 
-	// 칼 - 오른손(matRArmWorld) 아래끝에 고정
-	_vec3 vHandLocal(0.f, -1.f, 0.f);
-	_vec3 vHandPos;
-	D3DXVec3TransformCoord(&vHandPos, &vHandLocal, &m_matRArmWorld);
-
-	float fSwordLen = m_vPartScale[PART_RARM].y * 2.f;
-
-	_matrix matScale, matPivot, matTilt, matSwing, matStand, matRotY, matTrans;
-	D3DXMatrixScaling(&matScale, fSwordLen * 0.25f, fSwordLen, 1.f);
-	D3DXMatrixTranslation(&matPivot, 0.1f, fSwordLen * 0.7f, 0.f);
-	D3DXMatrixRotationZ(&matTilt, D3DXToRadian(-70.f));
-	D3DXMatrixRotationX(&matSwing, m_iComboStep > 0 ? fAtkX : fSwing);
-	float fStabAngle = (m_iComboStep == 3) ?
-		D3DXToRadian(90.f - 60.f * (m_fAtkTime / m_fAtkDuration)) :
-		D3DXToRadian(90.f);
-	D3DXMatrixRotationX(&matStand, fStabAngle);
-	D3DXMatrixRotationY(&matRotY, D3DXToRadian(m_pTransformCom->m_vAngle.y) + D3DXToRadian(-90.f));
-	D3DXMatrixTranslation(&matTrans, vHandPos.x, vHandPos.y, vHandPos.z);
-
-	_matrix matSwordWorld = matScale * matPivot * matTilt * matSwing * matStand * matRotY * matTrans;
-
-	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matSwordWorld);
-	m_pSwordTextureCom->Set_Texture(0);
-	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-	m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 128);
-	m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	m_pSwordBufferCom->Render_Buffer();
-	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+	// 칼
+	Render_Sword(fAtkX, fAtkY, fSwing);
 
 	m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 	m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
@@ -352,6 +322,8 @@ HRESULT CPlayer::Add_Component()
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
+
+
 	//플레이어 공격 콜라이더
 	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev,
 		_vec3(1.6f, 1.0f, 1.6f), //공격범위 크기
@@ -359,6 +331,8 @@ HRESULT CPlayer::Add_Component()
 	if (nullptr == m_pAtkColliderCom)
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
+
+
 
 	pComponent = m_pCalculatorCom = dynamic_cast<Engine::CCalculator*>
 		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_Calculator"));
@@ -380,7 +354,8 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		if (m_iComboStep == 0 || m_fComboTimer > 0.f)
 		{
 			m_iComboStep = (m_iComboStep % 3) + 1;
-			m_fAtkTime = 0.f;
+			if (m_iComboStep == 1 || m_iComboStep == 2)  // 첫 공격만 리셋
+				m_fAtkTime = 0.f;
 			m_fComboTimer = m_fComboWindow;
 		}
 	}
@@ -394,24 +369,30 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		Hit();
 	}
 
-	// 화살표 회전/이동
-	if (GetAsyncKeyState(VK_LEFT))
-		m_pTransformCom->Rotation(ROT_Y, 180.f * fTimeDelta);
-	if (GetAsyncKeyState(VK_RIGHT))
-		m_pTransformCom->Rotation(ROT_Y, -180.f * fTimeDelta);
-
-	_vec3 vLook;
-	m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-
-	if (GetAsyncKeyState(VK_UP))
+	// 화살
+	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+	if (bRClick)
 	{
-		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vLook, &vLook), 10.f, fTimeDelta);
-		m_bMoving = true;
+		m_bCharging = true;
+		m_fCharge += fTimeDelta;
+		if (m_fCharge > m_fMaxCharge)
+			m_fCharge = m_fMaxCharge;
 	}
-	if (GetAsyncKeyState(VK_DOWN))
+	else if (m_bCharging)
 	{
-		m_pTransformCom->Move_Pos(D3DXVec3Normalize(&vLook, &vLook), -10.f, fTimeDelta);
-		m_bMoving = true;
+		_vec3 vPos, vLook;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+		D3DXVec3Normalize(&vLook, &vLook);
+		vPos.y += 1.0f;
+
+		float fCharge = m_fCharge / m_fMaxCharge;
+		CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, vLook, fCharge);
+		if (pArrow)
+			m_vecArrows.push_back(pArrow);
+
+		m_fCharge = 0.f;
+		m_bCharging = false;
 	}
 
 	// 마우스 클릭 이동
@@ -624,8 +605,8 @@ void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float
 		matRollLocal = matToCenter * matRollX * matFromCenter;
 	}
 
-	// matRotZ를 matJoint 뒤에 배치 → 어깨 기준 옆으로 벌리기
-	_matrix matPartWorld = matScale * matPivotDown * matRotX * matRotZ * matRotY * matJoint * matRollLocal * matRootWorld;
+	// 어깨 고정, 팔 수평 회전
+	_matrix matPartWorld = matScale * matPivotDown * matRotX * matRotY * matJoint * matRollLocal * matRootWorld;
 
 	if (ePart == PART_RARM)
 		m_matRArmWorld = matPartWorld;
@@ -633,6 +614,120 @@ void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matPartWorld);
 	m_pTextureCom->Set_Texture(0);
 	m_pBufferCom[ePart]->Render_Buffer();
+}
+
+void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
+{
+	if (m_iComboStep == 0)
+		return;
+
+	float fRatio = min(m_fAtkTime / m_fAtkDuration, 1.f);
+	float fDir = (m_iComboStep == 2) ? 1.f : -1.f;
+
+	if (m_iComboStep == 1)
+	{
+		if (fRatio < 0.3f)
+		{
+			float t = fRatio / 0.3f;
+			fAtkX = D3DXToRadian(-90.f * t);
+			fAtkY = D3DXToRadian(5.f * fDir * t);
+			fTorsoY = D3DXToRadian(-40.f * fDir * t);
+		}
+		else
+		{
+			float t = (fRatio - 0.3f) / 0.7f;
+			fAtkX = D3DXToRadian(-90.f);
+			fAtkY = D3DXToRadian(25.f * fDir + 180.f * fDir * t);
+			fTorsoY = D3DXToRadian(-40.f * fDir + 80.f * fDir * t);
+		}
+	}
+	else if (m_iComboStep == 2)
+	{
+		if (fRatio < 0.3f)
+		{
+			float t = fRatio / 0.3f;
+			fAtkX = D3DXToRadian(-90.f * t);
+			fAtkY = D3DXToRadian(25.f * fDir * t);
+			fTorsoY = D3DXToRadian(-40.f * fDir * t);
+		}
+		else
+		{
+			float t = (fRatio - 0.3f) / 0.7f;
+			fAtkX = D3DXToRadian(-90.f);
+			fAtkY = D3DXToRadian(180.f * fDir + 100.f * fDir * t);
+			fTorsoY = D3DXToRadian(-40.f * fDir + 80.f * fDir * t);
+		}
+	}
+	else if (m_iComboStep == 3)
+	{
+		fAtkX = D3DXToRadian(90.f * fRatio);
+		fAtkY = 0.f;
+		fTorsoY = 0.f;
+	}
+}
+
+void CPlayer::Render_Sword(float fAtkX, float fAtkY, float fSwing)
+{
+	// 손끝 위치
+	_vec3 vHandLocal(0.f, -1.f, 0.f);
+	_vec3 vHandPos;
+	D3DXVec3TransformCoord(&vHandPos, &vHandLocal, &m_matRArmWorld);
+
+	float fSwordLen = m_vPartScale[PART_RARM].y * 2.f;
+
+	// 팔 회전 추출 (스케일 제거)
+	_matrix matArmRot = m_matRArmWorld;
+	D3DXVec3Normalize((_vec3*)&matArmRot._11, (_vec3*)&matArmRot._11);
+	D3DXVec3Normalize((_vec3*)&matArmRot._21, (_vec3*)&matArmRot._21);
+	D3DXVec3Normalize((_vec3*)&matArmRot._31, (_vec3*)&matArmRot._31);
+	matArmRot._41 = 0.f; matArmRot._42 = 0.f; matArmRot._43 = 0.f; matArmRot._44 = 1.f;
+
+	// 칼 tilt: 대기 -70도(직각), 1·2타 공격 중 180도(1자), 3타 서서히 1자
+	float fTiltAngle = D3DXToRadian(-70.f);
+	if (m_iComboStep == 1 || m_iComboStep == 2)
+	{
+		float fRatio = min(m_fAtkTime / m_fAtkDuration, 1.f);
+		fTiltAngle = (fRatio < 0.3f) ? D3DXToRadian(110.f) + fAtkX : D3DXToRadian(180.f);
+	}
+	else if (m_iComboStep == 3)
+	{
+		float fRatio = min(m_fAtkTime / m_fAtkDuration, 1.f);
+		fTiltAngle = D3DXToRadian(-70.f + 260.f * fRatio);
+	}
+
+	_matrix matScale, matPivot, matTilt, matSwing, matStand, matRotY, matTrans;
+	D3DXMatrixScaling(&matScale, fSwordLen * 0.25f, fSwordLen, 1.f);
+	D3DXMatrixTranslation(&matPivot, 0.1f, fSwordLen * 0.7f, 0.f);
+	D3DXMatrixRotationZ(&matTilt, fTiltAngle);
+	D3DXMatrixRotationX(&matSwing, m_iComboStep > 0 ? fAtkX : fSwing);
+	D3DXMatrixRotationX(&matStand, D3DXToRadian(90.f));
+	D3DXMatrixRotationY(&matRotY, D3DXToRadian(m_pTransformCom->m_vAngle.y) + D3DXToRadian(-90.f) + fAtkY);
+	D3DXMatrixTranslation(&matTrans, vHandPos.x, vHandPos.y, vHandPos.z);
+
+	_matrix matSwordWorld;
+	if (m_iComboStep == 1 || m_iComboStep == 2)
+	{
+		_matrix matPivotArm;
+		D3DXMatrixTranslation(&matPivotArm, 0.f, fSwordLen * 0.5f, 0.f);
+		matSwordWorld = matScale * matPivotArm * matTilt * matArmRot * matTrans;
+	}
+	else if (m_iComboStep == 3)
+	{
+		_matrix matPivotArm;
+		D3DXMatrixTranslation(&matPivotArm, 0.f, fSwordLen * 0.7f, 0.f);
+		matSwordWorld = matScale * matPivotArm * matTilt * matArmRot * matTrans;
+	}
+	else
+		matSwordWorld = matScale * matPivot * matTilt * matSwing * matStand * matRotY * matTrans;
+
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matSwordWorld);
+	m_pSwordTextureCom->Set_Texture(0);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 128);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	m_pSwordBufferCom->Render_Buffer();
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
 
 void CPlayer::Attack_Collision()
@@ -643,7 +738,7 @@ void CPlayer::Attack_Collision()
 		m_pTransformCom->Get_Info(INFO_POS, &vPos);
 		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
 		D3DXVec3Normalize(&vLook, &vLook);
-		_vec3 vAtkPos = vPos;
+		_vec3 vAtkPos = vPos + vLook * 0.8f;
 		vAtkPos.y += 0.9f;
 		m_pAtkColliderCom->Update_AABB(vAtkPos);
 		m_bAtkColliderActive = true;
@@ -675,22 +770,6 @@ void CPlayer::Resolve_BlockCollision()
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
 	m_pColliderCom->Update_AABB(vPos);
 	AABB tPlayerAABB = m_pColliderCom->Get_AABB();
-
-	//공격시 콜라이더
-	if (m_iComboStep > 0)
-	{
-		_vec3 vLook;
-		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-		D3DXVec3Normalize(&vLook, &vLook);
-		_vec3 vAtkPos = vPos + vLook * 0.8f;
-		vAtkPos.y += 0.9f;
-		m_pAtkColliderCom->Update_AABB(vAtkPos);
-		m_bAtkColliderActive = true;
-	}
-	else
-	{
-		m_bAtkColliderActive = false;
-	}
 
 	m_bOnGround = false;
 
@@ -779,5 +858,8 @@ CPlayer* CPlayer::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CPlayer::Free()
 {
+	for (auto& pArrow : m_vecArrows)
+		Safe_Release(pArrow);
+	m_vecArrows.clear();
 	CGameObject::Free();
 }

@@ -170,6 +170,7 @@
     <ClInclude Include="..\Header\CObsidian.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
     <ClInclude Include="..\Header\CPlayer.h" />
+    <ClInclude Include="..\Header\CPlayerArrow.h" />
     <ClInclude Include="..\Header\CPlayerBody.h" />
     <ClInclude Include="..\Header\CPlayerUV.h" />
     <ClInclude Include="..\Header\CRedStone.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />
     <ClCompile Include="..\Code\CPlayer.cpp" />
+    <ClCompile Include="..\Code\CPlayerArrow.cpp" />
     <ClCompile Include="..\Code\CPlayerBody.cpp" />
     <ClCompile Include="..\Code\CRedStone.cpp" />
     <ClCompile Include="..\Code\CRedStoneGolem.cpp" />
