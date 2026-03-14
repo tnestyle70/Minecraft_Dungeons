@@ -106,6 +106,9 @@
     <Filter Include="03. Manager\03. TriggerBoxMgr">
       <UniqueIdentifier>{79084ad4-631d-42d1-a168-4dcdca639e47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="02. GameObject\09. DLCBoss">
+      <UniqueIdentifier>{d629e53a-8e2a-4918-b7e3-3cbf6a0a123e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -237,6 +240,9 @@
     <ClInclude Include="..\Header\CMonsterMgr.h">
       <Filter>03. Manager\01. MonsterMgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CDLCBoss.h">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -364,6 +370,9 @@
     </ClCompile>
     <ClCompile Include="..\Code\CMonsterMgr.cpp">
       <Filter>03. Manager\01. MonsterMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="CDLCBoss.cpp">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
