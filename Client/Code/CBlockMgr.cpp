@@ -160,18 +160,18 @@ void CBlockMgr::AddBlock(const _vec3& vPos, eBlockType eType)
 	//해당 xz에서 가장 높은 Y 찾아서 배치
 	int iTopY = 0;
 
-	for (auto& pair : m_mapBlocks)
-	{
-		//같은 위치일 경우 y 값보다 더 위에 배치
-		if (pair.first.x == tInputPos.x &&
-			pair.first.z == tInputPos.z)
-		{
-			if (pair.first.y >= iTopY)
-			{
-				iTopY = pair.first.y + 1;
-			}
-		}
-	}
+	//for (auto& pair : m_mapBlocks)
+	//{
+	//	//같은 위치일 경우 y 값보다 더 위에 배치
+	//	if (pair.first.x == tInputPos.x &&
+	//		pair.first.z == tInputPos.z)
+	//	{
+	//		if (pair.first.y >= iTopY)
+	//		{
+	//			iTopY = pair.first.y + 1;
+	//		}
+	//	}
+	//}
 
 	_vec3 vStackedPos = { vPos.x, (float)iTopY, vPos.z };
 	BlockPos tPos = ToPos(vStackedPos);

@@ -480,22 +480,67 @@ void CEditor::Render_IronBarPalette()
 {
 	ImGui::Text("IronBar Placement");
 	ImGui::Separator();
-	ImGui::Text("Placed: %d", (int)m_mapIronBars.size());
 
-	IronBarData* pPendingDelete = nullptr;
+	ImGui::Text("TriggerID:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60.f);
+	ImGui::InputInt("##IronBarTriggerID", &m_iCurTriggerID, 0, 0);
+	if (m_iCurTriggerID < 0) m_iCurTriggerID = 0;
+	ImGui::SameLine();
+	if (ImGui::Button("Auto##ib"))
+		m_iCurTriggerID++;
+
+	ImGui::Separator();
+	ImGui::Text("Placed: %d", (int)m_mapIronBars.size());
+	ImGui::Separator();
+
+	// ── ID 기준 정렬 ──────────────────────────────────────
+	using Pair = pair<const IronBarData*, CIronBar*>;
+	vector<Pair> vecSorted;
+	vecSorted.reserve(m_mapIronBars.size());
 
 	for (auto& pair : m_mapIronBars)
+		vecSorted.push_back({ &pair.first, pair.second });
+
+	sort(vecSorted.begin(), vecSorted.end(), [](const Pair& a, const Pair& b)
+		{
+			if (a.first->iTriggerID != b.first->iTriggerID)
+				return a.first->iTriggerID < b.first->iTriggerID;
+			// ID 같으면 좌표로 2차 정렬
+			if (a.first->x != b.first->x) return a.first->x < b.first->x;
+			if (a.first->y != b.first->y) return a.first->y < b.first->y;
+			return a.first->z < b.first->z;
+		});
+
+	// ── 배치된 목록 ──────────────────────────────────────
+	IronBarData* pPendingDelete = nullptr;
+
+	for (auto& entry : vecSorted)
 	{
-		const IronBarData& tData = pair.first;
+		const IronBarData& tData = *entry.first;
 
-		ImGui::Text("TriggerID:[%d] (%d %d %d)",
-			tData.iTriggerID, tData.x, tData.y, tData.z);
-
+		ImGui::Text("(%d, %d, %d)", tData.x, tData.y, tData.z);
+		ImGui::SameLine();
+		ImGui::Text("ID:");
 		ImGui::SameLine();
 
-		char szBtn[32];
-		sprintf_s(szBtn, "X##%d_%d_%d", tData.x, tData.y, tData.z);
+		char szID[32];
+		sprintf_s(szID, "##ibid_%d_%d_%d", tData.x, tData.y, tData.z);
+		ImGui::SetNextItemWidth(40.f);
+		int iID = tData.iTriggerID;
+		if (ImGui::InputInt(szID, &iID, 0, 0))
+		{
+			IronBarData tNew = tData;
+			tNew.iTriggerID = iID;
+			auto pObj = entry.second;
+			m_mapIronBars.erase(tData);
+			m_mapIronBars.insert({ tNew, pObj });
+			break;
+		}
 
+		ImGui::SameLine();
+		char szBtn[32];
+		sprintf_s(szBtn, "X##ib_%d_%d_%d", tData.x, tData.y, tData.z);
 		if (ImGui::Button(szBtn))
 			pPendingDelete = const_cast<IronBarData*>(&tData);
 	}
@@ -505,10 +550,9 @@ void CEditor::Render_IronBarPalette()
 		auto iter = m_mapIronBars.find(*pPendingDelete);
 		if (iter != m_mapIronBars.end())
 		{
-			Safe_Release(iter->second);  // CIronBar 해제
+			Safe_Release(iter->second);
 			m_mapIronBars.erase(iter);
 		}
-		pPendingDelete = nullptr;
 	}
 }
 
@@ -678,7 +722,7 @@ void CEditor::UpdateIronBarMode()
 			tData.x = tHitPos.x;
 			tData.y = tHitPos.y + 1;
 			tData.z = tHitPos.z;
-			tData.iTriggerID = 0;
+			tData.iTriggerID = m_iCurTriggerID;
 
 			//Add IronBar
 			if (m_mapIronBars.find(tData) == m_mapIronBars.end())
@@ -915,6 +959,7 @@ void CEditor::Free()
 
 HRESULT CEditor::Ready_ProtoType()
 {
+
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TriCol", Engine::CTriCol::Create(m_pGraphicDev))))
 		return E_FAIL;
 
@@ -927,6 +972,28 @@ HRESULT CEditor::Ready_ProtoType()
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CubeTex", Engine::CCubeTex::Create(m_pGraphicDev))))
 		return E_FAIL;
 
+	// RedStoneGolem
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemHeadTex", Engine::CRedStoneGolemHeadTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemShoulderTex", Engine::CRedStoneGolemShoulderTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemHipTex", Engine::CRedStoneGolemHipTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemCoreTex", Engine::CRedStoneGolemCoreTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemArmTex", Engine::CRedStoneGolemArmTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemLegTex", Engine::CRedStoneGolemLegTex::Create(m_pGraphicDev))))
+		return E_FAIL;
+
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
 		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Terrain/Grass_%d.tga", 2))))
 		return E_FAIL;
@@ -937,6 +1004,12 @@ HRESULT CEditor::Ready_ProtoType()
 
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EffectTexture",
 		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Explosion/Explosion%d.png", 90))))
+		return E_FAIL;
+
+	// BOSS
+	// RedStoneGolem
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Boss/T_RedStone_Golem.png"))))
 		return E_FAIL;
 
 	//오징어 해안 로딩 텍스쳐
@@ -962,6 +1035,10 @@ HRESULT CEditor::Ready_ProtoType()
 	// 플레이어 텍스쳐
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlayerTexture",
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/iron_sword.png"))))
 		return E_FAIL;
 
 	// 닭 텍스쳐
@@ -1004,8 +1081,8 @@ HRESULT CEditor::Ready_ProtoType()
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))
 		return E_FAIL;
 
-#pragma region 
-	// 좀비 텍스처
+
+	// Zobie
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
 		return E_FAIL;
@@ -1034,8 +1111,7 @@ HRESULT CEditor::Ready_ProtoType()
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Zombie_LLeg",
 		Engine::CCubeBodyTex::Create(m_pGraphicDev, ZombieUV::L_LEG))))
 		return E_FAIL;
-#pragma endregion
-#pragma region 스켈레톤
+	//Skeleton
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SkeletonTexture",
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/skeleton.png"))))
 		return E_FAIL;
@@ -1063,7 +1139,7 @@ HRESULT CEditor::Ready_ProtoType()
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Skeleton_LLeg",
 		Engine::CCubeBodyTex::Create(m_pGraphicDev, SkeletonUV::L_LEG))))
 		return E_FAIL;
-
+	//arrow
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandbyTexture",
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/bow_standby.png"))))
 		return E_FAIL;
@@ -1075,7 +1151,64 @@ HRESULT CEditor::Ready_ProtoType()
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowTexture",
 		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/arrow.png"))))
 		return E_FAIL;
-#pragma endregion
+
+	// Creeper
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeperTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/creeper.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_Head",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::HEAD))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_Body",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::BODY))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_RFLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_LFLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_RBLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_creeper_LBLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, CreeperUV::LEG))))
+		return E_FAIL;
+
+	// Spider
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SpiderTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/T_Spider_Skin.png"))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_Head",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::HEAD))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_Body",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::BODY))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_RFLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_LFLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_RBLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+		return E_FAIL;
+
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_LBLeg",
+		Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
+		return E_FAIL;
 
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Transform", Engine::CTransform::Create(m_pGraphicDev))))
 		return E_FAIL;

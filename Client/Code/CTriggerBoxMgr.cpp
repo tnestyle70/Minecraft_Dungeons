@@ -19,25 +19,23 @@ HRESULT CTriggerBoxMgr::Ready_TriggerBox()
 	return S_OK;
 }
 
-void CTriggerBoxMgr::Update(const _float& fTimeDelta)
+_int CTriggerBoxMgr::Update(const _float& fTimeDelta)
 {
-	//Trigger 박스 순회하면서 PlayerCollider와 Block들의 Collider와 충돌 처리를 해서 판단
-	CComponent* pComponent = CManagement::GetInstance()->Get_Component(
-		ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Collider");
-	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(pComponent);
-	
-	if (!pPlayerCollider)
+	//처음 세팅한 Collider를 개별 TriggerBox에 주입
+	if (!m_pPlayerCollider)
 	{
 		MSG_BOX("There is no Player Collider!");
+		return 0;
 	}
 
 	for (auto& pTriggerBox : m_vecTriggerBox)
 	{
-		//if already triggered, continue
-		if (pTriggerBox->IsTriggered())
-			continue;
 		pTriggerBox->Update_GameObject(fTimeDelta);
+
+		pTriggerBox->CheckCollide(m_pPlayerCollider);
 	}
+
+	return 0;
 }
 
 void CTriggerBoxMgr::LateUpdate(const _float & fTimeDelta)
@@ -60,8 +58,10 @@ void CTriggerBoxMgr::Render()
 	}
 }
 
-void CTriggerBoxMgr::AddTriggerBox(CTriggerBox* pTriggerBox)
+void CTriggerBoxMgr::AddTriggerBox(CGameObject* pGameObject)
 {
+	CTriggerBox* pTriggerBox = dynamic_cast<CTriggerBox*>(pGameObject);
+
 	m_vecTriggerBox.push_back(pTriggerBox);
 }
 

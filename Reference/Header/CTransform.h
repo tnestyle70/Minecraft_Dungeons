@@ -26,6 +26,7 @@ public:
 
 	void Set_World(_matrix* matWorld) { m_matWorld = *matWorld; }
 
+	//행을 가지고 옴, _vec3의 byte만큼 복사
 	void	Get_Info(INFO eType, _vec3* pInfo)
 	{
 		memcpy(pInfo, &m_matWorld.m[eType][0], sizeof(_vec3));

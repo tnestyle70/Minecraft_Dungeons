@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "CIronBarMgr.h"
 
+IMPLEMENT_SINGLETON(CIronBarMgr)
+
 CIronBarMgr::CIronBarMgr()
 {
 }
@@ -21,8 +23,6 @@ void CIronBarMgr::Update(const _float& fTimeDelta)
 	{
 		pIronBar->Update_GameObject(fTimeDelta);
 	}
-
-	UpdateIronBarAnim();
 }
 
 void CIronBarMgr::LateUpdate(const _float & fTimeDelta)
@@ -41,8 +41,34 @@ void CIronBarMgr::Render()
 	}
 }
 
-void CIronBarMgr::AddIronBar(CIronBar* pIronBar)
+void CIronBarMgr::Open()
 {
+	m_bClosed = false;
+
+	for (auto& pIronBar : m_vecIronBars)
+	{
+		pIronBar->SetIronBarState(eIronBarState::MOVE_UP);
+	}
+
+	return;
+}
+
+void CIronBarMgr::Close()
+{
+	m_bClosed = true;
+
+	for (auto& pIronBar : m_vecIronBars)
+	{
+		pIronBar->SetIronBarState(eIronBarState::MOVE_DOWN);
+	}
+
+	return;
+}
+
+void CIronBarMgr::AddIronBar(CGameObject* pGameObject)
+{
+	CIronBar* pIronBar = dynamic_cast<CIronBar*>(pGameObject);
+
 	m_vecIronBars.push_back(pIronBar);
 }
 
@@ -53,26 +79,6 @@ void CIronBarMgr::Clear()
 		Safe_Release(pIronBar);
 	}
 	m_vecIronBars.clear();
-}
-
-void CIronBarMgr::UpdateIronBarAnim()
-{
-	//IronBar Anim Play
-	if (!m_bTriggered)
-		return;
-	
-	for (auto& pIronBar : m_vecIronBars)
-	{
-		if (pIronBar->IsClosed())
-		{
-			pIronBar->Update_Animation(eIronBarAnimState::MOVE_UP);
-		}
-		else
-		{
-			pIronBar->Update_Animation(eIronBarAnimState::MOVE_DOWN);
-
-		}
-	}
 }
 
 void CIronBarMgr::Free()

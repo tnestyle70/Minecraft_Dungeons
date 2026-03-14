@@ -3,6 +3,7 @@
 
 class CIronBarMgr : public CBase
 {
+	DECLARE_SINGLETON(CIronBarMgr)
 private:
 	explicit CIronBarMgr();
 	virtual ~CIronBarMgr();
@@ -12,18 +13,18 @@ public:
 	void LateUpdate(const _float& fTimeDelta);
 	void Render();
 public:
-	void AddIronBar(CIronBar* pIronBar);
+	void Open();
+	void Close();
+public:
+	void AddIronBar(CGameObject* pGameObject);
 	void Clear();
 public:
-	bool IsOpen() { return m_bIsOpened; };
-	bool SetOpen(bool bIsOpen) { m_bIsOpened = bIsOpen; }
-	bool SetTrigger(bool bTrigger) { m_bTriggered = bTrigger; }
+	bool IsClosed() { return m_bClosed; };
 private:
 	void UpdateIronBarAnim();
 private://IronBar을 컨테이너로 관리
 	vector<CIronBar*> m_vecIronBars;
-	bool m_bIsOpened = false;
-	bool m_bTriggered = false;
+	bool m_bClosed = false;
 private:
 	virtual void Free();
 };

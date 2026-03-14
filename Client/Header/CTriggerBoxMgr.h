@@ -11,14 +11,20 @@ private:
 	virtual ~CTriggerBoxMgr();
 public:
 	HRESULT Ready_TriggerBox();
-	void Update(const _float& fTimeDelta);
+	_int Update(const _float& fTimeDelta);
 	void LateUpdate(const _float& fTimeDelta);
 	void Render();
 public://스테이지에서 생성시에 매니저 호출해서 TriggerBox 컨테이너 채워주기
-	void AddTriggerBox(CTriggerBox* pTriggerBox);
+	void AddTriggerBox(CGameObject* pGameObject);
 	void Clear();
 	//스테이지 넘어갈 때 TriggerBox Container 비워주기
 	vector<CTriggerBox*> m_vecTriggerBox;
+public:
+	void SetPlayerCollider(CCollider* pCollider) { m_pPlayerCollider = pCollider; }
+private:
+	//플레이어 콜라이더를 Stage 시작 시에 한 번만 캐싱해두고,
+	//개별 TriggerBox에 Update때마다 주입시킨다.
+	CCollider* m_pPlayerCollider = nullptr;
 private:
 	virtual void Free();
 };
