@@ -28,7 +28,8 @@ public:
     bool Is_HitFlash() const { return m_bHitFlash; }
     float Get_KnockbackDelta() const { return m_fKnockbackDelta; }
     float Get_DeadRotX() const { return m_fDeadRotX; } 
-    EMonsterState Get_State() const { return m_eState; } 
+    EMonsterState Get_State() const { return m_eState; }  
+    float Get_StateTime() const { return m_fStateTime; }
     const _vec3* Get_DeadOffsets() const { return m_vDeadOffset; } 
 
     bool Is_DeadDone() const { return m_bDeadDone; }// 몬스터 삭제 

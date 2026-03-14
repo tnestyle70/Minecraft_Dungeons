@@ -12,6 +12,7 @@
 #include "CRenderer.h"
 #include "StageData.h"
 
+
 CCamp::CCamp(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
 {
@@ -56,7 +57,10 @@ _int CCamp::Update_Scene(const _float& fTimeDelta)
 			return -1;
 		}
 		return iExit;
-	}
+	} 
+	auto iter = m_mapLayer.find(L"GameLogic_Layer");
+	if (iter != m_mapLayer.end())
+		iter->second->Delete_GameObject(fTimeDelta);
 
 	return iExit;
 }
@@ -94,6 +98,7 @@ HRESULT CCamp::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	//SkyBox 추가
+	
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 

@@ -141,10 +141,7 @@ void CMonsterAnim::Pose_Attack(const _float& fTimeDelta)
             m_bHitFlash = !m_bHitFlash;
             m_fFlashTimer = 0.f;
         }
-        if (m_fStateTime >= 1.1f)
-        {
-            Set_State(EMonsterState::WALK);
-        } 
+        
     }
     else if (m_eType == EMonsterType::SPIDER)
     {
@@ -171,7 +168,7 @@ void CMonsterAnim::Pose_Attack(const _float& fTimeDelta)
         }
     }
 
-    if (m_fStateTime >= 1.1f)
+    if (m_eType != EMonsterType::CREEPER && m_fStateTime >= 1.1f)
         Set_State(EMonsterState::WALK);
 }
 

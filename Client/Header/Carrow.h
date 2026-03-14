@@ -21,7 +21,8 @@ private:
 private:
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTextureCom = nullptr;
-    Engine::CRcTex* m_pBufferCom = nullptr;
+    Engine::CRcTex* m_pBufferCom = nullptr; 
+    Engine::CCollider* m_pColliderCom = nullptr;
 
     _vec3   m_vDir = { 0.f, 0.f, 1.f };      // 날아갈 방향
     float   m_fSpeed = 20.f;                 // 화살 속도

@@ -305,7 +305,7 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Boss/T_RedStone_Golem.png"))))
         return E_FAIL;
 
-    //오징어 해안 로딩 텍스쳐
+    //오징어 해안 로딩 텍스쳐`
     //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
     //    Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
     //    return E_FAIL;
@@ -529,7 +529,9 @@ _uint CLoading::Loading_Camp()
     //캠프 로딩씬
     //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampTexture",
     //    CTexture::Create(m_pGraphicDev, TEX_NORMAL, 
-    //        L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png"))));
+    //        L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png")))); 
+    // 스카이박스 텍스처 등록
+   
 
     lstrcpy(m_szLoading, L"Camp Loading Complete");
 

@@ -2,6 +2,7 @@
 #include "CArrow.h"
 #include "CRenderer.h"
 #include "CManagement.h"
+#include "CCollider.h"
 
 CArrow::CArrow(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -21,7 +22,6 @@ HRESULT CArrow::Ready_GameObject()
 {
     if (FAILED(Add_Component()))
         return E_FAIL;
-
     return S_OK;
 }
 
@@ -41,6 +41,11 @@ _int CArrow::Update_GameObject(const _float& fTimeDelta)
 
     // 방향으로 직진
     m_pTransformCom->Move_Pos(&m_vDir, m_fSpeed, fTimeDelta);
+
+    // 콜라이더 위치 업데이트
+    _vec3 vPos;
+    m_pTransformCom->Get_Info(INFO_POS, &vPos);
+    m_pColliderCom->Update_AABB(vPos);
 
     // 화살이 날아가는 방향으로 회전 (Y축 기준)
     float fAngle = atan2f(m_vDir.x, m_vDir.z);
@@ -69,6 +74,10 @@ void CArrow::Render_GameObject()
     m_pBufferCom->Render_Buffer();
 
     m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+
+    // 콜라이더 디버그 렌더
+    if (m_pColliderCom)
+        m_pColliderCom->Render_Collider();
 }
 
 HRESULT CArrow::Add_Component()
@@ -89,12 +98,18 @@ HRESULT CArrow::Add_Component()
 
     // 버퍼
     pComponent = m_pBufferCom = dynamic_cast<Engine::CRcTex*>
-        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex")); 
+        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
     if (!pComponent) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_Buffer", pComponent });
 
     // 크기 설정
     m_pTransformCom->m_vScale = { 0.3f, 0.3f, 0.3f };
+
+    // 콜라이더 생성
+    m_pColliderCom = CCollider::Create(m_pGraphicDev,
+        _vec3(0.3f, 0.3f, 0.3f),
+        _vec3(0.f, 0.f, 0.f));
+    if (!m_pColliderCom) return E_FAIL;
 
     return S_OK;
 }
@@ -119,5 +134,6 @@ CArrow* CArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev, const _vec3& vStartPos, co
 
 void CArrow::Free()
 {
+    Safe_Release(m_pColliderCom);
     CGameObject::Free();
 }

@@ -38,7 +38,13 @@ private:
     CMonsterBody* m_pBodyCom = nullptr;
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTextureCom = nullptr;
-    CCollider* m_pColliderCom = nullptr; 
+
+    Engine::CCollider* m_pColliderCom = nullptr; 
+    Engine::CCollider* m_pAtkColliderCom = nullptr;
+    Engine::CCollider* m_pExplosionColliderCom = nullptr; // 크리퍼 폭발 범위
+    
+
+
     //스켈레톤 활
     Engine::CRcTex* m_pBowBufferCom = nullptr;
     Engine::CTexture* m_pBowStandbyTex = nullptr;
@@ -54,17 +60,20 @@ private:
     float                   m_fVelocityY = 0.f;
     float                   m_fDeadAngleY = 0.f;
     bool                    m_bOnGround = false;  
-
+    bool                    m_bExploded = false;                // 폭발 1회 처리용
     bool                    m_bDeadDone = false; // 몬스터 삭제용도 
+    int                     m_iHp = 2;
     
     
     static constexpr float  m_fGravity = -20.f;
     static constexpr float  m_fMaxFall = -20.f; 
 
     // 사정거리 감지 
-    float m_fDetectRange = 10.f; // 감지할 거리
+    float m_fDetectRange = 20.f; // 감지할 거리
     float m_fAttackRange = 2.f;  // 공격 사정거리 
-    float m_fMoveSpeed   = 2.f;  // 이동 속도 
+    float m_fMoveSpeed   = 2.f;  // 이동 속도  
+
+    
 
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
