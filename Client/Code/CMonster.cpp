@@ -47,7 +47,6 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
     if (pAnim && pAnim->Get_State() == EMonsterState::DEAD && pAnim->Get_DeadRotX() != 0.f)
     {
-        // 사망 첫 프레임에 방향 저장
         if (m_fDeadAngleY == 0.f)
             m_fDeadAngleY = D3DXToRadian(m_pTransformCom->m_vAngle.y);
 
@@ -92,13 +91,63 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     else
     {
         m_fKnockbackAccum = 0.f;
-    } 
+    }
 
-    if (pAnim && pAnim->Is_DeadDone()) // 애니메이션 사망플러그를 몬스터에게 전달 
+    if (pAnim && pAnim->Is_DeadDone())
     {
+        m_bDeadDone = true;
         return true;
     }
 
+    // 콜라이더 업데이트
+    if (m_pAtkColliderCom && pAnim &&
+        pAnim->Get_State() == EMonsterState::ATTACK &&
+        pAnim->Get_StateTime() < 0.3f)
+    {
+        _vec3 vPos, vLook;
+        m_pTransformCom->Get_Info(INFO_POS, &vPos);
+        m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+        D3DXVec3Normalize(&vLook, &vLook);
+        _vec3 vAtkPos = vPos + vLook * 0.8f;
+        vAtkPos.y = 0.9f;
+        m_pAtkColliderCom->Update_AABB(vAtkPos);
+    }
+
+    if (m_eType == EMonsterType::CREEPER && !m_bExploded)
+    {
+        if (pAnim && pAnim->Get_State() == EMonsterState::ATTACK
+            && pAnim->Get_StateTime() >= 2.f)
+        {
+            _vec3 vPos;
+            m_pTransformCom->Get_Info(INFO_POS, &vPos);
+            m_pExplosionColliderCom->Update_AABB(vPos);
+            m_bExploded = true;
+            pAnim->Set_State(EMonsterState::DEAD);
+        }
+    }
+
+    // 플레이어 공격 콜라이더와 충돌 체크
+    Engine::CComponent* pAtkCom = CManagement::GetInstance()->Get_Component(
+        ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider");
+    Engine::CCollider* pAtkCollider = dynamic_cast<Engine::CCollider*>(pAtkCom);
+
+    if (pAtkCollider && pAnim
+        && pAnim->Get_State() != EMonsterState::HIT
+        && pAnim->Get_State() != EMonsterState::DEAD
+        && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
+    {
+        m_iHp -= 1;
+
+        if (m_iHp <= 0)
+            pAnim->Set_State(EMonsterState::DEAD);
+        else
+            pAnim->Set_State(EMonsterState::HIT);
+    }
+
+    // Update_Body 먼저 실행 → 상태 전환 반영
+    m_pBodyCom->Update_Body(fTimeDelta, m_bIsMoving, false);
+
+    // 스켈레톤 발사 체크는 Update_Body 이후에 → m_bFired 리셋 타이밍 정확
     if (m_eType == EMonsterType::SKELETON)
     {
         if (pAnim && pAnim->Get_State() == EMonsterState::ATTACK)
@@ -111,12 +160,14 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         }
         else
         {
-            m_bFired = false;
+            m_bFired = false;  // WALK 상태일 때 리셋
         }
         Update_Arrow(fTimeDelta);
     }
 
-    m_pBodyCom->Update_Body(fTimeDelta, m_bIsMoving, false);
+    if (m_eType == EMonsterType::SKELETON)
+    CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
+else
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
     return iExit;
@@ -190,6 +241,25 @@ void CMonster::Render_GameObject()
         if (pArrow && !pArrow->Is_Dead())
             pArrow->Render_GameObject();
     }
+    if (m_pColliderCom)
+        m_pColliderCom->Render_Collider(); 
+
+    if (m_pAtkColliderCom && pAnim &&
+        pAnim->Get_State() == EMonsterState::ATTACK &&
+        pAnim->Get_StateTime() < 0.3f)
+    {
+        m_pAtkColliderCom->Render_Collider();
+    }
+
+    // 크리퍼 폭발 콜라이더 디버그 렌더
+    if (m_eType == EMonsterType::CREEPER && m_bExploded && m_pExplosionColliderCom)
+    {
+        m_pExplosionColliderCom->Render_Collider();
+    }
+
+        
+
+   
 }
 
 void CMonster::Render_Bow()
@@ -287,7 +357,7 @@ void CMonster::Update_Arrow(const _float& fTimeDelta)
         m_vecArrows.end());
 }
 
-// [추가] 중력 적용
+
 void CMonster::Apply_Gravity(const _float& fTimeDelta)
 {
     if (m_bOnGround) return;
@@ -301,7 +371,7 @@ void CMonster::Apply_Gravity(const _float& fTimeDelta)
     m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 }
 
-// [추가] 블록 충돌
+
 void CMonster::Resolve_BlockCollision()
 {
     _vec3 vPos;
@@ -363,11 +433,26 @@ void CMonster::Update_AI(const _float& fTimeDelta)
     if (!pAnim) return;
     if (pAnim->Get_State() == EMonsterState::DEAD) return;
 
-    // 항상 플레이어 방향 바라보기
+    
     _vec3 vLookDir = vPlayerPos - vMyPos;
     vLookDir.y = 0.f;
     D3DXVec3Normalize(&vLookDir, &vLookDir);
-    m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z));
+    m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z)); 
+
+    if (m_eType == EMonsterType::SKELETON)
+    {
+        if (fDist <= m_fDetectRange)
+        {
+            m_bIsMoving = false;
+            pAnim->Set_State(EMonsterState::ATTACK);
+        }
+        else
+        {
+            m_bIsMoving = false;
+            pAnim->Set_State(EMonsterState::IDLE);
+        }
+        return;  
+    }
 
     if (fDist <= m_fAttackRange)
     {
@@ -434,12 +519,28 @@ HRESULT CMonster::Add_Component()
     m_pBodyCom = CMonsterBody::Create(m_pGraphicDev, m_eType);
     if (!m_pBodyCom) return E_FAIL;
 
-    // [추가] 콜라이더
+  
     m_pColliderCom = CCollider::Create(m_pGraphicDev,
-        _vec3(0.5f, 1.8f, 0.5f),  
-        _vec3(0.f, 0.9f, 0.f));  
+        _vec3(1.0f, 1.8f, 1.0f),   // 가로/깊이 0.5 → 1.0으로
+        _vec3(0.f, 0.9f, 0.f));
     if (!m_pColliderCom) return E_FAIL;
-    m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
+    m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom }); 
+
+    if (m_eType == EMonsterType::ZOMBIE || m_eType == EMonsterType::SPIDER)
+    {
+        m_pAtkColliderCom = CCollider::Create(m_pGraphicDev,
+            _vec3(1.2f, 0.8f, 1.2f),
+            _vec3(0.f, 0.9f, 0.f));
+        if (!m_pAtkColliderCom) return E_FAIL;
+    } 
+    if (m_eType == EMonsterType::CREEPER)
+    {
+        m_pExplosionColliderCom = CCollider::Create(m_pGraphicDev,
+            _vec3(3.f, 3.f, 3.f),  
+            _vec3(0.f, 0.f, 0.f));
+        if (!m_pExplosionColliderCom) return E_FAIL;
+    } 
+ 
 
     return S_OK;
 }
@@ -465,9 +566,13 @@ void CMonster::Free()
         Safe_Release(pArrow);
     m_vecArrows.clear();
 
+    Safe_Release(m_pExplosionColliderCom);
+    Safe_Release(m_pAtkColliderCom);
     Safe_Release(m_pBowStandbyTex);
     Safe_Release(m_pBowPullingTex);
     Safe_Release(m_pBowBufferCom);
-    Safe_Release(m_pBodyCom);
-    CGameObject::Free();
+    Safe_Release(m_pBodyCom); 
+
+    CGameObject::Free(); 
+
 }

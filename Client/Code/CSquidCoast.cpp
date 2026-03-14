@@ -59,6 +59,10 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 		return iExit;
 	}
 
+	auto iter = m_mapLayer.find(L"GameLogic_Layer");
+	if (iter != m_mapLayer.end())
+		iter->second->Delete_GameObject(fTimeDelta);
+
 	return iExit;
 }
 
