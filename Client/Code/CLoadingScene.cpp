@@ -38,7 +38,12 @@ _int CLoadingScene::Update_Scene(const _float& fTimeDelta)
 {
 	CRenderer::GetInstance()->Add_RenderGroup(RENDER_UI, m_pLoadingTexture);
 
-	if (m_bRenderOnce &&  !m_bSceneChanged && m_pLoading->Get_Finish())
+	if (m_bRenderOnce)
+	{
+		m_fDisplayTimer += fTimeDelta;
+	}
+
+	if (m_bRenderOnce &&  !m_bSceneChanged && m_pLoading->Get_Finish() && m_fDisplayTimer >= m_fMinDisplayTime)
 	{
 		m_bSceneChanged = true;
 

@@ -22,6 +22,10 @@ public:
 
     virtual bool        Is_Dead() override { return m_bDeadDone; } // 몬스터 삭제 
 
+    //Get, Set Monster Active
+    bool IsActive() { return m_bActive; }
+    void SetActive(bool bActive) { m_bActive = bActive; }
+
 private:
     HRESULT             Add_Component();
     void                Update_Arrow(const _float& fTimeDelta);
@@ -71,7 +75,7 @@ private:
     float m_fAttackRange = 2.f;  // 공격 사정거리 
     float m_fMoveSpeed   = 2.f;  // 이동 속도  
 
-    
+    bool m_bActive = false;
 
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,

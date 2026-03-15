@@ -115,24 +115,24 @@ void CTriggerBox::Trigger_Ironbar()
 	//IronbarMgr에게 이벤트 발생만 전달
 	if (CIronBarMgr::GetInstance()->IsClosed())
 	{
-		CIronBarMgr::GetInstance()->Open();
+		CIronBarMgr::GetInstance()->Open(m_iTriggerID);
 	}
 	else
 	{
-		CIronBarMgr::GetInstance()->Close();
+		CIronBarMgr::GetInstance()->Close(m_iTriggerID);
 	}
 }
 
 void CTriggerBox::Trigger_Monster()
 {
-	//MonsterMgr의 TriggerID 설정
-	CMonsterMgr::GetInstance()->SetTriggerID(m_iTriggerID);
+	//MonsterMgr의 TriggerID 설정 후 보내기
+	CMonsterMgr::GetInstance()->SetActiveMonsterGroup(m_iTriggerID);
 }
 
 void CTriggerBox::Trigger_SceneChange()
 {
-	//창살 닿은 이후에, 다음 스테이지로 넘어갈 수 있도록 진행
-	
+	//다음 스테이지로 넘어갈 수 있도록 플래그 설정 TriggerBoxMgr에서 읽어가기
+	m_bSceneChanged = true;
 }
 
 CTriggerBox* CTriggerBox::Create(LPDIRECT3DDEVICE9 pGraphicDev, 

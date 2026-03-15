@@ -27,6 +27,7 @@ public:
 	bool IsTriggered() { return m_bTriggered; }
 	void SetTrigger(bool bTriggered) { m_bTriggered = bTriggered; }
 	void CheckCollide(CCollider* pCollider);
+	bool IsSceneChanged() { return m_bSceneChanged; }
 private:
 	HRESULT Add_Component();
 private:
@@ -42,6 +43,8 @@ private:
 	eTriggerBoxType m_eTrigger = TRIGGER_END;
 
 	bool m_bTriggered = false;
+
+	bool m_bSceneChanged = false;
 
 	_vec3 m_vPos = { 0.f, 0.f, 0.f };
 public://Decide box type, when it created, so that TriggerBoxMgr only 

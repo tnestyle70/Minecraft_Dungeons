@@ -9,21 +9,21 @@ private:
 	virtual ~CIronBarMgr();
 public:
 	HRESULT Ready_IronBarMgr();
-	void Update(const _float& fTimeDelta);
+	_int Update(const _float& fTimeDelta);
 	void LateUpdate(const _float& fTimeDelta);
 	void Render();
 public:
-	void Open();
-	void Close();
+	void Open(int iTriggerID);
+	void Close(int iTriggerID);
 public:
-	void AddIronBar(CGameObject* pGameObject);
+	void AddIronBar(CGameObject* pGameObject, int iTriggerID);
 	void Clear();
 public:
 	bool IsClosed() { return m_bClosed; };
 private:
 	void UpdateIronBarAnim();
 private://IronBar을 컨테이너로 관리
-	vector<CIronBar*> m_vecIronBars;
+	map<int, vector<CIronBar*>> m_mapIronBarGroups;
 	bool m_bClosed = false;
 private:
 	virtual void Free();

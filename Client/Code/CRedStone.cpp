@@ -7,6 +7,9 @@
 #include "CMonsterAnim.h"
 #include "CEditor.h"
 #include "CBlockMgr.h"
+#include "CTriggerBoxMgr.h"
+#include "CIronBarMgr.h"
+#include "CMonsterMgr.h"
 #include "CDynamicCamera.h"
 #include "CSceneChanger.h"
 #include "CRenderer.h"
@@ -46,10 +49,21 @@ _int CRedStone::Update_Scene(const _float& fTimeDelta)
 
 	CBlockMgr::GetInstance()->Update(fTimeDelta);
 
-	if (GetAsyncKeyState(VK_RETURN))
+	CTriggerBoxMgr::GetInstance()->Update(fTimeDelta);
+
+	CIronBarMgr::GetInstance()->Update(fTimeDelta);
+
+	CMonsterMgr::GetInstance()->Update(fTimeDelta);
+
+	if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
 	{
 		//Render Group Clear Before Change Scene!!!!
+		//TriggerBoxMgr 다시 설정
+		CTriggerBoxMgr::GetInstance()->SetSceneChanged(false);
 		CRenderer::GetInstance()->Clear_RenderGroup();
+		CTriggerBoxMgr::GetInstance()->Clear();
+		CIronBarMgr::GetInstance()->Clear();
+		CMonsterMgr::GetInstance()->Clear();
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_OBSIDIAN)))
 		{
 			MSG_BOX("Obsidian Create Failed");
@@ -64,6 +78,12 @@ _int CRedStone::Update_Scene(const _float& fTimeDelta)
 void CRedStone::LateUpdate_Scene(const _float& fTimeDelta)
 {
 	CScene::LateUpdate_Scene(fTimeDelta);
+
+	CTriggerBoxMgr::GetInstance()->LateUpdate(fTimeDelta);
+
+	CIronBarMgr::GetInstance()->LateUpdate(fTimeDelta);
+
+	CMonsterMgr::GetInstance()->LateUpdate(fTimeDelta);
 }
 
 void CRedStone::Render_Scene()
@@ -118,6 +138,15 @@ HRESULT CRedStone::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
 		return E_FAIL;
+
+	//TriggerBoxMgr
+	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
+	CCollider* pCollider = dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+	if (!pCollider)
+	{
+		MSG_BOX("Player Collider Set Failed");
+	}
+	CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
 
 	//Monster
 	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::ZOMBIE);
@@ -195,9 +224,10 @@ HRESULT CRedStone::Ready_StageData(const _tchar* szPath)
 
 		CGameObject* pMonster = CMonster::Create(
 			m_pGraphicDev, (EMonsterType)tData.iMonsterType, vPos);
-		if (pMonster)
-			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"Monster", pMonster);
-		// 레이어가 소유권 가짐 → 씬 종료 시 자동 해제
+
+		//MonsterMgr 쪽에 추가
+		if(pMonster)
+			CMonsterMgr::GetInstance()->AddMonster(pMonster, tData.iTriggerID);
 	}
 
 	// 3. 창살
@@ -210,7 +240,7 @@ HRESULT CRedStone::Ready_StageData(const _tchar* szPath)
 
 		CGameObject* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
 		if (pIronBar)
-			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"IronBar", pIronBar);
+			CIronBarMgr::GetInstance()->AddIronBar(pIronBar, tData.iTriggerID);
 	}
 
 	// 4. 트리거박스
@@ -221,9 +251,10 @@ HRESULT CRedStone::Ready_StageData(const _tchar* szPath)
 		fread(&tData, sizeof(TriggerBoxData), 1, pFile);
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 
-		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
+		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos, tData.iTriggerID, (eTriggerBoxType)tData.iTriggerBoxType);
 		if (pTriggerBox)
-			m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"TriggerBox", pTriggerBox);
+			CTriggerBoxMgr::GetInstance()->AddTriggerBox(pTriggerBox);
+		//m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"TriggerBox", pTriggerBox);
 	}
 
 	fclose(pFile);

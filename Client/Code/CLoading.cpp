@@ -310,7 +310,7 @@ _uint CLoading::Loading_SquidCoast()
     //    Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
     //    return E_FAIL;
 
-    //캠프 로딩 텍스쳐
+    ////캠프 로딩 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampLoadingTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png"))))
         return E_FAIL;

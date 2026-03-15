@@ -39,6 +39,10 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 
 _int CMonster::Update_GameObject(const _float& fTimeDelta)
 {
+    //Update Monster when active
+    if (!m_bActive)
+        return 0;
+
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
     Apply_Gravity(fTimeDelta);
     Resolve_BlockCollision();
@@ -175,16 +179,21 @@ else
 
 void CMonster::LateUpdate_GameObject(const _float& fTimeDelta)
 {
+    //Update Monster when active
+    if (!m_bActive)
+        return;
+
     Update_AI(fTimeDelta);
 
     CGameObject::LateUpdate_GameObject(fTimeDelta);
-
-
 }
 
 void CMonster::Render_GameObject() 
 {
-    
+    //Update Monster when active
+    if (!m_bActive)
+        return;
+
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
 
     if (pAnim && pAnim->Is_HitFlash())

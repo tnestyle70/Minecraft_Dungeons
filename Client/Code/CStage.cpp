@@ -69,7 +69,7 @@ void CStage::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CStage::Render_Scene()
 {
-    //ÃÖÀûÈ­ ÀÌÈÄ ÁÖ¼® ÇØÁ¦
+    //ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ ï¿½ï¿½ï¿½ï¿½
     CBlockMgr::GetInstance()->Render();
 }
 
@@ -114,18 +114,18 @@ HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)
         return E_FAIL;
     }
 
-    CBlockMgr::GetInstance()->SetEditorMode(false); // ¸ÕÀú ¸ðµå ¼³Á¤
+    CBlockMgr::GetInstance()->SetEditorMode(false); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
     FILE* pFile = nullptr;
     _wfopen_s(&pFile, L"../Bin/Data/Stage1.dat", L"rb");
     if (pFile)
     {
-        CBlockMgr::GetInstance()->LoadBlocks(pFile); // ³»ºÎ¿¡¼­ Rebuild±îÁö Ã³¸®
+        CBlockMgr::GetInstance()->LoadBlocks(pFile); // ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ Rebuildï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
         fclose(pFile);
     }
 
-    //SetEditorMode ³»ºÎ¿¡¼­ rebuildbatchmesh¸¦ ÇØ¾ß ÇÏ´Âµ¥,
-    //±× ½ÃÁ¡¿¡´Â ºí·°ÀÌ ¾ø´Â »óÅÂÀÌ¹Ç·Î, LoadBlocks¸¦ ¸ÕÀú ÇØ¾ß ÇÔ
+    //SetEditorMode ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ rebuildbatchmeshï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½Ï´Âµï¿½,
+    //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½, LoadBlocksï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½
     //CBlockMgr::GetInstance()->SetEditorMode(false);
 
     return S_OK;

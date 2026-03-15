@@ -244,6 +244,8 @@
     <ClInclude Include="..\Header\CMonsterMgr.h">
       <Filter>03. Manager\01. MonsterMgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\Templateblocks.h">
+      <Filter>01. Scene\03. Editor\01. Block</Filter>
     <ClInclude Include="..\Header\CDLCBoss.h">
       <Filter>02. GameObject\09. DLCBoss</Filter>
     <ClInclude Include="..\Header\CRedStoneGolemPart.h">

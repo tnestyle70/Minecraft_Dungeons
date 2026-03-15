@@ -4,6 +4,16 @@
 //트리거 박스 밟을 경우 몬스터들 지정된 위치로 쭉 스폰되도록 설정
 //MonsterMgr에서 IronBarMgr의 false 상태로 전환 시키기
 
+struct SpawnGroup
+{
+	vector<CMonster*> vecMonsters;
+	float fSpawnTimer = 0.f;
+	float fSpawnDelay = 1.f;
+	int iNextSpawnIndex = 0;
+	bool bTriggered = false;
+	bool bAllSpawned = false;
+};
+
 class CMonsterMgr : public CBase
 {
 	DECLARE_SINGLETON(CMonsterMgr)
@@ -12,22 +22,20 @@ private:
 	virtual ~CMonsterMgr();
 public:
 	HRESULT Ready_MonsterMgr();
-	void Update(const _float& fTimeDelta);
+	_int Update(const _float& fTimeDelta);
 	void LateUpdate(const _float& fTimeDelta);
 	void Render();
 private:
 	void SpawnMonsters(const _float& fTimeDelta);
 public:
 	bool IsGroupAllDead(int iTriggerID);
-	void SetTriggerID(int iTriggerID) { m_iTriggerID = iTriggerID; }
+	void SetActiveMonsterGroup(int iTriggerID);
 public:
 	void AddMonster(CGameObject* pGameObject, int iTriggerID);
 	void Clear();
 private: //트리거 박스 밟았을 경우 생성할 ID별 몬스터 목록
-	map<int, vector<CMonster*>> m_mapMonsterGroups;
-	int m_iTriggerID = 0;
-	//스폰 딜레이
-	int m_iSpawnDelay = 0.f;
+	map<int, SpawnGroup> m_mapMonsterGroups;
+	int m_iTriggerID = -1;
 private:
 	virtual void Free();
 };

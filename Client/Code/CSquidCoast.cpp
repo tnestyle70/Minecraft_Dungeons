@@ -56,9 +56,11 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 
 	CMonsterMgr::GetInstance()->Update(fTimeDelta);
 	
-	if (GetAsyncKeyState(VK_RETURN))
+	if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
 	{
 		//Render Group Clear Before Change Scene!!!!
+		//TriggerBoxMgr 다시 설정
+		CTriggerBoxMgr::GetInstance()->SetSceneChanged(false);
 		CRenderer::GetInstance()->Clear_RenderGroup();
 		CTriggerBoxMgr::GetInstance()->Clear();
 		CIronBarMgr::GetInstance()->Clear();
@@ -68,6 +70,7 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 			MSG_BOX("Camp Create Failed");
 			return -1;
 		}
+
 		return iExit;
 	}
 
@@ -92,12 +95,6 @@ void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 void CSquidCoast::Render_Scene()
 {
 	CBlockMgr::GetInstance()->Render();
-
-	CTriggerBoxMgr::GetInstance()->Render();
-
-	CIronBarMgr::GetInstance()->Render();
-
-	CMonsterMgr::GetInstance()->Render();
 }
 
 HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -181,6 +178,7 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
 		return E_FAIL; 
+
 	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SPIDER);
 
 	if (!pGameObject)
@@ -220,7 +218,7 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 		return E_FAIL;
 
 	// 1. 블럭 (LoadBlocks 내부에서 RebuildBatchMesh까지)
-
+	
 	//BlockMgr
 	if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
 	{
@@ -246,11 +244,8 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 			m_pGraphicDev, (EMonsterType)tData.iMonsterType, vPos);
 
 		//MonsterMgr 쪽에 추가
-		CMonsterMgr::GetInstance()->AddMonster(pMonster, tData.iTriggerID);
-		
-		//if (pMonster)
-		//	m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"Monster", pMonster);
-		// 레이어가 소유권 가짐 → 씬 종료 시 자동 해제
+		if(pMonster)
+			CMonsterMgr::GetInstance()->AddMonster(pMonster, tData.iTriggerID);
 	}
 
 	// 3. 창살
@@ -263,10 +258,10 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 
 		CGameObject* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
 		if (pIronBar)
-			CIronBarMgr::GetInstance()->AddIronBar(pIronBar);
+			CIronBarMgr::GetInstance()->AddIronBar(pIronBar, tData.iTriggerID);
 			//m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"IronBar", pIronBar);
 	}
-
+	
 	// 4. 트리거박스
 	fread(&iCount, sizeof(int), 1, pFile);
 	for (int i = 0; i < iCount; ++i)

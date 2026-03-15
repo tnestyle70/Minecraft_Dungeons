@@ -90,7 +90,7 @@ private:
 	int m_iSelectedMonster = 0;
 
 	//Monster TriggerID 
-	int m_iMonsterTriggerID = -1;
+	int m_iMonsterTriggerID = 0;
 
 	//Trigger Box Settings
 	int m_iTriggerWidth = 1;

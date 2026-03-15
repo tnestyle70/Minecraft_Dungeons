@@ -17,75 +17,106 @@ HRESULT CIronBarMgr::Ready_IronBarMgr()
 	return S_OK;
 }
 
-void CIronBarMgr::Update(const _float& fTimeDelta)
+_int CIronBarMgr::Update(const _float& fTimeDelta)
 {
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		pIronBar->Update_GameObject(fTimeDelta);
+		for (auto& pIronBar : pair.second)
+		{
+			pIronBar->Update_GameObject(fTimeDelta);
+		}
 	}
+	return 0;
 }
 
 void CIronBarMgr::LateUpdate(const _float & fTimeDelta)
 {
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		pIronBar->LateUpdate_GameObject(fTimeDelta);
+		for (auto& pIronBar : pair.second)
+		{
+			pIronBar->LateUpdate_GameObject(fTimeDelta);
+		}
 	}
 }
 
 void CIronBarMgr::Render()
 {
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		pIronBar->Render_GameObject();
+		for (auto& pIronBar : pair.second)
+		{
+			pIronBar->Render_GameObject();
+		}
 	}
 }
 
-void CIronBarMgr::Open()
+void CIronBarMgr::Open(int iTriggerID)
 {
 	m_bClosed = false;
 
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		pIronBar->SetIronBarState(eIronBarState::MOVE_UP);
+		if (pair.first == iTriggerID)
+		{
+			for (auto& pIronBar : pair.second)
+			{
+				pIronBar->SetIronBarState(eIronBarState::MOVE_UP);
+			}
+		}
 	}
 
 	return;
 }
 
-void CIronBarMgr::Close()
+void CIronBarMgr::Close(int iTriggerID)
 {
 	m_bClosed = true;
 
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		pIronBar->SetIronBarState(eIronBarState::MOVE_DOWN);
+		if(pair.first == iTriggerID)
+		{
+			for (auto& pIronBar : pair.second)
+			{
+				pIronBar->SetIronBarState(eIronBarState::MOVE_DOWN);
+			}
+		}
 	}
 
 	return;
 }
 
-void CIronBarMgr::AddIronBar(CGameObject* pGameObject)
+void CIronBarMgr::AddIronBar(CGameObject* pGameObject, int iTriggerID)
 {
 	CIronBar* pIronBar = dynamic_cast<CIronBar*>(pGameObject);
 
-	m_vecIronBars.push_back(pIronBar);
+	if (pIronBar)
+	{
+		m_mapIronBarGroups[iTriggerID].push_back(pIronBar);
+	}
 }
 
 void CIronBarMgr::Clear()
 {
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		Safe_Release(pIronBar);
+		for (auto& pIronBar : pair.second)
+		{
+			Safe_Release(pIronBar);
+		}
 	}
-	m_vecIronBars.clear();
+	m_mapIronBarGroups.clear();
 }
 
 void CIronBarMgr::Free()
 {
-	for (auto& pIronBar : m_vecIronBars)
+	for (auto& pair : m_mapIronBarGroups)
 	{
-		Safe_Release(pIronBar);
+		for (auto& pIronBar : pair.second)
+		{
+			Safe_Release(pIronBar);
+		}
 	}
-	m_vecIronBars.clear();
+	m_mapIronBarGroups.clear();
 }

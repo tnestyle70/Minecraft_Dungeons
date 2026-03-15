@@ -185,6 +185,7 @@
     <ClInclude Include="..\Header\CTriggerBox.h" />
     <ClInclude Include="..\Header\CTriggerBoxMgr.h" />
     <ClInclude Include="..\Header\StageData.h" />
+    <ClInclude Include="..\Header\Templateblocks.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />

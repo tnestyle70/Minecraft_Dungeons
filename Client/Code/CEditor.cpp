@@ -671,6 +671,7 @@ void CEditor::UpdateMonsterMode()
 			//Add Monster
 			_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 			CMonster* pMonster = CMonster::Create(m_pGraphicDev, (EMonsterType)m_iSelectedMonster ,vPos);
+			pMonster->SetActive(true);
 			m_mapMonsters.insert({ tData, pMonster });
 		}
 	}
@@ -892,6 +893,7 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 		CMonster* pMonster = CMonster::Create(m_pGraphicDev,
 			(EMonsterType)tData.iMonsterType, vPos);
+		pMonster->SetActive(true);
 		if (pMonster)
 			m_mapMonsters.insert({ tData, pMonster });
 	}

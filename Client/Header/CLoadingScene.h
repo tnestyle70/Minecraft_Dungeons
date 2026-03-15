@@ -26,6 +26,9 @@ private:
 	//로딩씬 체크
 	_int m_iFrameCount = 0;
 	bool m_bRenderOnce = false;
+private:
+	float   m_fDisplayTimer = 0.f;
+	float   m_fMinDisplayTime = 1.5f;  // 최소 1.5초는 보여줌
 public:
 	static CLoadingScene* Create(LPDIRECT3DDEVICE9 pGraphicDev,
 		CLoading::LOADINGID eLoadingID,

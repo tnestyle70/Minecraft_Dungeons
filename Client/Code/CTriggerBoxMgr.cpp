@@ -30,6 +30,10 @@ _int CTriggerBoxMgr::Update(const _float& fTimeDelta)
 
 	for (auto& pTriggerBox : m_vecTriggerBox)
 	{
+		if (pTriggerBox->IsSceneChanged())
+		{
+			m_bSceneChanged = true;
+		}
 		pTriggerBox->Update_GameObject(fTimeDelta);
 
 		pTriggerBox->CheckCollide(m_pPlayerCollider);
