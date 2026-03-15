@@ -112,10 +112,10 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../Header;../../Base;../../Reference/Header;../Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../Header;../../Base;../../Reference/Header;../Include;../../UI_EDITOR/External;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -149,6 +149,7 @@
     <ClInclude Include="..\Header\CBatchBuffer.h" />
     <ClInclude Include="..\Header\CBlock.h" />
     <ClInclude Include="..\Header\CBlockMgr.h" />
+    <ClInclude Include="..\Header\CBlockRenderer.h" />
     <ClInclude Include="..\Header\CBlockPlacer.h" />
     <ClInclude Include="..\Header\CBodyBase.h" />
     <ClInclude Include="..\Header\CCamp.h" />
@@ -184,6 +185,9 @@
     <ClInclude Include="..\Header\CTerrain.h" />
     <ClInclude Include="..\Header\CTriggerBox.h" />
     <ClInclude Include="..\Header\CTriggerBoxMgr.h" />
+    <ClInclude Include="..\Header\CUI.h" />
+    <ClInclude Include="..\Header\CHotbar.h" />
+    <ClInclude Include="..\Header\CUI_Json.h" />
     <ClInclude Include="..\Header\StageData.h" />
     <ClInclude Include="..\Header\Templateblocks.h" />
     <ClInclude Include="Client.h" />
@@ -198,6 +202,7 @@
     <ClCompile Include="..\Code\CBatchBuffer.cpp" />
     <ClCompile Include="..\Code\CBlock.cpp" />
     <ClCompile Include="..\Code\CBlockMgr.cpp" />
+    <ClCompile Include="..\Code\CBlockRenderer.cpp" />
     <ClCompile Include="..\Code\CBlockPlacer.cpp" />
     <ClCompile Include="..\Code\CBodyBase.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
@@ -229,6 +234,9 @@
     <ClCompile Include="..\Code\CTerrain.cpp" />
     <ClCompile Include="..\Code\CTriggerBox.cpp" />
     <ClCompile Include="..\Code\CTriggerBoxMgr.cpp" />
+    <ClCompile Include="..\Code\CUI.cpp" />
+    <ClCompile Include="..\Code\CHotbar.cpp" />
+    <ClCompile Include="..\Code\CUI_Json.cpp" />
     <ClCompile Include="..\Code\imgui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
