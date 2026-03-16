@@ -19,6 +19,7 @@ CPlayer::CPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_bMoving(false)
 {
 	D3DXMatrixIdentity(&m_matRArmWorld);
+	D3DXMatrixIdentity(&m_matLArmWorld);
 }
 
 CPlayer::CPlayer(const CGameObject& rhs)
@@ -47,19 +48,19 @@ HRESULT CPlayer::Ready_GameObject()
 	m_pTransformCom->Set_Pos(0.f, 10.f, 0.f);
 
 #pragma region 파트별 크기, 오프셋
-	m_vPartScale[PART_HEAD] = { 0.20f, 0.20f, 0.20f };
-	m_vPartScale[PART_BODY] = { 0.25f, 0.35f, 0.125f };
-	m_vPartScale[PART_LARM] = { 0.10f, 0.30f, 0.10f };
-	m_vPartScale[PART_RARM] = { 0.10f, 0.30f, 0.10f };
-	m_vPartScale[PART_LLEG] = { 0.10f, 0.30f, 0.10f };
-	m_vPartScale[PART_RLEG] = { 0.10f, 0.30f, 0.10f };
+	m_vPartScale[PART_HEAD] = { 0.40f, 0.40f, 0.40f };
+	m_vPartScale[PART_BODY] = { 0.50f, 0.50f, 0.25f };
+	m_vPartScale[PART_LARM] = { 0.20f, 0.60f, 0.20f };
+	m_vPartScale[PART_RARM] = { 0.20f, 0.60f, 0.20f };
+	m_vPartScale[PART_LLEG] = { 0.20f, 0.60f, 0.20f };
+	m_vPartScale[PART_RLEG] = { 0.20f, 0.60f, 0.20f };
 
-	m_vPartOffset[PART_HEAD] = { 0.00f, 1.10f, 0.00f };
-	m_vPartOffset[PART_BODY] = { 0.00f, 0.60f, 0.00f };
-	m_vPartOffset[PART_LARM] = { 0.35f, 0.60f, 0.00f };
-	m_vPartOffset[PART_RARM] = { -0.35f, 0.60f, 0.00f };
-	m_vPartOffset[PART_LLEG] = { 0.13f, 0.30f, 0.00f };
-	m_vPartOffset[PART_RLEG] = { -0.13f, 0.30f, 0.00f };
+	m_vPartOffset[PART_HEAD] = { 0.00f, 2.20f, 0.00f };
+	m_vPartOffset[PART_BODY] = { 0.00f, 1.40f, 0.00f };
+	m_vPartOffset[PART_LARM] = { 0.70f, 1.20f, 0.00f };
+	m_vPartOffset[PART_RARM] = { -0.70f, 1.20f, 0.00f };
+	m_vPartOffset[PART_LLEG] = { 0.26f, 0.45f, 0.00f };
+	m_vPartOffset[PART_RLEG] = { -0.26f, 0.45f, 0.00f };
 #pragma endregion
 	return S_OK;
 }
@@ -166,11 +167,8 @@ void CPlayer::Render_GameObject()
 	for (auto& pArrow : m_vecArrows)
 		pArrow->Render_GameObject();
 
-	// 180도 보정 (atan2 +180 제거로 인한 시각 보정)
+	// 월드 행렬
 	_matrix matRootWorld = *m_pTransformCom->Get_World();
-	_matrix mat180;
-	D3DXMatrixRotationY(&mat180, D3DXToRadian(180.f));
-	matRootWorld = mat180 * matRootWorld;
 
 	const _float fMaxAngle = D3DXToRadian(30.f);
 	_float fSwing = (m_bMoving && !m_bRolling) ? sinf(m_fWalkTime) * fMaxAngle : 0.f;
@@ -188,17 +186,59 @@ void CPlayer::Render_GameObject()
 
 
 
+	//활시위 당기기
+	float fLArmX = 0.f, fLArmY = 0.f;
+	float fRArmX = 0.f, fRArmY = 0.f;
 
-	// 몸체 6부위 렌더
-	Render_Part(PART_RARM, m_iComboStep > 0 ? fAtkX : -fSwing, m_iComboStep > 0 ? fAtkY : 0.f, 0.f, matRootWorld);
-	Render_Part(PART_HEAD, 0.f, 0.f, 0.f, matRootWorld);
+	if (m_bCharging)
+	{
+		_matrix matBodyTurn;
+		D3DXMatrixRotationY(&matBodyTurn, D3DXToRadian(-90.f));  // 오른쪽으로
+		matRootWorld = matBodyTurn * matRootWorld;
+
+		float fRatio = m_fCharge / m_fMaxCharge;
+
+		fLArmX = D3DXToRadian(-90.f);
+		fLArmY = D3DXToRadian(-90.f);   // 화살 방향
+
+		fRArmX = D3DXToRadian(-90.f);
+		fRArmY = D3DXToRadian(-90.f);   // 화살 방향
+	}
+	_matrix matRArmRoot = matRootWorld;	
+	if (m_bCharging)
+	{
+		float fRatio = m_fCharge / m_fMaxCharge;
+		_vec3 vLook, vRight;
+		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+		m_pTransformCom->Get_Info(INFO_RIGHT, &vRight);
+		D3DXVec3Normalize(&vLook, &vLook);
+		D3DXVec3Normalize(&vRight, &vRight);
+		matRArmRoot._41 += vLook.x * fRatio * 0.3f;
+		matRArmRoot._43 += vLook.z * fRatio * 0.3f;
+		matRArmRoot._41 -= vRight.x * 0.4f;
+		matRArmRoot._43 -= vRight.z * 0.4f;
+	}
+
+	Render_Part(PART_LARM, m_bCharging ? fLArmX : fSwing,
+		m_bCharging ? fLArmY : 0.f, 0.f, matRArmRoot);  // 당기기
+
+	Render_Part(PART_HEAD, 0.f, m_bCharging ? D3DXToRadian(90.f) : 0.f, 0.f, matRootWorld);
+
 	Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld);
-	Render_Part(PART_LARM, fSwing, 0.f, 0.f, matRootWorld);
+
+	Render_Part(PART_RARM, m_bCharging ? fRArmX : (m_iComboStep > 0 ? fAtkX : -fSwing),
+		m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f), 0.f, matRootWorld);  // 활 - 고정
+
 	Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld);
+
 	Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld);
 
-	// 칼
-	Render_Sword(fAtkX, fAtkY, fSwing);
+
+	// 칼 - 활 스위칭
+	if (m_bCharging)
+		Render_Bow();
+	else
+		Render_Sword(fAtkX, fAtkY, fSwing);
 
 	m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 	m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
@@ -314,10 +354,38 @@ HRESULT CPlayer::Add_Component()
 	m_mapComponent[ID_DYNAMIC].insert({ L"Com_Transform", pComponent });
 
 
+	// 활 버퍼
+	pComponent = m_pBowBufferCom = dynamic_cast<Engine::CRcTex*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
+	if (nullptr == pComponent)
+		return E_FAIL;
+	m_mapComponent[ID_STATIC].insert({ L"Com_BowBuffer", pComponent });
+
+	// 활 텍스처
+	const _tchar* bowTags[4] = {
+		L"Proto_BowStandby",
+		L"Proto_BowPulling0",
+		L"Proto_BowPulling1",
+		L"Proto_BowPulling2"
+	};
+	for (int i = 0; i < 4; ++i)
+	{
+		m_pBowTexture[i] = dynamic_cast<Engine::CTexture*>
+			(CProtoMgr::GetInstance()->Clone_Prototype(bowTags[i]));
+		if (nullptr == m_pBowTexture[i])
+			return E_FAIL;
+	}
+	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex0", m_pBowTexture[0] });
+	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex1", m_pBowTexture[1] });
+	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex2", m_pBowTexture[2] });
+	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex3", m_pBowTexture[3] });
+
+
 	//플레이어 콜라이더
 	m_pColliderCom = CCollider::Create(m_pGraphicDev,
-		_vec3(0.5f, 1.8f, 0.5f),
-		_vec3(0.f, 0.9f, 0.f));
+										_vec3(0.8f, 3.2f, 0.8f),
+										_vec3(0.f, 1.3f, 0.f));
+
 	if (nullptr == m_pColliderCom)
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
@@ -354,7 +422,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		if (m_iComboStep == 0 || m_fComboTimer > 0.f)
 		{
 			m_iComboStep = (m_iComboStep % 3) + 1;
-			if (m_iComboStep == 1 || m_iComboStep == 2)  // 첫 공격만 리셋
+			if (m_iComboStep == 1 || m_iComboStep == 2)  // 1,2타 리셋
 				m_fAtkTime = 0.f;
 			m_fComboTimer = m_fComboWindow;
 		}
@@ -384,6 +452,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		m_pTransformCom->Get_Info(INFO_POS, &vPos);
 		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
 		D3DXVec3Normalize(&vLook, &vLook);
+		vLook = -vLook;
 		vPos.y += 1.0f;
 
 		float fCharge = m_fCharge / m_fMaxCharge;
@@ -416,7 +485,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		if (fDist > 0.3f)
 		{
 			D3DXVec3Normalize(&vDir, &vDir);
-			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z));	// +180 제거
+			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
 			m_pTransformCom->Move_Pos(&vDir, 5.f, fTimeDelta);
 			m_bMoving = true;
 		}
@@ -445,7 +514,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			}
 			else
 			{
-				m_vRollDir = vLook;		// 부호 제거
+				m_vRollDir = -vLook;		// 부호 복구
 				m_vRollDir.y = 0.f;
 				D3DXVec3Normalize(&m_vRollDir, &m_vRollDir);
 			}
@@ -611,6 +680,9 @@ void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float
 	if (ePart == PART_RARM)
 		m_matRArmWorld = matPartWorld;
 
+	if (ePart == PART_LARM)
+		m_matLArmWorld = matPartWorld;
+
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matPartWorld);
 	m_pTextureCom->Set_Texture(0);
 	m_pBufferCom[ePart]->Render_Buffer();
@@ -701,7 +773,7 @@ void CPlayer::Render_Sword(float fAtkX, float fAtkY, float fSwing)
 	D3DXMatrixRotationZ(&matTilt, fTiltAngle);
 	D3DXMatrixRotationX(&matSwing, m_iComboStep > 0 ? fAtkX : fSwing);
 	D3DXMatrixRotationX(&matStand, D3DXToRadian(90.f));
-	D3DXMatrixRotationY(&matRotY, D3DXToRadian(m_pTransformCom->m_vAngle.y) + D3DXToRadian(-90.f) + fAtkY);
+	D3DXMatrixRotationY(&matRotY, D3DXToRadian(m_pTransformCom->m_vAngle.y) + D3DXToRadian(90.f) + fAtkY);
 	D3DXMatrixTranslation(&matTrans, vHandPos.x, vHandPos.y, vHandPos.z);
 
 	_matrix matSwordWorld;
@@ -730,6 +802,45 @@ void CPlayer::Render_Sword(float fAtkX, float fAtkY, float fSwing)
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
 
+void CPlayer::Render_Bow()
+{
+	// 왼손 위치 추출
+	_vec3 vHandLocal(0.f, -1.f, 0.f);
+	_vec3 vLArmPos;
+	D3DXVec3TransformCoord(&vLArmPos, &vHandLocal, &m_matRArmWorld);
+
+	float fBowSize = m_vPartScale[PART_LARM].y * 2.f;
+
+	// 차징 단계에 따라 텍스처 선택
+	int iTexIdx = 0;
+	if (m_bCharging)
+	{
+		float fRatio = m_fCharge / m_fMaxCharge;
+		if (fRatio < 0.33f)      iTexIdx = 1;
+		else if (fRatio < 0.66f) iTexIdx = 2;
+		else                     iTexIdx = 3;
+	}
+
+	_matrix matScale, matRot, matTrans, matBowWorld, matRotZ;
+	D3DXMatrixScaling(&matScale, fBowSize*0.7f, fBowSize*0.7f, 1.f);
+	D3DXMatrixRotationZ(&matRotZ, D3DXToRadian(40.f));
+	D3DXMatrixRotationY(&matRot, D3DXToRadian(m_pTransformCom->m_vAngle.y) + D3DXToRadian(270.f));
+	D3DXMatrixTranslation(&matTrans, vLArmPos.x, vLArmPos.y, vLArmPos.z);
+	matBowWorld = matScale * matRotZ * matRot * matTrans;
+
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matBowWorld);
+	m_pBowTexture[iTexIdx]->Set_Texture(0);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 128);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	m_pBowBufferCom->Render_Buffer();
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+}
+
 void CPlayer::Attack_Collision()
 {
 	if (m_iComboStep > 0)
@@ -738,7 +849,7 @@ void CPlayer::Attack_Collision()
 		m_pTransformCom->Get_Info(INFO_POS, &vPos);
 		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
 		D3DXVec3Normalize(&vLook, &vLook);
-		_vec3 vAtkPos = vPos + vLook * 0.8f;
+		_vec3 vAtkPos = vPos - vLook * 0.8f;
 		vAtkPos.y += 0.9f;
 		m_pAtkColliderCom->Update_AABB(vAtkPos);
 		m_bAtkColliderActive = true;
