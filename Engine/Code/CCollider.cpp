@@ -1,4 +1,4 @@
-#include "CCollider.h"
+﻿#include "CCollider.h"
 
 CCollider::CCollider(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CComponent(pGraphicDev), 

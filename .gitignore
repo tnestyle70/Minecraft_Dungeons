@@ -89,3 +89,4 @@ Imgui.ini
 
 # Ignore GEMINI MD
 GEMINI.md
+/Client/Bin/Resource.zip

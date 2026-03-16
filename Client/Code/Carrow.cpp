@@ -31,7 +31,7 @@ _int CArrow::Update_GameObject(const _float& fTimeDelta)
 
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
-    // 생존 시간 체크
+    // 수명 체크
     m_fLifeTime += fTimeDelta;
     if (m_fLifeTime >= m_fMaxLifeTime)
     {
@@ -42,14 +42,17 @@ _int CArrow::Update_GameObject(const _float& fTimeDelta)
     // 방향으로 직진
     m_pTransformCom->Move_Pos(&m_vDir, m_fSpeed, fTimeDelta);
 
-    // 콜라이더 위치 업데이트
+    // 콜라이더 위치 갱신
     _vec3 vPos;
     m_pTransformCom->Get_Info(INFO_POS, &vPos);
     m_pColliderCom->Update_AABB(vPos);
 
-    // 화살이 날아가는 방향으로 회전 (Y축 기준)
+    // Y축 회전
     float fAngle = atan2f(m_vDir.x, m_vDir.z);
-    m_pTransformCom->m_vAngle.y = fAngle;
+    m_pTransformCom->m_vAngle.y = D3DXToDegree(fAngle);
+
+    // 플레이어 충돌 체크는 CMonster::Update_Arrow()에서 처리
+    // CArrow는 이동과 콜라이더 갱신만 담당
 
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
 
@@ -75,7 +78,6 @@ void CArrow::Render_GameObject()
 
     m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 
-    // 콜라이더 디버그 렌더
     if (m_pColliderCom)
         m_pColliderCom->Render_Collider();
 }
@@ -102,10 +104,10 @@ HRESULT CArrow::Add_Component()
     if (!pComponent) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_Buffer", pComponent });
 
-    // 크기 설정
+    // 크기
     m_pTransformCom->m_vScale = { 0.3f, 0.3f, 0.3f };
 
-    // 콜라이더 생성
+    // 콜라이더
     m_pColliderCom = CCollider::Create(m_pGraphicDev,
         _vec3(0.3f, 0.3f, 0.3f),
         _vec3(0.f, 0.f, 0.f));
@@ -114,7 +116,8 @@ HRESULT CArrow::Add_Component()
     return S_OK;
 }
 
-CArrow* CArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev, const _vec3& vStartPos, const _vec3& vDir)
+CArrow* CArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev,
+    const _vec3& vStartPos, const _vec3& vDir)
 {
     CArrow* pArrow = new CArrow(pGraphicDev);
 
@@ -125,7 +128,6 @@ CArrow* CArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev, const _vec3& vStartPos, co
         return nullptr;
     }
 
-    // 시작 위치 + 방향 설정
     pArrow->m_pTransformCom->Set_Pos(vStartPos.x, vStartPos.y, vStartPos.z);
     pArrow->Set_Direction(vDir);
 

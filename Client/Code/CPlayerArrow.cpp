@@ -56,7 +56,7 @@ HRESULT CPlayerArrow::Add_Component()
     m_mapComponent[ID_DYNAMIC].insert({ L"Com_Transform", pComponent });
 
     m_pColliderCom = CCollider::Create(m_pGraphicDev,
-        _vec3(0.1f, 0.1f, 0.5f),
+        _vec3(0.3f, 0.3f, 0.3f),
         _vec3(0.f, 0.f, 0.f));
     if (nullptr == m_pColliderCom)
         return E_FAIL;

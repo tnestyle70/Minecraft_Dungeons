@@ -6,7 +6,6 @@ CRedStoneGolemPart::CRedStoneGolemPart(LPDIRECT3DDEVICE9 pGrpahicDev, REDSTONEGO
 	: CGameObject(pGrpahicDev)
 	, m_pBufferCom(nullptr)
 	, m_pTransformCom(nullptr)
-	, m_pParentTransformCom(nullptr)
 	, m_ePart(ePart)
 {
 }
@@ -15,7 +14,6 @@ CRedStoneGolemPart::CRedStoneGolemPart(const CRedStoneGolemPart& rhs)
 	: CGameObject(rhs)
 	, m_pBufferCom(nullptr)
 	, m_pTransformCom(nullptr)
-	, m_pParentTransformCom(nullptr)
 	, m_ePart(rhs.m_ePart)
 {
 }
@@ -34,19 +32,9 @@ HRESULT CRedStoneGolemPart::Ready_GameObject()
 
 _int CRedStoneGolemPart::Update_GameObject(const _float& fTimeDelta)
 {
-    if (m_pParentTransformCom)
-    {
-        _vec3 vParentPos;
-        m_pParentTransformCom->Get_Info(INFO_POS, &vParentPos);
+    _int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
-        _vec3 vWorldPos = vParentPos + m_vLocalOffset;
-
-        m_pTransformCom->Set_Pos(vWorldPos.x, vWorldPos.y, vWorldPos.z);
-    }
-
-	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
-        
-	return iExit;
+    return iExit;
 }
 
 void CRedStoneGolemPart::LateUpdate_GameObject(const _float& fTimeDelta)

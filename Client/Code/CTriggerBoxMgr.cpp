@@ -11,7 +11,7 @@ CTriggerBoxMgr::CTriggerBoxMgr()
 }
 
 CTriggerBoxMgr::~CTriggerBoxMgr()
-{
+{ 
 	Free();
 }
 

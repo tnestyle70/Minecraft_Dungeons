@@ -21,22 +21,23 @@ private:
 private:
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTextureCom = nullptr;
-    Engine::CRcTex* m_pBufferCom = nullptr; 
-    Engine::CCollider* m_pColliderCom = nullptr;
+    Engine::CRcTex* m_pBufferCom = nullptr;
+    Engine::CCollider* m_pColliderCom = nullptr; // private 유지, Get_Collider()로 접근
 
-    _vec3   m_vDir = { 0.f, 0.f, 1.f };      // 날아갈 방향
-    float   m_fSpeed = 20.f;                 // 화살 속도
-    float   m_fLifeTime = 0.f;               // 생존 시간
-    float   m_fMaxLifeTime = 3.f;            // 최대 생존 시간 (3초 후 삭제)
+    _vec3   m_vDir = { 0.f, 0.f, 1.f };
+    float   m_fSpeed = 20.f;
+    float   m_fLifeTime = 0.f;
+    float   m_fMaxLifeTime = 3.f;
     bool    m_bDead = false;
 
 public:
-    // 발사 방향 설정 (스켈레톤이 쏠 때 호출)
-    void    Set_Direction(const _vec3& vDir) { m_vDir = vDir; }
-    bool    Is_Dead() const { return m_bDead; }
+    void                Set_Direction(const _vec3& vDir) { m_vDir = vDir; }
+    bool                Is_Dead() const { return m_bDead; }
+    Engine::CCollider* Get_Collider() { return m_pColliderCom; } // Monster에서 화살 위치 접근용
 
 public:
-    static CArrow* Create(LPDIRECT3DDEVICE9 pGraphicDev, const _vec3& vStartPos, const _vec3& vDir);
+    static CArrow* Create(LPDIRECT3DDEVICE9 pGraphicDev,
+        const _vec3& vStartPos, const _vec3& vDir);
 
 private:
     virtual void Free();

@@ -22,6 +22,11 @@ public:
 		*(((_float*)&m_vAngle) + eType) += fAngle;
 	}
 
+	void	Set_Rotation(ROTATION eType, const _float& fAngle)
+	{
+		*(((_float*)&m_vAngle) + eType) = fAngle;
+	}
+
 	_matrix* Get_World() { return &m_matWorld; }
 
 	void Set_World(_matrix* matWorld) { m_matWorld = *matWorld; }
@@ -41,6 +46,8 @@ public:
 		m_vScale *= fScale;
 	}
 
+	void Set_Parent(CTransform* pParent) { m_pParent = pParent; }
+
 public:
 	HRESULT		 Ready_Transform();
 	virtual _int Update_Component(const _float& fTimeDelta);
@@ -54,6 +61,8 @@ public:
 	_vec3		m_vAngle;
 
 	_matrix		m_matWorld;
+
+	CTransform* m_pParent;
 
 public:
 	static CTransform* Create(LPDIRECT3DDEVICE9 pGraphicDev);

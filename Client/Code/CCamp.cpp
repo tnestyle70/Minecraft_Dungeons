@@ -156,37 +156,7 @@ HRESULT CCamp::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	}
 	CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
 
-	//Monster
-	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::ZOMBIE);
 
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
-		return E_FAIL;
-	//멀티맵이라 이름 같아도 가능, 그냥 맵은 안 됨
-	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SKELETON);
-
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
-		return E_FAIL; 
-
-	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::CREEPER);
-
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
-		return E_FAIL;
-
-	pGameObject = CMonster::Create(m_pGraphicDev, EMonsterType::SPIDER);
-
-	if (!pGameObject)
-		return E_FAIL;
-	if (FAILED(pLayer->Add_GameObject(L"Monster", pGameObject)))
-		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 

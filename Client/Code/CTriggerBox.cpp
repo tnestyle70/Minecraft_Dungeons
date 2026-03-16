@@ -16,7 +16,8 @@ CTriggerBox::CTriggerBox(const CGameObject& rhs)
 }
 
 CTriggerBox::~CTriggerBox()
-{
+{ 
+	
 }
 
 HRESULT CTriggerBox::Ready_GameObject(const _vec3 & vPos, _int iTriggerID

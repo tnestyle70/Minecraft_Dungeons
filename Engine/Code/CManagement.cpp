@@ -47,10 +47,9 @@ void CManagement::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CManagement::Render_Scene(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-    CRenderer::GetInstance()->Render_GameObject(pGraphicDev);
-
-    // debug 용 렌더 - BatchBuffer Rendering 수정하기!
-    m_pScene->Render_Scene();
+     m_pScene->Render_Scene();
+  
+    Engine::CRenderer* pRenderer = Engine::CRenderer::GetInstance();
 }
 
 void CManagement::Free()

@@ -88,6 +88,10 @@ _uint CLoading::Loading_Stage()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/iron_sword.png"))))
         return E_FAIL;
 
+    //플레이어 활 텍스쳐
+
+    
+
     // 닭 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))
@@ -348,8 +352,26 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/steve_real.png"))))
         return E_FAIL;
 
+    //칼 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/iron_sword.png"))))
+        return E_FAIL;
+
+    //활 텍스쳐
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowStandby",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_standby.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPulling0",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_0.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPulling1",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_1.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPulling2",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_2.png"))))
         return E_FAIL;
 
     // 닭 텍스쳐

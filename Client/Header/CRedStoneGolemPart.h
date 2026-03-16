@@ -34,8 +34,17 @@ public:
 	virtual void Render_GameObject();
 
 public:
-	void Set_Parent(CTransform* pParent) { m_pParentTransformCom = pParent; }
-	void Set_LocalOffset(_vec3 vOffset) { m_vLocalOffset = vOffset; }
+	void Set_LocalOffset(_vec3 vOffset)
+	{
+		m_vLocalOffset = vOffset;
+		
+		m_pTransformCom->Set_Pos(
+			vOffset.x,
+			vOffset.y,
+			vOffset.z
+		);
+	}
+
 	_vec3 Get_LocalOffset() { return m_vLocalOffset; }
 	CTransform* Get_Transform() { return m_pTransformCom; }
 
@@ -47,7 +56,7 @@ private:
 
 	CVIBuffer* m_pBufferCom;
 	CTransform* m_pTransformCom;
-	CTransform* m_pParentTransformCom;
+
 	_vec3 m_vLocalOffset;
 
 public:

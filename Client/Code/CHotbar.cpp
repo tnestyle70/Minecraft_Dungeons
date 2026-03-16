@@ -80,17 +80,7 @@ HRESULT CHotbar::Add_Children()
 		{ L"Proto_HeartColor", L"../Bin/Resource/Texture/UI/Materials/HotBar/heart_color.json", -350.f, -100.f }
 	};
 
-	// 1. Create and show only the Test Hotbar
-	CUI_Json* pTestHotbar = CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
-	if (pTestHotbar)
-	{
-		this->Add_Child(pTestHotbar);
-		pTestHotbar->Set_Scale(1.f);
-		pTestHotbar->Set_Pos(0.f, 0.f); 
-		pTestHotbar->Set_Visible(true);
-	}
-
-	// 2. Create and hide other elements
+	// 1. Create and hide other elements
 	for (auto& desc : childDescs)
 	{
 		CUI_Json* pChild = CUI_Json::Create(m_pGraphicDev, desc.jsonPath.c_str(), desc.protoTag.c_str());
@@ -102,6 +92,15 @@ HRESULT CHotbar::Add_Children()
 		}
 	}
 
+	// 2. Create and show the Test Hotbar LAST so it renders on top
+	CUI_Json* pTestHotbar = CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
+	if (pTestHotbar)
+	{
+		this->Add_Child(pTestHotbar);
+		pTestHotbar->Set_Scale(1.f);
+		pTestHotbar->Set_Pos(0.f, 0.f); 
+		pTestHotbar->Set_Visible(true);
+	}
 
 	return S_OK;
 }

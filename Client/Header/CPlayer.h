@@ -37,7 +37,7 @@ private:
 	void			Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float fAngleZ, const _matrix& matRootWorld);
 
 	void			Render_Sword(float fAtkX, float fAtkY, float fSwing);
-
+	void			Render_Bow();
 private:
 	//플레이어 정보
 
@@ -58,9 +58,16 @@ private:
 	float m_fMaxCharge = 2.f;
 	bool  m_bCharging = false;
 	vector<CPlayerArrow*> m_vecArrows;
+	_matrix m_matLArmWorld;		//왼손위치
+
+	//활 발사 모션
+	Engine::CTexture* m_pBowTexture[4] = {};  // 0=standby, 1~3=pulling
+	Engine::CRcTex* m_pBowBufferCom = nullptr;
+
+
 
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
-	bool m_bAtkColliderActive = false; // 공격 콜라이더 온오프 플래그
+	bool m_bAtkColliderActive = false;
 
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
