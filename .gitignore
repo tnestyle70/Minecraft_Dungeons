@@ -86,3 +86,6 @@ ipch/
 
 # Ignore ImGui ini
 Imgui.ini
+
+# Ignore GEMINI MD
+GEMINI.md

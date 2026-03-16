@@ -15,6 +15,9 @@
 #include "CRenderer.h"
 #include "StageData.h"
 #include "CRedStoneGolem.h"
+#include "CHotbar.h"
+#include "CBlockRenderer.h"
+#include "CLayer.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -94,7 +97,6 @@ void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CSquidCoast::Render_Scene()
 {
-	CBlockMgr::GetInstance()->Render();
 }
 
 HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -118,6 +120,14 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 	
 	if (FAILED(pLayer->Add_GameObject(L"DynamicCamera", pGameObject)))
+		return E_FAIL;
+
+	// Block Renderer
+	pGameObject = CBlockRenderer::Create(m_pGraphicDev);
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"BlockRenderer", pGameObject)))
 		return E_FAIL;
 
 	//SkyBox 추가
@@ -202,6 +212,27 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 HRESULT CSquidCoast::Ready_UI_Layer(const _tchar* pLayerTag)
 {
+	CLayer* pLayer = CLayer::Create();
+
+	if (!pLayer)
+		return E_FAIL;
+
+	CGameObject* pGameObject = nullptr;
+
+	// Hotbar UI (Composite)
+	pGameObject = CHotbar::Create(m_pGraphicDev);
+	if (!pGameObject)
+		return E_FAIL;
+
+	CHotbar* pHotbar = static_cast<CHotbar*>(pGameObject);
+	pHotbar->Set_Pos(0.f, 0.f); // Root at top-left for full-screen test image
+
+	if (FAILED(pLayer->Add_GameObject(L"Hotbar", pGameObject)))
+
+		return E_FAIL;
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	return S_OK;
 }
 
