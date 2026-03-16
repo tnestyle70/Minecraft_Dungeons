@@ -134,6 +134,13 @@
     <ClCompile Include="..\Code\CRedStone.cpp">
       <Filter>01. Scene\01. Stage\02. RedStone</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CBlockRenderer.cpp" />
+    <ClCompile Include="..\Code\CUI.cpp" />
+    <ClCompile Include="..\Code\CHotbar.cpp" />
+    <ClCompile Include="..\Code\CUI_Json.cpp" />
+    <ClCompile Include="..\Code\AncientGuardian.cpp">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -264,6 +271,13 @@
     </ClInclude>
     <ClInclude Include="..\Header\CRedStone.h">
       <Filter>01. Scene\01. Stage\02. RedStone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBlockRenderer.h" />
+    <ClInclude Include="..\Header\CUI.h" />
+    <ClInclude Include="..\Header\CHotbar.h" />
+    <ClInclude Include="..\Header\CUI_Json.h" />
+    <ClInclude Include="..\Header\AncientGuardian.h">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

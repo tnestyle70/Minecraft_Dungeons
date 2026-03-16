@@ -9,6 +9,10 @@
 #include <ctime>
 #include "CSoundMgr.h"
 #include "CBlockMgr.h"
+#include "CMonsterMgr.h" 
+#include "CTriggerBoxMgr.h"
+#include "CIronBarMgr.h"
+#include "CParticleMgr.h"
 
 /// <summary>
 /// test 1111111111
@@ -162,18 +166,26 @@ CMainApp* CMainApp::Create()
 }
 
 void CMainApp::Free()
-{
-    //Imgui
+{ //  메모리 랜더링 순서 변경 
+    // ImGui
     ImGui_ImplDX9_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
+    CRenderer::GetInstance()->Clear_RenderGroup(); // 누수 추가 
+    // 씬 관련 매니저들 먼저 정리
+    CMonsterMgr::GetInstance()->DestroyInstance();    //누수 추가 
+    CTriggerBoxMgr::GetInstance()->DestroyInstance(); //누수 추가 
+    CIronBarMgr::GetInstance()->DestroyInstance();    //누수 추가 
+    CParticleMgr::GetInstance()->DestroyInstance();   //누수 추가 
+
+    // 씬/렌더러 정리
     CRenderer::GetInstance()->DestroyInstance();
     CManagement::GetInstance()->DestroyInstance();
-
     Safe_Release(m_pDeviceClass);
     Safe_Release(m_pGraphicDev);
 
+    // 나머지 싱글톤들
     CSoundMgr::GetInstance()->DestroyInstance();
     CLightMgr::GetInstance()->DestroyInstance();
     CDInputMgr::GetInstance()->DestroyInstance();
@@ -181,7 +193,8 @@ void CMainApp::Free()
     CProtoMgr::GetInstance()->DestroyInstance();
     CFrameMgr::GetInstance()->DestroyInstance();
     CTimerMgr::GetInstance()->DestroyInstance();
-    //Renderer Setting After
+
+    // Renderer Setting After
     CBlockMgr::GetInstance()->DestroyInstance();
     CGraphicDev::GetInstance()->DestroyInstance();
 }
