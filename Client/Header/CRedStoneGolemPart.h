@@ -56,11 +56,8 @@ private:
 
 	CVIBuffer* m_pBufferCom;
 	CTransform* m_pTransformCom;
-	CTransform* m_pParentTransformCom;
 
 	_vec3 m_vLocalOffset;
-	_matrix m_matLocal;
-	_matrix m_matWorld;
 
 public:
 	static CRedStoneGolemPart* Create(LPDIRECT3DDEVICE9 pGraphicDev, REDSTONEGOLEM_PART ePart);

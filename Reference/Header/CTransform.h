@@ -22,6 +22,11 @@ public:
 		*(((_float*)&m_vAngle) + eType) += fAngle;
 	}
 
+	void	Set_Rotation(ROTATION eType, const _float& fAngle)
+	{
+		*(((_float*)&m_vAngle) + eType) = fAngle;
+	}
+
 	_matrix* Get_World() { return &m_matWorld; }
 
 	void Set_World(_matrix* matWorld) { m_matWorld = *matWorld; }
