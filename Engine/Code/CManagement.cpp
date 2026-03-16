@@ -47,10 +47,22 @@ void CManagement::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CManagement::Render_Scene(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-    CRenderer::GetInstance()->Render_GameObject(pGraphicDev);
+    Engine::CRenderer* pRenderer = Engine::CRenderer::GetInstance();
 
-    // debug ¿ë ·»´õ
-    m_pScene->Render_Scene();
+    // 1. Render main world passes (Priority, NonAlpha, Alpha)
+    pRenderer->Render_Priority(pGraphicDev);
+    pRenderer->Render_NonAlpha(pGraphicDev);
+    pRenderer->Render_Alpha(pGraphicDev);
+
+    // 2. Render manual scene content (teammate's manual rendering)
+    if (m_pScene)
+        m_pScene->Render_Scene();
+
+    // 3. Render UI last to ensure it is always on top
+    pRenderer->Render_UI(pGraphicDev);
+
+    // 4. Clear the render group for the next frame
+    pRenderer->Clear_RenderGroup();
 }
 
 void CManagement::Free()
