@@ -21,7 +21,7 @@ public:
 	HRESULT Ready_Textures();
 	void Update(const _float& fTimeDelta);
 	void Render();
-private:
+public:
 	void Render_Editor();
 	void Render_Stage();
 public:

@@ -5,6 +5,7 @@
 #include "CBlockMgr.h"
 #include "CDInputMgr.h"
 #include "CCollider.h"
+#include "CParticleMgr.h"
 
 CPlayer::CPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -62,6 +63,25 @@ HRESULT CPlayer::Ready_GameObject()
 	m_vPartOffset[PART_LLEG] = { 0.26f, 0.45f, 0.00f };
 	m_vPartOffset[PART_RLEG] = { -0.26f, 0.45f, 0.00f };
 #pragma endregion
+
+	//====Effect Emitter Connect=========//
+	LPDIRECT3DTEXTURE9 pEffectTexture = nullptr;
+	D3DXCreateTextureFromFile(m_pGraphicDev,
+		L"../Bin/Resource/Texture/Effect/FootPrint_Small.png", &pEffectTexture);
+
+	m_pFootStepEmitter = CParticleEmitter::Create(
+		m_pGraphicDev, PARTICLE_FOOTSTEP, _vec3(0.f, 0.f, 0.f), pEffectTexture);
+
+	CParticleMgr::GetInstance()->Add_Emitter(m_pFootStepEmitter);
+
+	D3DXCreateTextureFromFile(m_pGraphicDev,
+		L"../Bin/Resource/Texture/Effect/Attack.png", &pEffectTexture);
+
+	m_pAttackEmitter = CParticleEmitter::Create(
+		m_pGraphicDev, PARTICLE_ATTACK, _vec3(0.f, 0.f, 0.f), pEffectTexture);
+
+	CParticleMgr::GetInstance()->Add_Emitter(m_pAttackEmitter);
+
 	return S_OK;
 }
 
@@ -78,6 +98,14 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 			m_fAtkTime = m_fAtkDuration;
 			if (m_fComboTimer <= 0.f)
 				m_fComboTimer = m_fComboWindow;
+		}
+		//========Attack Particle============//
+		if (m_pAttackEmitter)
+		{
+			_vec3 vPos;
+			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			vPos.y += vPos.y + 1.f;
+			m_pAttackEmitter->Set_Position(vPos);
 		}
 	}
 
@@ -98,6 +126,18 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	// 이동
 	if (m_bMoving)
 		m_fWalkTime += fTimeDelta * 8.f;
+
+	//======이동시 파티클 이펙트==========//
+	if (m_bMoving)
+	{
+		if (m_pFootStepEmitter)
+		{
+			_vec3 vPos;
+			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			vPos.y += vPos.y;
+			m_pFootStepEmitter->Set_Position(vPos);
+		}
+	}
 
 	// 피격
 	if (m_bHit)
@@ -969,6 +1009,10 @@ CPlayer* CPlayer::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CPlayer::Free()
 {
+	//Effect Release
+	Safe_Release(m_pFootStepEmitter);
+	Safe_Release(m_pAttackEmitter);
+
 	for (auto& pArrow : m_vecArrows)
 		Safe_Release(pArrow);
 	m_vecArrows.clear();

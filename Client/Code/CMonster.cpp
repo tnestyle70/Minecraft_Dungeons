@@ -5,6 +5,7 @@
 #include "CRenderer.h"
 #include "CBlockMgr.h"
 #include "CCollider.h"
+#include "CParticleMgr.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -32,6 +33,16 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
     case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
     case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
     }
+
+    //=====Effect Emitter Connect======// 
+    LPDIRECT3DTEXTURE9 pDeathEffectTexture = nullptr;
+    D3DXCreateTextureFromFile(m_pGraphicDev,
+        L"../Bin/Resource/Texture/Effect/Smoke.png", &pDeathEffectTexture);
+
+    m_pDeathEmitter = CParticleEmitter::Create(
+        m_pGraphicDev, PARTICLE_FOOTSTEP, _vec3(0.f, 0.f, 0.f), pDeathEffectTexture);
+
+    CParticleMgr::GetInstance()->Add_Emitter(m_pDeathEmitter);
 
     return S_OK;
 }
@@ -63,6 +74,15 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         matWorld._42 = vPos.y;
         matWorld._43 = vPos.z;
         m_pTransformCom->Set_World(&matWorld);
+
+        //=======Death Effect========//
+        if (m_pDeathEmitter)
+        {
+            _vec3 vPos;
+            m_pTransformCom->Get_Info(INFO_POS, &vPos);
+            vPos.y += vPos.y + 1.f;
+            m_pDeathEmitter->Set_Position(vPos);
+        }
     }
 
     if (pAnim && pAnim->Get_KnockbackDelta() > 0.f)
@@ -582,6 +602,9 @@ CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType, _v
 
 void CMonster::Free()
 {
+    //======Effect Release======//
+    Safe_Release(m_pDeathEmitter);
+
     for (auto* pArrow : m_vecArrows)
         Safe_Release(pArrow);
     m_vecArrows.clear();

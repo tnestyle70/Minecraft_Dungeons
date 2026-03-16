@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CBlockMgr.h"
+#include "CRenderer.h"
 
 IMPLEMENT_SINGLETON(CBlockMgr)
 
@@ -239,11 +240,11 @@ void CBlockMgr::ClearBlocks()
 		});
 	m_mapBlocks.clear();
 
-	if (!m_bEditorMode)
-	{
-		//블럭이 갱신될 때마다 배치 매쉬 갱신
-		RebuildBatchMesh();
-	}
+	//if (!m_bEditorMode)
+	//{
+	//	//블럭이 갱신될 때마다 배치 매쉬 갱신
+	//	RebuildBatchMesh();
+	//}
 }
 
 HRESULT CBlockMgr::SaveBlocks(FILE* pFile)

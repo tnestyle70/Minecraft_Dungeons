@@ -9,6 +9,10 @@
 #include <ctime>
 #include "CSoundMgr.h"
 #include "CBlockMgr.h"
+#include "CParticleMgr.h"
+#include "CMonsterMgr.h"
+#include "CIronBarMgr.h"
+#include "CTriggerBoxMgr.h"
 #include "CMonsterMgr.h" 
 #include "CTriggerBoxMgr.h"
 #include "CIronBarMgr.h"
@@ -166,33 +170,49 @@ CMainApp* CMainApp::Create()
 }
 
 void CMainApp::Free()
-{ //  ¸Þ¸ð¸® ·£´õ¸µ ¼ø¼­ º¯°æ 
+{ //  ë©”ëª¨ë¦¬ ëžœë”ë§ ìˆœì„œ ë³€ê²½ 
     // ImGui
     ImGui_ImplDX9_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
-    CRenderer::GetInstance()->Clear_RenderGroup(); // ´©¼ö Ãß°¡ 
-    // ¾À °ü·Ã ¸Å´ÏÀúµé ¸ÕÀú Á¤¸®
-    CMonsterMgr::GetInstance()->DestroyInstance();    //´©¼ö Ãß°¡ 
-    CTriggerBoxMgr::GetInstance()->DestroyInstance(); //´©¼ö Ãß°¡ 
-    CIronBarMgr::GetInstance()->DestroyInstance();    //´©¼ö Ãß°¡ 
-    CParticleMgr::GetInstance()->DestroyInstance();   //´©¼ö Ãß°¡ 
+    CManagement::GetInstance()->DestroyInstance();
+    CRenderer::GetInstance()->DestroyInstance();
 
-    // ¾À/·»´õ·¯ Á¤¸®
+    CParticleMgr::GetInstance()->DestroyInstance();
+    CMonsterMgr::GetInstance()->DestroyInstance();   
+    CIronBarMgr::GetInstance()->DestroyInstance();   
+    CTriggerBoxMgr::GetInstance()->DestroyInstance(); 
+    CBlockMgr::GetInstance()->DestroyInstance();
+
+    CRenderer::GetInstance()->Clear_RenderGroup(); // ëˆ„ìˆ˜ ì¶”ê°€ 
+    // ì”¬ ê´€ë ¨ ë§¤ë‹ˆì €ë“¤ ë¨¼ì € ì •ë¦¬
+    CMonsterMgr::GetInstance()->DestroyInstance();    //ëˆ„ìˆ˜ ì¶”ê°€ 
+    CTriggerBoxMgr::GetInstance()->DestroyInstance(); //ëˆ„ìˆ˜ ì¶”ê°€ 
+    CIronBarMgr::GetInstance()->DestroyInstance();    //ëˆ„ìˆ˜ ì¶”ê°€ 
+    CParticleMgr::GetInstance()->DestroyInstance();   //ëˆ„ìˆ˜ ì¶”ê°€ 
+
+    // ì”¬/ë Œë”ëŸ¬ ì •ë¦¬
     CRenderer::GetInstance()->DestroyInstance();
     CManagement::GetInstance()->DestroyInstance();
     Safe_Release(m_pDeviceClass);
     Safe_Release(m_pGraphicDev);
 
-    // ³ª¸ÓÁö ½Ì±ÛÅæµé
+    // ë‚˜ë¨¸ì§€ ì‹±ê¸€í†¤ë“¤
+
     CSoundMgr::GetInstance()->DestroyInstance();
     CLightMgr::GetInstance()->DestroyInstance();
+
+
     CDInputMgr::GetInstance()->DestroyInstance();
     CFontMgr::GetInstance()->DestroyInstance();
     CProtoMgr::GetInstance()->DestroyInstance();
     CFrameMgr::GetInstance()->DestroyInstance();
     CTimerMgr::GetInstance()->DestroyInstance();
+
+    Safe_Release(m_pDeviceClass);
+    Safe_Release(m_pGraphicDev);
+    CGraphicDev::GetInstance()->DestroyInstance(); 
 
     // Renderer Setting After
     CBlockMgr::GetInstance()->DestroyInstance();

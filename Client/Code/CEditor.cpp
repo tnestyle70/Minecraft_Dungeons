@@ -10,6 +10,19 @@ CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
 {
 	m_pGraphicDev->AddRef();
+	ZeroMemory(&m_tEditDesc, sizeof(ParticleDesc));
+	//기본값 세팅
+	m_tEditDesc.iMaxParticles = 10;
+	m_tEditDesc.fMaxSize = 8.f;
+	m_tEditDesc.fMinSize = 4.f;
+	m_tEditDesc.fMaxLifeTime = 1.f;
+	m_tEditDesc.fMinLifeTime = 0.5f;
+	m_tEditDesc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+	m_tEditDesc.fSpreadAngle = D3DX_PI * 0.3f;
+	m_tEditDesc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+	m_tEditDesc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);
+	m_tEditDesc.bLoop = true;
+	m_tEditDesc.fEmitRate = 30.f;
 }
 
 CEditor::~CEditor()
@@ -46,6 +59,11 @@ HRESULT CEditor::Ready_Scene()
 		return E_FAIL;
 	}
 
+	//ParticleTexture 설정
+	D3DXCreateTextureFromFile(m_pGraphicDev,
+		L"../Bin/Resource/Texture/Effect/FootPrint_Small.png",
+		&m_pPreviewTexture);
+
 	return S_OK;
 }
 
@@ -72,6 +90,9 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 		pair.second->Update_GameObject(fTimeDelta);
 	}
 
+	//Particle
+	CParticleMgr::GetInstance()->Update(fTimeDelta);
+
 	switch (m_eEditMode)
 	{
 	case MODE_BLOCK:
@@ -89,6 +110,9 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 		break;
 	case MODE_TRIGGERBOX:
 		UpdateTriggerBoxMode();
+		break;
+	case MODE_PARTICLE:
+		UpdateParticleMode();
 		break;
 	default:
 		break;
@@ -108,15 +132,18 @@ void CEditor::Render_Scene()
 	{
 		return;
 	}
+	
+	//에디터냐 스테이지냐에 따라서 서로 다른 렌더링 방식 사용
+	//DDS or png
+	CBlockMgr::GetInstance()->Render();
+
+
+	CParticleMgr::GetInstance()->Render();
 
 	Render_MenuBar();
 	Render_Hierarchy();
 	Render_Inspector();
 	Render_Viewport();
-
-	//에디터냐 스테이지냐에 따라서 서로 다른 렌더링 방식 사용
-	//DDS or png
-	CBlockMgr::GetInstance()->Render();
 }
 
 HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -278,16 +305,16 @@ void CEditor::Render_Inspector()
 	//Mode Tab Button
 	const char* szModes[] =
 	{
-		"Block", "Monster", "IronBar", "TriggerBox"
+		"Block", "Monster", "IronBar", "TriggerBox", "Particle"
 	};
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		if (i > 0) ImGui::SameLine();
 		bool bActive = (m_eEditMode == (eEditMode)i);
 		if (bActive)
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.f));
-		if (ImGui::Button(szModes[i], ImVec2(70.f, 25.f)))
+		if (ImGui::Button(szModes[i], ImVec2(60.f, 25.f)))
 			m_eEditMode = (eEditMode)i;
 		if (bActive)
 			ImGui::PopStyleColor();
@@ -308,6 +335,9 @@ void CEditor::Render_Inspector()
 		break;
 	case MODE_TRIGGERBOX:
 		Render_TriggerPalette();
+		break;
+	case MODE_PARTICLE:
+		Render_ParticleEditor();
 		break;
 	default:
 		break;
@@ -643,6 +673,73 @@ void CEditor::Render_TriggerPalette()
 	}
 }
 
+void CEditor::Render_ParticleEditor()
+{
+	ImGui::Begin("Particle Editor");
+	//프리셋 불러오기
+	const char* szPathNames[] = {"FOOTSTEP", "HIT", "FIREWORK", "DYNAMITE", "BOSSATTACK"};
+	if (ImGui::Combo("Preset", (int*)&m_eSelectedPreset, szPathNames, IM_ARRAYSIZE(szPathNames)))
+	{
+		Load_ParticlePreset(m_eSelectedPreset, m_tEditDesc);
+	}
+	ImGui::Separator();
+	//위치 방향 - 파티클의 크기와 방향 설정
+	// 기존 — 직접 수정 가능
+	//ImGui::DragFloat3("EmitPos", (float*)&m_tEditDesc.vEmitPos, 0.1f);
+
+	// 수정 — 피킹으로만 설정, 직접 수정 불가
+	ImGui::BeginDisabled(true);
+	ImGui::DragFloat3("EmitPos (picking only)", (float*)&m_tEditDesc.vEmitPos, 0.1f);
+	ImGui::EndDisabled();
+	ImGui::DragFloat3("EmitDir", (float*)&m_tEditDesc.vEmitDir, 0.01f, -1.f, 1.f);
+	ImGui::SliderFloat("SpreadAngle", &m_tEditDesc.fSpreadAngle, 0.f, D3DX_PI);
+	
+	ImGui::Separator();
+
+	// ── 속도/수명/크기
+	ImGui::DragFloat2("Speed  (min/max)", &m_tEditDesc.fMinSpeed, 0.1f, 0.f, 30.f);
+	ImGui::DragFloat2("Life   (min/max)", &m_tEditDesc.fMinLifeTime, 0.05f, 0.f, 5.f);
+	ImGui::DragFloat2("Size   (min/max)", &m_tEditDesc.fMinSize, 0.5f, 0.f, 128.f);
+
+	ImGui::Separator();
+
+	// ── 색상
+	ImGui::ColorEdit4("ColorStart", (float*)&m_tEditDesc.colorStart);
+	ImGui::ColorEdit4("ColorEnd", (float*)&m_tEditDesc.colorEnd);
+	ImGui::Checkbox("UseTextureAsIs", (bool*)&m_tEditDesc.bUseTextureAsIs);
+
+	ImGui::Separator();
+
+	// ── 이미터 동작
+	ImGui::DragInt("MaxParticles", &m_tEditDesc.iMaxParticles, 1, 1, 500);
+	ImGui::DragFloat("EmitRate", &m_tEditDesc.fEmitRate, 1.f, 0.f, 200.f);
+	ImGui::Checkbox("Loop", (bool*)&m_tEditDesc.bLoop);
+	ImGui::DragFloat("Gravity", &m_tEditDesc.fGravity, 0.1f, 0.f, 20.f);
+
+	ImGui::Separator();
+
+	// ── 미리보기
+	if (ImGui::Button("Spawn Preview"))
+		Respawn_PreviewParticle();
+
+	ImGui::SameLine();
+	ImGui::Text("Emitters: %d", CParticleMgr::GetInstance()->Get_EmitterCount());
+
+	ImGui::End();
+}
+
+void CEditor::Respawn_PreviewParticle()
+{
+	//기존 파티클 전부 날리고 새로 재생성
+	CParticleMgr::GetInstance()->Clear_Emitters();
+
+	//auto* pEmitter = CParticleEmitter::Create(
+	//	m_pGraphicDev, m_tEditDesc, m_pPreviewText);
+
+	//if (pEmitter)
+	//	CParticleMgr::GetInstance()->Add_Emitter(pEmitter);
+}
+
 void CEditor::UpdateMonsterMode()
 {
 	if (ImGui::GetIO().WantCaptureMouse)
@@ -733,7 +830,6 @@ void CEditor::UpdateIronBarMode()
 				if (pIronBar)
 					m_mapIronBars.insert({ tData, pIronBar });
 			}
-
 		}
 	}
 
@@ -827,6 +923,126 @@ void CEditor::UpdateTriggerBoxMode()
 
 	m_bLBtnPrev = bLBtn;
 	m_bRBtnPrev = bRBtn;
+}
+
+void CEditor::UpdateParticleMode()
+{
+	//Particle Picking을 하면 해당 위치로 파티클 생성되도록 설정
+	if (ImGui::GetIO().WantCaptureMouse)
+		return;
+
+	bool bLBtn = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+	bool bRBtn = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
+	if (bLBtn && !m_bLBtnPrev)
+	{
+		_vec3 vRayPos, vRayDir;
+		m_pBlockPlacer->Compute_Ray(&vRayPos, &vRayDir);
+
+		BlockPos tHitPos;
+		float fT = 0.f;
+		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir,
+			&tHitPos, &fT))
+		{
+			_vec3 vPos = { (float)tHitPos.x, (float)tHitPos.y + 1.f,(float)tHitPos.z };
+			
+			//EditDesc를 그대로 쓰되 위치만 피킹 위치로 교체
+			ParticleDesc tDescriptor = m_tEditDesc;   // 1. 복사
+			tDescriptor.vEmitPos = vPos;              // 2. 복사본에 위치 대입 ← 여기가 바뀌어야 함
+			CParticleEmitter* pEmitter = CParticleEmitter::Create(
+				m_pGraphicDev, m_eSelectedPreset, tDescriptor, m_pPreviewTexture);
+			if (pEmitter)
+			{
+				CParticleMgr::GetInstance()->Add_Emitter(pEmitter);
+			}
+		}
+	}
+	//Right Button -> Clear All Particles
+	if (bRBtn && !m_bRBtnPrev)
+	{
+		CParticleMgr::GetInstance()->Clear_Emitters();
+	}
+	m_bLBtnPrev = bLBtn;
+	m_bRBtnPrev = bRBtn;
+}
+
+void CEditor::Load_ParticlePreset(eParticlePreset eType, ParticleDesc& outDesc)
+{
+	//EmitPos는 유지시키고 나머지만 프리셋으로 덮어쓰기
+	_vec3 vSavedPos = outDesc.vEmitPos;
+	//ParticleEmitter의 preset switch 내용 복사
+	ParticleDesc desc;
+		ZeroMemory(&desc, sizeof(ParticleDesc));
+	desc.vEmitPos = vSavedPos;
+
+	switch (eType)
+	{
+		// ── 발자국: 아래서 위로 살짝 튀기는 먼지/반짝이
+	case PARTICLE_FOOTSTEP:
+		desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+		desc.fSpreadAngle = D3DX_PI * 0.4f;
+		desc.fMinSpeed = 0.1f;     desc.fMaxSpeed = 0.3f;
+		desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 0.8f;
+		desc.fMinSize = 0.1f;     desc.fMaxSize = 2.f;   // 픽셀 단위
+		desc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+		desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);  // 서서히 투명
+		desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
+		desc.iMaxParticles = 10;
+		desc.fEmitRate = 20.f;      // Burst
+		desc.bLoop = false;
+		desc.fGravity = 4.f;
+		break;
+
+		// ── 피격: 전방향으로 터지는 불꽃
+	case PARTICLE_HIT:
+		desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+		desc.fSpreadAngle = D3DX_PI;  // 전방향
+		desc.fMinSpeed = 2.f;      desc.fMaxSpeed = 7.f;
+		desc.fMinLifeTime = 0.1f;     desc.fMaxLifeTime = 3.4f;
+		desc.fMinSize = 1.f;     desc.fMaxSize = 3.f;
+		desc.colorStart = D3DXCOLOR(1.f, 1.f, 0.6f, 1.f);
+		desc.colorEnd = D3DXCOLOR(1.f, 0.7f, 0.f, 0.f);
+		desc.iMaxParticles = 300;
+		desc.fEmitRate = 0.f;      // Burst
+		desc.bLoop = true;
+		desc.fGravity = 6.f;
+		break;
+
+		// ── 폭죽: 위로 솟구쳤다가 사방으로 퍼짐
+	case PARTICLE_FIREWORK:
+		desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+		desc.fSpreadAngle = D3DX_PI;
+		desc.fMinSpeed = 3.f;      desc.fMaxSpeed = 7.f;
+		desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 2.2f;
+		desc.fMinSize = 2.f;    desc.fMaxSize = 6.f;
+		desc.colorStart = D3DXCOLOR(1.f, 0.8f, 0.f, 1.f);
+		desc.colorEnd = D3DXCOLOR(1.f, 0.2f, 0.f, 0.f);
+		desc.iMaxParticles = 300;
+		desc.fEmitRate = 0.f;      // Burst
+		desc.bLoop = true;
+		desc.fGravity = 3.f;
+		break;
+
+		// ── 보스 공격: 지속 방출, Loop
+	case PARTICLE_BOSS_ATTACK:
+		desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+		desc.fSpreadAngle = D3DX_PI * 0.6f;
+		desc.fMinSpeed = 1.f;      desc.fMaxSpeed = 3.f;
+		desc.fMinLifeTime = 0.3f;     desc.fMaxLifeTime = 0.8f;
+		desc.fMinSize = 0.15f;    desc.fMaxSize = 0.35f;
+		desc.colorStart = D3DXCOLOR(0.5f, 0.f, 1.f, 1.f);
+		desc.colorEnd = D3DXCOLOR(0.2f, 0.f, 0.5f, 0.f);
+		desc.iMaxParticles = 80;
+		desc.fEmitRate = 30.f;     // 초당 30개
+		desc.bLoop = true;
+		desc.fGravity = 0.f;
+		break;
+
+	default:
+		break;
+	}
+	//outDesc에 값 대입
+	outDesc = desc;
 }
 
 HRESULT CEditor::SaveStageData(const _tchar* szPath)
@@ -951,6 +1167,7 @@ CEditor* CEditor::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CEditor::Free()
 {
+	Safe_Release(m_pPreviewTexture);
 	Safe_Release(m_pBlockPlacer);
 	CScene::Free();
 }

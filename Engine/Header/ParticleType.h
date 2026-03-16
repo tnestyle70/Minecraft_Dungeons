@@ -4,9 +4,11 @@
 //파티클 프리셋 종류 
 enum eParticlePreset
 {
-	PARTICLE_FOOTSTEP, 
+	PARTICLE_FOOTSTEP,
+	PARTICLE_ATTACK,
 	PARTICLE_HIT,
 	PARTICLE_FIREWORK,
+	PARTICLE_DYNAMITE,
 	PARTICLE_BOSS_ATTACK,
 	PARTICLE_END
 };
@@ -35,7 +37,7 @@ struct ParticleDesc
 	//이미터 동작
 	_int iMaxParticles; //물 크기(한 번에 최대 몇 개)
 	_float fEmitRate; //초당 생성 개수, 0이면 start시 전부 생성
-	_bool bLoop; 
+	_bool bLoop;
 	//물리
 	_float fGravity;
 };

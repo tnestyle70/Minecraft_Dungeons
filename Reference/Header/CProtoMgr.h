@@ -17,7 +17,8 @@
 #include "CRedStoneGolemArmTex.h"
 #include "CRedStoneGolemLegTex.h"
 
-//
+//Effect
+#include "CParticleEmitter.h"
 
 #include "CTransform.h"
 #include "CTexture.h"

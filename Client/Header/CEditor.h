@@ -7,6 +7,7 @@
 #include "CTriggerBox.h"
 #include "CIronBar.h"
 #include "StageData.h"
+#include "CParticleMgr.h"
 
 enum eStageType
 {
@@ -22,7 +23,8 @@ enum eEditMode
 	MODE_BLOCK, 
 	MODE_MONSTER,
 	MODE_IRONBAR,
-	MODE_TRIGGERBOX
+	MODE_TRIGGERBOX,
+	MODE_PARTICLE
 };
 
 enum eMonsterType
@@ -68,16 +70,27 @@ private:
 	void Render_MonsterPalette();
 	void Render_IronBarPalette();
 	void Render_TriggerPalette();
+	//Particle
+	void Render_ParticleEditor();
+	void Respawn_PreviewParticle();
 private:
 	void UpdateMonsterMode();
 	void UpdateIronBarMode();
 	void UpdateTriggerBoxMode();
+	void UpdateParticleMode();
+private:
+	void Load_ParticlePreset(eParticlePreset eType, ParticleDesc& outDesc);
 public:
 	HRESULT SaveStageData(const _tchar* szPath);
 	HRESULT LoadStageData(const _tchar* szPath);
 private:
 	eStageType m_eCurrentStage = STAGE_SQUIDCOAST;
 
+	//Particle
+	ParticleDesc m_tEditDesc;
+	LPDIRECT3DTEXTURE9 m_pPreviewTexture = nullptr;
+	eParticlePreset m_eSelectedPreset = PARTICLE_FOOTSTEP;
+	
 	//Monster, IronBar ,TriggerBox Instance Data 
 	map<MonsterData, CMonster*> m_mapMonsters;
 	map<IronBarData, CIronBar*> m_mapIronBars;

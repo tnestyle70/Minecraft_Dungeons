@@ -17,7 +17,7 @@
 #include "CRedStoneGolem.h"
 #include "CParticleMgr.h"
 #include "CHotbar.h"
-#include "CBlockRenderer.h"
+//#include "CBlockRenderer.h"
 #include "CLayer.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
@@ -61,6 +61,21 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 	CMonsterMgr::GetInstance()->Update(fTimeDelta);
 
 	CParticleMgr::GetInstance()->Update(fTimeDelta);
+
+	//이펙트 테스트
+	if (GetAsyncKeyState('1') & 0x8000)
+	{
+		CParticleMgr::GetInstance()->Add_Emitter(
+			CParticleEmitter::Create(m_pGraphicDev,
+				PARTICLE_FIREWORK, _vec3(0.f, 2.f, 0.f), nullptr)
+		);
+
+		CParticleMgr::GetInstance()->Add_Emitter(
+			CParticleEmitter::Create(m_pGraphicDev,
+				PARTICLE_HIT, _vec3(5.f, 2.f, 0.f), nullptr)
+		);
+	}
+
 	
 	if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
 	{
@@ -82,6 +97,7 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 	}
 
 	auto iter = m_mapLayer.find(L"GameLogic_Layer");
+
 	if (iter != m_mapLayer.end())
 		iter->second->Delete_GameObject(fTimeDelta);
 
@@ -90,7 +106,6 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 
 void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 {
-
 	CScene::LateUpdate_Scene(fTimeDelta);
 
 	CTriggerBoxMgr::GetInstance()->LateUpdate(fTimeDelta);
@@ -136,23 +151,33 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	//Effect
-	LPDIRECT3DTEXTURE9 pTex = nullptr;
-	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/FootPrint.png", &pTex);
+	CParticleMgr::GetInstance()->Add_Emitter(
+		CParticleEmitter::Create(m_pGraphicDev,
+			PARTICLE_FIREWORK, _vec3(0.f, 2.f, 0.f), nullptr)
+	);
 
 	CParticleMgr::GetInstance()->Add_Emitter(
 		CParticleEmitter::Create(m_pGraphicDev,
-			PARTICLE_FOOTSTEP, _vec3(0.f, 2.f, 0.f), pTex)
+			PARTICLE_HIT, _vec3(5.f, 2.f, 0.f), nullptr)
 	);
 
-	Safe_Release(pTex); // Emitter가 AddRef 했으니 여기서 Release해도 됨
 	// Block Renderer
-	pGameObject = CBlockRenderer::Create(m_pGraphicDev);
-	if (!pGameObject)
-		return E_FAIL;
+	//pGameObject = CBlockRenderer::Create(m_pGraphicDev);
+	//if (!pGameObject)
+	//	return E_FAIL;
 
-	if (FAILED(pLayer->Add_GameObject(L"BlockRenderer", pGameObject)))
-		return E_FAIL;
+	//if (FAILED(pLayer->Add_GameObject(L"BlockRenderer", pGameObject)))
+	//	return E_FAIL;
+
+	//Set Block, Particle Render Callback
+	//CRenderer::GetInstance()->Set_BlockRenderCallback([]()
+	//	{
+	//		CBlockMgr::GetInstance()->Render_Stage();
+	//	});
+	//CRenderer::GetInstance()->Set_ParticleRenderCallback([]()
+	//	{
+	//		CParticleMgr::GetInstance()->Render();
+	//	});
 
 	//SkyBox 추가
 
@@ -321,5 +346,16 @@ CSquidCoast* CSquidCoast::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CSquidCoast::Free()
 {
+	CRenderer::GetInstance()->Clear_RenderGroup();
+	CTriggerBoxMgr::GetInstance()->Clear();
+	CIronBarMgr::GetInstance()->Clear();
+	CMonsterMgr::GetInstance()->Clear();
+	CParticleMgr::GetInstance()->Clear_Emitters();
+	CBlockMgr::GetInstance()->ClearBlocks();
+
+	CMonsterMgr::GetInstance()->Clear();
+	CTriggerBoxMgr::GetInstance()->Clear();
+	CIronBarMgr::GetInstance()->Clear();
+
 	CScene::Free();
 }

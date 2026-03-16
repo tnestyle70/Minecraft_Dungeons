@@ -8,7 +8,7 @@ CMonsterMgr::CMonsterMgr()
 }
 
 CMonsterMgr::~CMonsterMgr()
-{ 
+{
 	Free();
 }
 

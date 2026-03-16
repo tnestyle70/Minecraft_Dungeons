@@ -155,6 +155,7 @@
     <ClInclude Include="..\Header\CBodyBase.h" />
     <ClInclude Include="..\Header\CCamp.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
+    <ClInclude Include="..\Header\CDragon.h" />
     <ClInclude Include="..\Header\CDynamicCamera.h" />
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
@@ -208,6 +209,7 @@
     <ClCompile Include="..\Code\CBlockPlacer.cpp" />
     <ClCompile Include="..\Code\CBodyBase.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
+    <ClCompile Include="..\Code\CDragon.cpp" />
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />

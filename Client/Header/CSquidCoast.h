@@ -1,5 +1,6 @@
 #pragma once
 #include "CScene.h"
+#include "CParticleEmitter.h"
 
 class CSquidCoast : public CScene
 {

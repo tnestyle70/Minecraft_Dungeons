@@ -23,8 +23,12 @@ void CRenderer::Add_RenderGroup(RENDERID eID, CGameObject* pGameObject)
 void CRenderer::Render_GameObject(LPDIRECT3DDEVICE9& pGraphicDev)
 {
 	Render_Priority(pGraphicDev);
+	//if (m_BlockRenderCallback)
+	//	m_BlockRenderCallback();
 	Render_NonAlpha(pGraphicDev);
 	Render_Alpha(pGraphicDev);
+	//if (m_ParticleRenderCallback)
+	//	m_ParticleRenderCallback();
 	Render_UI(pGraphicDev);
 
 	Clear_RenderGroup();
@@ -64,7 +68,7 @@ void CRenderer::Render_Alpha(LPDIRECT3DDEVICE9& pGraphicDev)
 	for (auto& pObj : m_RenderGroup[RENDER_ALPHA])
 		pObj->Render_GameObject();
 	
-	 pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 
 	pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);

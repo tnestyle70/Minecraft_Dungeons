@@ -9,143 +9,14 @@ CParticleEmitter::CParticleEmitter(LPDIRECT3DDEVICE9 pGraphicDev)
 }
 
 CParticleEmitter::~CParticleEmitter()
-{}
-
-CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev,
-    const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture)
 {
-    //Custom Particle
-    CParticleEmitter* pEmitter = new CParticleEmitter(pGraphicDev);
-
-    if (FAILED(pEmitter->Ready_Emitter(desc, pTexture)))
-    {
-        Safe_Release(pEmitter);
-        MSG_BOX("ParticleEmitter Create Failed");
-        return nullptr;
-    }
-
-    return pEmitter;
 }
 
-CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev,
-    eParticlePreset eType, _vec3 vPos, LPDIRECT3DTEXTURE9 pTexture)
-{
-    ParticleDesc desc;
-    ZeroMemory(&desc, sizeof(ParticleDesc));
-    desc.vEmitPos = vPos;
-
-    switch (eType)
-    {
-        // ── 발자국: 아래서 위로 살짝 튀기는 먼지/반짝이
-    case PARTICLE_FOOTSTEP:
-        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
-        desc.fSpreadAngle = D3DX_PI * 0.4f;
-        desc.fMinSpeed = 0.8f;     desc.fMaxSpeed = 2.0f;
-        desc.fMinLifeTime = 0.2f;     desc.fMaxLifeTime = 0.5f;
-        desc.fMinSize = 20.f;     desc.fMaxSize = 40.f;   // 픽셀 단위
-        desc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
-        desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);  // 서서히 투명
-        desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
-        desc.iMaxParticles = 12;
-        desc.fEmitRate = 20.f;      // Burst
-        desc.bLoop = true;
-        desc.fGravity = 4.f;
-        break;
-
-        // ── 피격: 전방향으로 터지는 불꽃
-    case PARTICLE_HIT:
-        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
-        desc.fSpreadAngle = D3DX_PI;  // 전방향
-        desc.fMinSpeed = 2.f;      desc.fMaxSpeed = 5.f;
-        desc.fMinLifeTime = 0.1f;     desc.fMaxLifeTime = 0.4f;
-        desc.fMinSize = 0.1f;     desc.fMaxSize = 0.25f;
-        desc.colorStart = D3DXCOLOR(1.f, 0.4f, 0.f, 1.f);
-        desc.colorEnd = D3DXCOLOR(1.f, 0.f, 0.f, 0.f);
-        desc.iMaxParticles = 25;
-        desc.fEmitRate = 0.f;      // Burst
-        desc.bLoop = false;
-        desc.fGravity = 6.f;
-        break;
-
-        // ── 폭죽: 위로 솟구쳤다가 사방으로 퍼짐
-    case PARTICLE_FIREWORK:
-        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
-        desc.fSpreadAngle = D3DX_PI;
-        desc.fMinSpeed = 3.f;      desc.fMaxSpeed = 7.f;
-        desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 1.2f;
-        desc.fMinSize = 0.12f;    desc.fMaxSize = 0.3f;
-        desc.colorStart = D3DXCOLOR(1.f, 0.8f, 0.f, 1.f);
-        desc.colorEnd = D3DXCOLOR(1.f, 0.2f, 0.f, 0.f);
-        desc.iMaxParticles = 50;
-        desc.fEmitRate = 0.f;      // Burst
-        desc.bLoop = false;
-        desc.fGravity = 3.f;
-        break;
-
-        // ── 보스 공격: 지속 방출, Loop
-    case PARTICLE_BOSS_ATTACK:
-        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
-        desc.fSpreadAngle = D3DX_PI * 0.6f;
-        desc.fMinSpeed = 1.f;      desc.fMaxSpeed = 3.f;
-        desc.fMinLifeTime = 0.3f;     desc.fMaxLifeTime = 0.8f;
-        desc.fMinSize = 0.15f;    desc.fMaxSize = 0.35f;
-        desc.colorStart = D3DXCOLOR(0.5f, 0.f, 1.f, 1.f);
-        desc.colorEnd = D3DXCOLOR(0.2f, 0.f, 0.5f, 0.f);
-        desc.iMaxParticles = 80;
-        desc.fEmitRate = 30.f;     // 초당 30개
-        desc.bLoop = true;
-        desc.fGravity = 0.f;
-        break;
-
-    default:
-        break;
-    }
-
-    return Create(pGraphicDev, desc, pTexture);
-}
-
-_int CParticleEmitter::Update_GameObject(const _float& fTimeDelta)
-{
-    if (m_bDead)
-        return 0;
-
-    // Rate 방식: 시간에 따라 서서히 방출
-    if (m_tParticleDesc.fEmitRate > 0.f)
-        Emit_ByRate(fTimeDelta);
-
-    Update_Particles(fTimeDelta);
-
-    // bLoop false + 모든 입자 비활성 + Burst 완료 → 이미터 사망
-    if (!m_tParticleDesc.bLoop && m_bBurstDone)
-    {
-        _bool bAllDead = true;
-        for (auto& p : m_vecPool)
-        {
-            if (p.bActive) { bAllDead = false; break; }
-        }
-        if (bAllDead)
-            m_bDead = true;
-    }
-
-    return 0;
-}
-
-void CParticleEmitter::LateUpdate_GameObject(const _float& fTimeDelta)
-{}
-
-void CParticleEmitter::Render_GameObject()
-{
-    if (m_bDead)
-        return;
-
-    Set_RenderState();
-    Render_Particles();
-    Reset_RenderState();
-}
-
-HRESULT CParticleEmitter::Ready_Emitter(const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture)
+HRESULT CParticleEmitter::Ready_Emitter(const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture
+       ,eParticlePreset& ePresetType)
 {
     m_tParticleDesc = desc;
+    m_eParticleType = ePresetType;
 
     // 텍스처 참조 카운트 증가
     m_pTexture = pTexture;
@@ -176,6 +47,47 @@ HRESULT CParticleEmitter::Ready_Emitter(const ParticleDesc& desc, LPDIRECT3DTEXT
         Emit_Burst();
 
     return S_OK;
+}
+
+_int CParticleEmitter::Update_GameObject(const _float& fTimeDelta)
+{
+    if (m_bDead)
+        return 0;
+
+    // Rate 방식: 시간에 따라 서서히 방출
+    if (m_tParticleDesc.fEmitRate > 0.f)
+        Emit_ByRate(fTimeDelta);
+
+    Update_Particles(fTimeDelta);
+
+    // bLoop false + 모든 입자 비활성 + Burst 완료 → 이미터 사망
+    if (!m_tParticleDesc.bLoop && m_bBurstDone)
+    {
+        _bool bAllDead = true;
+        for (auto& p : m_vecPool)
+        {
+            if (p.bActive) { bAllDead = false; break; }
+        }
+        if (bAllDead)
+            m_bDead = true;
+    }
+
+    return 0;
+}
+
+void CParticleEmitter::LateUpdate_GameObject(const _float& fTimeDelta)
+{
+
+}
+
+void CParticleEmitter::Render_GameObject()
+{
+    if (m_bDead)
+        return;
+
+    Set_RenderState();
+    Render_Particles();
+    Reset_RenderState();
 }
 
 void CParticleEmitter::Reset_Particle(Particle& particle)
@@ -271,7 +183,7 @@ void CParticleEmitter::Update_Particles(const _float& fTimeDelta)
         if (particle.fLifeTime <= 0.f)
         {
             particle.bActive = false;
-            continue;
+                    continue;
         }
         //중력
         particle.vVelocity.y -= m_tParticleDesc.fGravity * fTimeDelta;
@@ -333,7 +245,36 @@ void CParticleEmitter::Set_RenderState()
     //    FALSE면 fSize가 픽셀 단위 그대로 고정 크기로 출력됨
     m_pGraphicDev->SetRenderState(D3DRS_POINTSCALEENABLE, FALSE);
 
-    float fMin = 1.f, fMax = 128.f;
+    //switch (m_tParticleDesc.)
+    //{
+    //default:
+    //    break;
+    //}
+
+    float fMin = 1.f, fMax = 64.f;
+
+    switch (m_eParticleType)
+    {
+    case PARTICLE_FOOTSTEP:
+        fMin = 1.f; fMax = 32.f;
+        break;
+    case PARTICLE_ATTACK:
+        fMin = 1.f; fMax = 32.f;
+        break;
+    case PARTICLE_HIT:
+        fMin = 1.f; fMax = 8.f;
+        break;
+    case PARTICLE_FIREWORK:
+        fMin = 1.f; fMax = 8.f;
+        break;
+    case PARTICLE_DYNAMITE:
+        fMin = 1.f; fMax = 6.f;
+        break;
+    case PARTICLE_BOSS_ATTACK:
+        fMin = 1.f; fMax = 6.f;
+        break;
+    }
+
     m_pGraphicDev->SetRenderState(D3DRS_POINTSIZE_MIN, FtoDW(fMin));
     m_pGraphicDev->SetRenderState(D3DRS_POINTSIZE_MAX, FtoDW(fMax));
 
@@ -342,10 +283,10 @@ void CParticleEmitter::Set_RenderState()
         // ── 원본 텍스처 그대로, 알파 블렌딩 없음 (FOOTSTEP 등)
         m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
         m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-        m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA); // ★ 일반 알파 블렌딩
+        m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA); //일반 알파 블렌딩
         m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
-        // ★ 알파 테스트 — 알파 0에 가까운 픽셀 완전히 버림
+        // 알파 테스트 — 알파 0에 가까운 픽셀 완전히 버림
         m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
         m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 0x10);
         m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
@@ -365,6 +306,14 @@ void CParticleEmitter::Set_RenderState()
         m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
         m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 0x10);
         m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+
+        //ColorOption 다시 초기화해주기
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
     }
 }
 
@@ -376,7 +325,7 @@ void CParticleEmitter::Reset_RenderState()
     m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
     m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 
-    // ★ TextureStage 원복 — 다른 오브젝트 렌더에 영향 안 주도록
+    // TextureStage 원복 — 다른 오브젝트 렌더에 영향 안 주도록
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
@@ -384,6 +333,114 @@ void CParticleEmitter::Reset_RenderState()
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
 }
 
+
+CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev, eParticlePreset& eType,
+    const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture)
+{
+    //Custom Particle
+    CParticleEmitter* pEmitter = new CParticleEmitter(pGraphicDev);
+
+    if (FAILED(pEmitter->Ready_Emitter(desc, pTexture, eType)))
+    {
+        Safe_Release(pEmitter);
+        MSG_BOX("ParticleEmitter Create Failed");
+        return nullptr;
+    }
+
+    return pEmitter;
+}
+
+CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev,
+    eParticlePreset eType, _vec3 vPos, LPDIRECT3DTEXTURE9 pTexture)
+{
+    ParticleDesc desc;
+    ZeroMemory(&desc, sizeof(ParticleDesc));
+    desc.vEmitPos = vPos;
+
+    switch (eType)
+    {
+        // ── 발자국: 아래서 위로 살짝 튀기는 먼지/반짝이
+    case PARTICLE_FOOTSTEP:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI * 0.4f;
+        desc.fMinSpeed = 0.1f;     desc.fMaxSpeed = 0.3f;
+        desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 0.8f;
+        desc.fMinSize = 0.1f;     desc.fMaxSize = 2.f;   // 픽셀 단위
+        desc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+        desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);  // 서서히 투명
+        desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
+        desc.iMaxParticles = 6;
+        desc.fEmitRate = 20.f;      // Burst
+        desc.bLoop = false;
+        desc.fGravity = 4.f;
+        break;
+        // ── 검 공격 - 초승달 모양 이펙트 공격
+    case PARTICLE_ATTACK:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI * 0.4f;
+        desc.fMinSpeed = 0.1f;     desc.fMaxSpeed = 0.3f;
+        desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 0.8f;
+        desc.fMinSize = 0.1f;     desc.fMaxSize = 2.f;   // 픽셀 단위
+        desc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+        desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);  // 서서히 투명
+        desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
+        desc.iMaxParticles = 3;
+        desc.fEmitRate = 20.f;      // Burst
+        desc.bLoop = false;
+        desc.fGravity = 4.f;
+        break;
+        // ── 피격: 전방향으로 터지는 불꽃
+    case PARTICLE_HIT:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI;  // 전방향
+        desc.fMinSpeed = 0.1f;      desc.fMaxSpeed = 0.3f;
+        desc.fMinLifeTime = 0.1f;     desc.fMaxLifeTime = 3.4f;
+        desc.fMinSize = 1.f;     desc.fMaxSize = 3.f;
+        desc.colorStart = D3DXCOLOR(1.f, 1.f, 0.6f, 1.f);
+        desc.colorEnd = D3DXCOLOR(1.f, 0.7f, 0.f, 0.f);
+        desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
+        desc.iMaxParticles = 10;
+        desc.fEmitRate = 0.f;      // Burst
+        desc.bLoop = false;
+        desc.fGravity = 6.f;
+        break;
+
+        // ── 폭죽: 위로 솟구쳤다가 사방으로 퍼짐
+    case PARTICLE_FIREWORK:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI;
+        desc.fMinSpeed = 3.f;      desc.fMaxSpeed = 7.f;
+        desc.fMinLifeTime = 0.5f;     desc.fMaxLifeTime = 2.2f;
+        desc.fMinSize = 2.f;    desc.fMaxSize = 6.f;
+        desc.colorStart = D3DXCOLOR(1.f, 0.8f, 0.f, 1.f);
+        desc.colorEnd = D3DXCOLOR(1.f, 0.2f, 0.f, 0.f);
+        desc.iMaxParticles = 300;
+        desc.fEmitRate = 0.f;      // Burst
+        desc.bLoop = true;
+        desc.fGravity = 3.f;
+        break;
+
+        // ── 보스 공격: 지속 방출, Loop
+    case PARTICLE_BOSS_ATTACK:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI * 0.6f;
+        desc.fMinSpeed = 1.f;      desc.fMaxSpeed = 3.f;
+        desc.fMinLifeTime = 0.3f;     desc.fMaxLifeTime = 0.8f;
+        desc.fMinSize = 0.15f;    desc.fMaxSize = 0.35f;
+        desc.colorStart = D3DXCOLOR(0.5f, 0.f, 1.f, 1.f);
+        desc.colorEnd = D3DXCOLOR(0.2f, 0.f, 0.5f, 0.f);
+        desc.iMaxParticles = 80;
+        desc.fEmitRate = 30.f;     // 초당 30개
+        desc.bLoop = true;
+        desc.fGravity = 0.f;
+        break;
+
+    default:
+        break;
+    }
+
+    return Create(pGraphicDev, eType, desc, pTexture);
+}
 void CParticleEmitter::Free()
 {
     Safe_Release(m_pVB);

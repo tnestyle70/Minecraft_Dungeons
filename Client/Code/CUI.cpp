@@ -38,7 +38,8 @@ HRESULT CUI::Ready_GameObject()
 
 void CUI::Add_Child(CUI* pChild)
 {
-	if (!pChild) return;
+	if (!pChild) 
+		return;
 	pChild->Set_Parent(this);
 	pChild->Set_Scale(m_fUIScale); // Match parent scale by default
 	m_vecChildren.push_back(pChild);

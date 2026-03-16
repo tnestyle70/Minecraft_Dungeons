@@ -109,6 +109,10 @@ private:
 	static constexpr float m_fRollCoolMax = 3.f;    
 	_vec3  m_vRollDir; 
 
+	//=======FootPrint Effect Variable=======
+	Engine::CParticleEmitter* m_pFootStepEmitter = nullptr;
+	Engine::CParticleEmitter* m_pAttackEmitter = nullptr;
+
 private:
 	//피격
 	bool  m_bHit = false;

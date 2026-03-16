@@ -45,7 +45,8 @@ private:
     Engine::CCollider* m_pAtkColliderCom = nullptr;
     Engine::CCollider* m_pExplosionColliderCom = nullptr; // 크리퍼 폭발 범위
     
-
+    //=========Death Effect===========//
+    Engine::CParticleEmitter* m_pDeathEmitter = nullptr;
 
     //스켈레톤 활
     Engine::CRcTex* m_pBowBufferCom = nullptr;

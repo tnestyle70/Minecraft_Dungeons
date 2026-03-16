@@ -138,11 +138,14 @@
     <ClCompile Include="..\Code\CUI.cpp" />
     <ClCompile Include="..\Code\CHotbar.cpp" />
     <ClCompile Include="..\Code\CUI_Json.cpp" />
+    <ClCompile Include="..\Code\CDragon.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\AncientGuardian.cpp">
       <Filter>02. GameObject\09. DLCBoss</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
+    </ItemGroup>
+    <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
     <ClInclude Include="..\Header\Templateblocks.h" />
     <ClInclude Include="framework.h" />
@@ -276,6 +279,9 @@
     <ClInclude Include="..\Header\CUI.h" />
     <ClInclude Include="..\Header\CHotbar.h" />
     <ClInclude Include="..\Header\CUI_Json.h" />
+    <ClInclude Include="..\Header\CDragon.h">
+      <Filter>02. GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="..\Header\AncientGuardian.h">
       <Filter>02. GameObject\09. DLCBoss</Filter>
     </ClInclude>
