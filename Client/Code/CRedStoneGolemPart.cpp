@@ -6,22 +6,16 @@ CRedStoneGolemPart::CRedStoneGolemPart(LPDIRECT3DDEVICE9 pGrpahicDev, REDSTONEGO
 	: CGameObject(pGrpahicDev)
 	, m_pBufferCom(nullptr)
 	, m_pTransformCom(nullptr)
-	, m_pParentTransformCom(nullptr)
 	, m_ePart(ePart)
 {
-    D3DXMatrixIdentity(&m_matLocal);
-    D3DXMatrixIdentity(&m_matWorld);
 }
 
 CRedStoneGolemPart::CRedStoneGolemPart(const CRedStoneGolemPart& rhs)
 	: CGameObject(rhs)
 	, m_pBufferCom(nullptr)
 	, m_pTransformCom(nullptr)
-	, m_pParentTransformCom(nullptr)
 	, m_ePart(rhs.m_ePart)
 {
-    D3DXMatrixIdentity(&m_matLocal);
-    D3DXMatrixIdentity(&m_matWorld);
 }
 
 CRedStoneGolemPart::~CRedStoneGolemPart()

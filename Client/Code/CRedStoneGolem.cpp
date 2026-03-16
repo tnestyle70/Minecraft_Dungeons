@@ -7,8 +7,9 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
 	, m_pTextureCom(nullptr)
 	, m_pTransformCom(nullptr)
+	, m_pColliderCom(nullptr)
 	, m_eState(GOLEM_STATE_IDLE)
-	, m_fWalkTime(0.f)
+	, m_fAnimTime(0.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -17,8 +18,9 @@ CRedStoneGolem::CRedStoneGolem(const CRedStoneGolem& rhs)
 	: CGameObject(rhs)
 	, m_pTextureCom(nullptr)
 	, m_pTransformCom(nullptr)
+	, m_pColliderCom(nullptr)
 	, m_eState(rhs.m_eState)
-	, m_fWalkTime(rhs.m_fWalkTime)
+	, m_fAnimTime(rhs.m_fAnimTime)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -44,10 +46,14 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 
 _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 {
-	m_fWalkTime += fTimeDelta;
+	m_fAnimTime += fTimeDelta;
 
 	Debug_Input();
 	Golem_Animation(fTimeDelta);
+
+	_vec3 vPos;
+	m_pTransformCom->Get_Info(INFO_POS, &vPos);
+	m_pColliderCom->Update_AABB(vPos);
 
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
@@ -80,6 +86,8 @@ void CRedStoneGolem::Render_GameObject()
 		m_pParts[i]->Render_GameObject();
 	}
 
+	m_pColliderCom->Render_Collider();
+
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
 
@@ -102,6 +110,11 @@ HRESULT CRedStoneGolem::Add_Component()
 		return E_FAIL;
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
+
+	// Collider
+	m_pColliderCom = CCollider::Create(m_pGraphicDev, _vec3(3.5f, 3.f, 1.5f), _vec3(0.f, -0.8f, 0.f));
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
 	for (int i = 0; i < GOLEM_END; i++)
 	{
@@ -199,14 +212,36 @@ void CRedStoneGolem::Set_PartsParent()
 
 void CRedStoneGolem::Debug_Input()
 {
-	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_9))
+	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_0))
 	{
 		m_eState = GOLEM_STATE_IDLE;
 	}
 
-	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_0))
+	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_9))
 	{
 		m_eState = GOLEM_STATE_WALK;
+	}
+
+	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_8))
+	{
+		if (m_eState != GOLEM_STATE_ATTACK)
+		{
+			m_eState = GOLEM_STATE_ATTACK;
+			m_fAnimTime = 0.f;
+
+			Reset_Pose();
+		}
+	}
+
+	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_7))
+	{
+		if (m_eState != GOLEM_STATE_SKILL)
+		{
+			m_eState = GOLEM_STATE_SKILL;
+			m_fAnimTime = 0.f;
+
+			Reset_Pose();
+		}
 	}
 }
 
@@ -223,6 +258,15 @@ void CRedStoneGolem::Golem_Animation(const _float& fTimeDelta)
 		break;
 
 	case GOLEM_STATE_ATTACK:
+		NormalAttack_Animation();
+		break;
+
+	case GOLEM_STATE_SKILL:
+		Skill_Animation();
+		break;
+
+	case GOLEM_STATE_DEAD:
+		Dead_Animation();
 		break;
 
 	case GOLEM_STATE_END:
@@ -233,28 +277,32 @@ void CRedStoneGolem::Golem_Animation(const _float& fTimeDelta)
 	}
 }
 
+void CRedStoneGolem::Reset_Pose()
+{
+	for (int i = 0; i < GOLEM_END; i++)
+	{
+		m_pParts[i]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[i]->Get_Transform()->Set_Rotation(ROT_Y, 0.f);
+		m_pParts[i]->Get_Transform()->Set_Rotation(ROT_Z, 0.f);
+	}
+}
+
 void CRedStoneGolem::Idle_Animation()
 {
-	const _float fCycleSpeed = 1.2f;  // 걷기보다 느리게
-	const _float fAngle = m_fWalkTime * fCycleSpeed;
+	const _float fCycleSpeed = 1.2f;
+	const _float fAngle = m_fAnimTime * fCycleSpeed;
 
-	//m_pParts[GOLEM_BODY]->Get_Transform()->Rotation(ROT_X, sinf(fAngle) * D3DXToRadian(2.f));
-	//m_pParts[GOLEM_BODY]->Get_Transform()->Rotation(ROT_Z, sinf(fAngle * 0.5f) * D3DXToRadian(1.f));
+	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle) * 5.f);
+	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.1f) * 5.f);
 
-	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Rotation(ROT_X, sinf(fAngle) * D3DXToRadian(5.f));
-	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.1f) * D3DXToRadian(5.f));
+	m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.2f) * 3.f);
+	m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.3f) * 3.f);
 
-	m_pParts[GOLEM_LARM]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.2f) * D3DXToRadian(3.f));
-	m_pParts[GOLEM_RARM]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.3f) * D3DXToRadian(3.f));
+	m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Z, sinf(fAngle * 0.7f) * 1.5f);
+	m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
 
-	m_pParts[GOLEM_HIP]->Get_Transform()->Rotation(ROT_Z, sinf(fAngle * 0.7f) * D3DXToRadian(1.5f));
-	m_pParts[GOLEM_HIP]->Get_Transform()->Rotation(ROT_X, 0.f);
-
-	m_pParts[GOLEM_LLEG]->Get_Transform()->Rotation(ROT_X, 0.f);
-	m_pParts[GOLEM_RLEG]->Get_Transform()->Rotation(ROT_X, 0.f);
-
-	//m_pParts[GOLEM_HEAD]->Get_Transform()->Rotation(ROT_Y, sinf(fAngle * 0.6f) * D3DXToRadian(15.f));
-	//m_pParts[GOLEM_HEAD]->Get_Transform()->Rotation(ROT_X, sinf(fAngle * 0.8f) * D3DXToRadian(3.f));
+	m_pParts[GOLEM_LLEG]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+	m_pParts[GOLEM_RLEG]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
 
 	const _float fBobHeight = 0.03f * m_fWorldScale;
 	m_pTransformCom->Set_Pos(0.f, 10.f + sinf(fAngle) * fBobHeight, 0.f);
@@ -262,32 +310,198 @@ void CRedStoneGolem::Idle_Animation()
 
 void CRedStoneGolem::Walk_Animation()
 {
-	const _float fCycleSpeed = 2.5f;
-	const _float fAngle = m_fWalkTime * fCycleSpeed;
+	const _float fCycleSpeed = 5.f;
+	const _float fAngle = m_fAnimTime * fCycleSpeed;
 
-	const _float fLegSwingRad = D3DXToRadian(25.f);
+	m_pParts[GOLEM_LLEG]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle) * 25.f);
+	m_pParts[GOLEM_RLEG]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI) * 25.f);
 
-	m_pParts[GOLEM_LLEG]->Get_Transform()->Rotation(ROT_X, sinf(fAngle) * fLegSwingRad);
-	m_pParts[GOLEM_RLEG]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI) * fLegSwingRad);
+	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI) * 20.f);
+	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle) * 20.f);
 
-	const _float fArmSwingRad = D3DXToRadian(20.f);
+	m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI + D3DX_PI * 0.3f) * 15.f);
+	m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI * 0.3f) * 15.f);
 
-	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI) * fArmSwingRad);
-	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Rotation(ROT_X, sinf(fAngle) * fArmSwingRad);
+	m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Z, sinf(fAngle) * 6.f);
+	m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle * 2.f) * 4.f);
 
-	const _float fForeArmBendRad = D3DXToRadian(15.f);
-	const _float fPhaseDelay = D3DX_PI * 0.3f;
+	m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_Z, sinf(fAngle + D3DX_PI) * 3.f);
+	m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle * 2.f + D3DX_PI) * 2.f);
+}
 
-	m_pParts[GOLEM_LARM]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + D3DX_PI + fPhaseDelay) * fForeArmBendRad);
-	m_pParts[GOLEM_RARM]->Get_Transform()->Rotation(ROT_X, sinf(fAngle + fPhaseDelay) * fForeArmBendRad);
+void CRedStoneGolem::NormalAttack_Animation()
+{
+	const _float t = m_fAnimTime;
 
-	m_pParts[GOLEM_HIP]->Get_Transform()->Rotation(ROT_Z, sinf(fAngle) * D3DXToRadian(6.f));
-	m_pParts[GOLEM_HIP]->Get_Transform()->Rotation(ROT_X, sinf(fAngle * 2.f) * D3DXToRadian(4.f));
+	if (t < 0.3f)
+	{
+		_float p = t / 0.3f;
+		_float ep = 1.f - (1.f - p) * (1.f - p);
 
-	m_pParts[GOLEM_BODY]->Get_Transform()->Rotation(ROT_Z, sinf(fAngle + D3DX_PI) * D3DXToRadian(3.f));
-	m_pParts[GOLEM_BODY]->Get_Transform()->Rotation(ROT_X, sinf(fAngle * 2.f + D3DX_PI) * D3DXToRadian(2.f));
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_Y, 90.f * ep);
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_Y, -70.f * ep);  
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Y, -45.f * ep);
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 80.f * ep);
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 30.f * ep);
+	}
+	else if (t < 0.55f)
+	{
+		_float p = (t - 0.3f) / 0.25f;
+		_float ep = p * p * p;  // 가속
 
-	m_pParts[GOLEM_HEAD]->Get_Transform()->Rotation(ROT_X, sinf(fAngle * 2.f) * D3DXToRadian(4.f));
+		// ----- BODY -----
+		_float bodyY_start = 90.f;
+		_float bodyY_end = -60.f;
+
+		_float bodyX_start = 0.f;
+		_float bodyX_end = 10.f;
+
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(
+			ROT_Y, bodyY_start + (bodyY_end - bodyY_start) * ep);
+
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(
+			ROT_X, bodyX_start + (bodyX_end - bodyX_start) * ep);
+
+
+		// ----- HIP -----
+		_float epHip = ((p - 0.15f) < 0.f ? 0.f : (p - 0.15f) / 0.85f);
+		epHip = epHip * epHip * epHip;
+
+		_float hipY_start = -45.f;
+		_float hipY_end = -25.f;
+
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(
+			ROT_Y, hipY_start + (hipY_end - hipY_start) * epHip);
+
+
+		// ----- HEAD -----
+		_float headY_start = -70.f;
+		_float headY_end = -10.f;
+
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(
+			ROT_Y, headY_start + (headY_end - headY_start) * ep);
+
+
+		// ----- LEFT SHOULDER -----
+		_float shoulderX_start = 80.f;
+		_float shoulderX_end = 10.f;
+
+		_float shoulderZ_start = 0.f;
+		_float shoulderZ_end = 50.f;
+
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(
+			ROT_X, shoulderX_start + (shoulderX_end - shoulderX_start) * ep);
+
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(
+			ROT_Z, shoulderZ_start + (shoulderZ_end - shoulderZ_start) * ep);
+
+
+		// ----- LEFT ARM -----
+		_float epArm = ((p - 0.3f) < 0.f ? 0.f : (p - 0.3f) / 0.7f);
+		epArm = epArm * epArm;
+
+		_float armX_start = 30.f;
+		_float armX_end = 5.f;
+
+		_float armZ_start = 0.f;
+		_float armZ_end = 50.f;
+
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(
+			ROT_X, armX_start + (armX_end - armX_start) * epArm);
+
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(
+			ROT_Z, armZ_start + (armZ_end - armZ_start) * epArm);
+
+
+		// ----- RIGHT SHOULDER -----
+		_float rShoulderX_start = 0.f;
+		_float rShoulderX_end = -30.f;
+
+		_float rShoulderZ_start = 0.f;
+		_float rShoulderZ_end = -20.f;
+
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(
+			ROT_X, rShoulderX_start + (rShoulderX_end - rShoulderX_start) * ep);
+
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(
+			ROT_Z, rShoulderZ_start + (rShoulderZ_end - rShoulderZ_start) * ep);
+	}
+	else if (t < 0.65f)
+	{
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_Y, -60.f);
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, 10.f);
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_Y, -10.f);
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Y, -25.f);
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_Z, 50.f);
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 10.f);
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_Z, 50.f);
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 5.f);
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -30.f);
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_Z, -20.f);
+	}
+	else
+	{
+		_float p = (t - 0.65f) / 0.55f;
+		_float ep = 1.f - (1.f - p) * (1.f - p);
+
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_Y, -60.f * (1.f - ep));
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, 10.f * (1.f - ep));
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_Y, -10.f * (1.f - ep));
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Y, -25.f * (1.f - ep));
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_Z, 50.f * (1.f - ep));
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 10.f * (1.f - ep));
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_Z, 50.f * (1.f - ep));
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 5.f * (1.f - ep));
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -30.f * (1.f - ep));
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_Z, -20.f * (1.f - ep));
+	}
+
+	if (m_fAnimTime >= 1.2f)
+	{
+		m_eState = GOLEM_STATE_IDLE;
+		m_fAnimTime = 0.f;
+	}
+}
+
+void CRedStoneGolem::Skill_Animation()
+{
+	// 추가 작업 필요
+
+	//const _float t = m_fAnimTime;
+
+	//if (t < 1.f)
+	//{
+	//	_float p = t / 0.3f;
+	//	_float ep = 1.f - (1.f - p) * (1.f - p);
+
+	//	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -35.f * ep);
+	//	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -35.f * ep);
+	//	m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+	//	m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+	//}
+	//else if (t < 1.5f)
+	//{
+	//	// p는 이 구간 안에서 0~1로 정규화
+	//	_float p = t / 0.3f;
+	//	_float ep = 1.f - (1.f - p) * (1.f - p);
+
+	//	m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, 5.f * ep);
+	//	// 힙은 역방향 주지 말고 같은 방향으로 약하게 따라가게
+	//	m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_X, 2.f * ep);
+	//	m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+	//	m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+
+	//}
+	//if (m_fAnimTime >= 6.f)
+	//{
+	//	m_eState = GOLEM_STATE_IDLE;
+	//	m_fAnimTime = 0.f;
+	//}
+}
+
+void CRedStoneGolem::Dead_Animation()
+{
+	// todo
 }
 
 CRedStoneGolem* CRedStoneGolem::Create(LPDIRECT3DDEVICE9 pGraphicDev)
