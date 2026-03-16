@@ -19,13 +19,6 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 	case SCENE_LOGO:
 		pScene = CLogo::Create(pGraphicDev);
 		break;
-	case SCENE_STAGE:
-		pScene = CLoadingScene::Create(
-			pGraphicDev,
-			CLoading::LOADING_STAGE,
-			SCENE_STAGE_PLAY,
-			L"Proto_ObsidianLoadingTexture");
-		break;
 	case SCENE_SQUIDCOAST:
 		pScene = CLoadingScene::Create(
 			pGraphicDev,
@@ -53,9 +46,6 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 			CLoading::LOADING_OBSIDIAN,
 			SCENE_OBSIDIAN_PLAY,
 			L"Proto_ObsidianLoadingTexture");
-		break;
-	case SCENE_STAGE_PLAY:
-		pScene = CStage::Create(pGraphicDev);
 		break;
 	case SCENE_SQUIDCOAST_PLAY:
 		pScene = CSquidCoast::Create(pGraphicDev);

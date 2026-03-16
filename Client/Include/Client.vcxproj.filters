@@ -138,14 +138,14 @@
     <ClCompile Include="..\Code\CUI.cpp" />
     <ClCompile Include="..\Code\CHotbar.cpp" />
     <ClCompile Include="..\Code\CUI_Json.cpp" />
-    <ClCompile Include="..\Code\CDragon.cpp">
-      <Filter>02. GameObject</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\AncientGuardian.cpp">
-      <Filter>02. GameObject\09. DLCBoss</Filter>
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
     </ClCompile>
-    </ItemGroup>
-    <ItemGroup>
+    <ClCompile Include="..\Code\CDragon.cpp">
+      <Filter>02. GameObject\10. Dragon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
     <ClInclude Include="..\Header\Templateblocks.h" />
     <ClInclude Include="framework.h" />
@@ -279,11 +279,11 @@
     <ClInclude Include="..\Header\CUI.h" />
     <ClInclude Include="..\Header\CHotbar.h" />
     <ClInclude Include="..\Header\CUI_Json.h" />
-    <ClInclude Include="..\Header\CDragon.h">
-      <Filter>02. GameObject</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\AncientGuardian.h">
-      <Filter>02. GameObject\09. DLCBoss</Filter>
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CDragon.h">
+      <Filter>02. GameObject\10. Dragon</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -397,6 +397,12 @@
     </Filter>
     <Filter Include="03. Manager\00. PathFinding">
       <UniqueIdentifier>{02c2e2b7-b17b-42d1-a246-bd7c1aacd099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\09. DLCBoss\00. AncientGuardian">
+      <UniqueIdentifier>{be334d2b-3f87-42f4-bbd9-8bdf57e4209d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\10. Dragon">
+      <UniqueIdentifier>{29ddc4e9-a644-4df3-b690-db83dd74db89}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

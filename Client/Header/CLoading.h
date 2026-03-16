@@ -27,7 +27,6 @@ public:
 
 public:
 	HRESULT		Ready_Loading(LOADINGID eID);
-	_uint		Loading_Stage();
 	_uint Loading_SquidCoast();
 	_uint Loading_Camp();
 	_uint Loading_RedStone();

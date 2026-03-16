@@ -47,9 +47,10 @@ void CManagement::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CManagement::Render_Scene(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-     m_pScene->Render_Scene();
-  
-    Engine::CRenderer* pRenderer = Engine::CRenderer::GetInstance();
+    CRenderer::GetInstance()->Render_GameObject(pGraphicDev);
+
+    // debug 용 렌더
+    m_pScene->Render_Scene();
 }
 
 void CManagement::Free()
