@@ -2,6 +2,7 @@
 #include "CLoading.h"
 #include "CProtoMgr.h"
 #include "CMonsterUV.h"
+#include "CAncientGuardianUV.h"
 
 CLoading::CLoading(LPDIRECT3DDEVICE9 pGraphicDev)
     : m_pGraphicDev(pGraphicDev), m_bFinish(false), m_eLoadingID(LOADING_END)
@@ -324,6 +325,32 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Spider_LBLeg",
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
         return E_FAIL;
+
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AncientGuardianTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/DLC boss/Ancient_Guardian.png"))))
+        return E_FAIL; 
+    // 추가 - 파츠 버퍼
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AG_Head",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, AncientGuardianUV::HEAD))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AG_Tail1",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, AncientGuardianUV::TAIL1))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AG_Tail2",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, AncientGuardianUV::TAIL2))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AG_Tail3",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, AncientGuardianUV::TAIL3))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AG_Spike",
+        Engine::CCubeBodyTex::Create(m_pGraphicDev, AncientGuardianUV::SPIKE))))
+        return E_FAIL;
+
 
     // Hotbar UI Textures
 

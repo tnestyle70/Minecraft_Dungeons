@@ -19,6 +19,8 @@
 #include "CHotbar.h"
 //#include "CBlockRenderer.h"
 #include "CLayer.h"
+#include "CAncientGuardian.h"
+
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -222,6 +224,13 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
+		return E_FAIL; 
+
+	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(5.f, 5.f, 5.f));
+	if (!pGameObject) 
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });

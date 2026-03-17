@@ -24,7 +24,7 @@ HRESULT CDLCBoss::Ready_GameObject()
     return S_OK;
 }
 
-_int CDLCBoss::Update_GameObject(const _float fTimeDelta)
+_int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
     return iExit;

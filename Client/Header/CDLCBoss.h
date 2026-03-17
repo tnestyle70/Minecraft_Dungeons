@@ -12,7 +12,7 @@ protected:
 					  
 public:				  
 	virtual HRESULT   Ready_GameObject();							   // Add_Component 를 호출해서 컴포넌트 생성 
-	virtual _int      Update_GameObject(const _float fTimeDelta);      // 콜라이더 갱신 피격 체크 
+	virtual _int      Update_GameObject(const _float& fTimeDelta);      // 콜라이더 갱신 피격 체크 
 	virtual void      LateUpdate_GameObject(const _float& fTimeDelta); // Update_AI 호출 
 					  
 	virtual bool	  Is_Dead()  override { return m_iHp <= 0; }       // CLayer::Delete_GameObject 에서 삭제 
