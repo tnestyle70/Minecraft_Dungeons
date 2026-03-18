@@ -605,6 +605,7 @@ void CDragon::Update_TAIL_ATTACK(const _float& fTimeDelta)
 _float CDragon::DistToPlayer() const
 {
 	//플레이어와의 거리 설정
+	return 0;
 }
 
 CDragon* CDragon::Create(LPDIRECT3DDEVICE9 pGraphicDev)
