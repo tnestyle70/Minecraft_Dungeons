@@ -8,6 +8,7 @@
 #include "CIronBar.h"
 #include "StageData.h"
 #include "CParticleMgr.h"
+#include "CDragon.h"
 
 enum eStageType
 {
@@ -85,6 +86,9 @@ public:
 	HRESULT LoadStageData(const _tchar* szPath);
 private:
 	eStageType m_eCurrentStage = STAGE_SQUIDCOAST;
+
+	//Dragon 
+	CDragon* m_pDragon = nullptr;
 
 	//Particle
 	ParticleDesc m_tEditDesc;

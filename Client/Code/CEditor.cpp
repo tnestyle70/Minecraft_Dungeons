@@ -168,6 +168,16 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 	if (FAILED(pLayer->Add_GameObject(L"DynamicCamera", pGameObject)))
 		return E_FAIL;
 
+	//Dragon
+	m_pDragon = CDragon::Create(m_pGraphicDev);
+	if (!m_pDragon)
+	{
+		MSG_BOX("Dragon Create Failed");
+		return E_FAIL;
+	}
+	pLayer->Add_GameObject(L"Dragon", m_pDragon);
+	m_pDragon->Set_MoveTarget(_vec3(0.f, 20.f, 0.f));
+
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
@@ -289,6 +299,17 @@ void CEditor::Render_Hierarchy()
 	ImGui::Text("Monster Spawn: %d", (int)m_mapMonsters.size());
 	ImGui::Text("IronBar: %d", (int)m_mapIronBars.size());
 	ImGui::Text("TriggerBox: %d", (int)m_mapTriggerBoxes.size());
+
+
+	//Dragon Debuging
+	if (ImGui::CollapsingHeader("Dragon Debug"))
+	{
+		static float fTarget[3] = { 0.f, 8.f, 0.f };
+		ImGui::SliderFloat3("MoveTarget", fTarget, -30.f, 30.f);
+
+		if (m_pDragon) // CDragon* 멤버로 들고 있어야 함
+			m_pDragon->Set_MoveTarget(_vec3(fTarget[0], fTarget[1], fTarget[2]));
+	}
 
 	ImGui::End();
 }

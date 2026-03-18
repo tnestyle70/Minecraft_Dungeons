@@ -1,5 +1,6 @@
 #pragma once
 #include "CGameObject.h"
+#include "CProtoMgr.h"
 #include "CCubeBodyTex.h"
 
 //드래곤 관절 구조체
@@ -17,6 +18,13 @@ constexpr int DRAGON_SPINE_COUNT = 7; //몸통 척추
 constexpr int DRAGON_NECK_COUNT = 3; //목
 constexpr int DRAGON_TAIL_COUNT = 6; //꼬리
 constexpr int DRAGON_WING_COUNT = 4; //날개 한 쪽 세그먼트
+
+enum class eDragonState
+{
+	IDLE, //순찰, 대기
+	ATTACK, //플레이어 추적
+	TAIL_ATTACK //꼬리 공격
+};
 
 //Dragon - Update Flow
 //Spine -> moveTarget 방향으로 속도 lerp 만큼 이동
@@ -41,24 +49,39 @@ public:
 	void Set_MoveTarget(const _vec3& vTarget) { m_vMoveTarget = vTarget; }
 	_vec3 Get_HeadPos() const { return m_Head.vPos; }
 	_vec3 Get_SpineRoot() const { return m_Spine[0].vPos; }
+	eDragonState Get_State() const { return m_eState; }
+
 private:
 	//초기화 헬퍼
 	HRESULT Init_SpineChain();
 	HRESULT Init_NeckAndHead();
 	HRESULT Init_TailChain();
 	HRESULT Init_WingChains();
+
 	//fW / H / D : 큐브 크기
 	HRESULT Create_BoneBuffer(DRAGON_BONE& bone,
 		_float fW, _float fH, _float fD, const FACE_UV& uv);
+
+	//입력 - WASD : 이동 / RTY : 상태 강제 전환
+	void Handle_Input(const _float& fTimeDelta);
+
+	//Finite State Machine
+	void Transition_State(eDragonState eNext);
+	void Update_IDLE(const _float& fTimeDelta);
+	void Update_Attack(const _float& fTimeDelta);
+	void Update_TAIL_ATTACK(const _float& fTimeDelta);
+
 private:
-	//IK - 추종 알고리즘
+	//Inverse Kinetics - 추종 알고리즘
 	//CCD IK - Cyclic Coordinate Descent
 	void Solve_CCD(DRAGON_BONE* pChain, _int iCount,
-		const _vec3& vTarget, _int iMaxIter = 10);
+		const _vec3& vTarget, _int iMaxIter = 10,
+		_float fMaxAngle = D3DX_PI * 0.25f);
 	//Follow the Leader
 	void Solve_FollowLeader(DRAGON_BONE* pChain, _int iCount);
 	//날개짓
 	void Update_WingFlap(const _float& fTimeDelta);
+	void Update_TailSwing(const _float& fTimeDelta);
 	//뼈 월드 행렬 - Look-At 방식, DX9 Row-Major
 	//vZ = Normalize(bone.vDir)
 	//vX = normalize(worldUp * z)
@@ -67,6 +90,7 @@ private:
 	void Update_ChainMatrices(DRAGON_BONE* pChain, _int iCount);
 	void Render_Chain(DRAGON_BONE* pChain, _int iCount);
 	
+	_float DistToPlayer() const;
 private:
 	//뼈 체인
 	DRAGON_BONE m_Spine[DRAGON_SPINE_COUNT];
@@ -83,6 +107,25 @@ private:
 	_float m_fWingTimer; //누적 시간
 	_float m_fWingSpeed; //날개짓 주기(rad/sec)
 	_float m_fWingAmp; //날개짓 최대 각도(rad)
+	//FSM 
+	eDragonState m_eState;
+	_float m_fStateTimer; //현재 상태 진입 후 누적 시간
+	//IDLE 순찰 인덱스
+	_int m_iPatrolIndex;
+	//TAILATTACK
+	_float m_fTailSwingTimer;
+	_float m_fTailSwingAmp;
+	//입력을 통한 조작
+	_bool m_bManualControl = false;
+	//카메라가 없으니 월드 기준 고정 전진 우측 벡터 사용
+	_vec3 m_vInputForward;
+	_vec3 m_vInputRight;
+private:
+	static constexpr _float m_fAttackRange = 20.f;
+	static constexpr _float m_fAttackDuration = 6.f;
+	static constexpr _float m_fTailAttackDuration = 3.f;
+	static constexpr _float m_fTailHPRatio = 0.5f;
+	static constexpr _int m_iPatrolCount = 4;
 public:
 	static CDragon* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 	virtual void Free();

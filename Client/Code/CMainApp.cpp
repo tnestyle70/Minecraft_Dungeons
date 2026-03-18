@@ -170,53 +170,38 @@ CMainApp* CMainApp::Create()
 }
 
 void CMainApp::Free()
-{ //  메모리 랜더링 순서 변경 
-    // ImGui
+{
+    // 1. ImGui 먼저 (DX9 디바이스 쓰는 것 중 가장 먼저)
     ImGui_ImplDX9_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
 
+    // 2. 씬/렌더 → 게임오브젝트들이 여기서 Free()됨
     CManagement::GetInstance()->DestroyInstance();
+
+    // 3. 렌더 그룹 정리 후 렌더러 해제
+    CRenderer::GetInstance()->Clear_RenderGroup();
     CRenderer::GetInstance()->DestroyInstance();
 
+    // 4. 게임 오브젝트를 관리하는 매니저들
+    CMonsterMgr::GetInstance()->DestroyInstance();
+    CIronBarMgr::GetInstance()->DestroyInstance();
+    CTriggerBoxMgr::GetInstance()->DestroyInstance();
     CParticleMgr::GetInstance()->DestroyInstance();
-    CMonsterMgr::GetInstance()->DestroyInstance();   
-    CIronBarMgr::GetInstance()->DestroyInstance();   
-    CTriggerBoxMgr::GetInstance()->DestroyInstance(); 
     CBlockMgr::GetInstance()->DestroyInstance();
 
-    CRenderer::GetInstance()->Clear_RenderGroup(); // 누수 추가 
-    // 씬 관련 매니저들 먼저 정리
-    CMonsterMgr::GetInstance()->DestroyInstance();    //누수 추가 
-    CTriggerBoxMgr::GetInstance()->DestroyInstance(); //누수 추가 
-    CIronBarMgr::GetInstance()->DestroyInstance();    //누수 추가 
-    CParticleMgr::GetInstance()->DestroyInstance();   //누수 추가 
-
-    // 씬/렌더러 정리
-    CRenderer::GetInstance()->DestroyInstance();
-    CManagement::GetInstance()->DestroyInstance();
-    Safe_Release(m_pDeviceClass);
-    Safe_Release(m_pGraphicDev);
-
-    // 나머지 싱글톤들
-
+    // 5. 엔진 서비스 매니저들
     CSoundMgr::GetInstance()->DestroyInstance();
     CLightMgr::GetInstance()->DestroyInstance();
-
-
     CDInputMgr::GetInstance()->DestroyInstance();
     CFontMgr::GetInstance()->DestroyInstance();
     CProtoMgr::GetInstance()->DestroyInstance();
     CFrameMgr::GetInstance()->DestroyInstance();
     CTimerMgr::GetInstance()->DestroyInstance();
 
+    // 6. DX9 디바이스는 무조건 마지막
     Safe_Release(m_pDeviceClass);
     Safe_Release(m_pGraphicDev);
-    CGraphicDev::GetInstance()->DestroyInstance(); 
-
-    // Renderer Setting After
-    CBlockMgr::GetInstance()->DestroyInstance();
-    CGraphicDev::GetInstance()->DestroyInstance();
 }
 
 
