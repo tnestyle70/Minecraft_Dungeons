@@ -28,13 +28,17 @@ private:
     float   m_fSpeed = 20.f;
     float   m_fLifeTime = 0.f;
     float   m_fMaxLifeTime = 3.f;
-    bool    m_bDead = false;
+    bool    m_bDead = false; 
+   
 
 public:
     void                Set_Direction(const _vec3& vDir) { m_vDir = vDir; }
     bool                Is_Dead() const { return m_bDead; }
     Engine::CCollider* Get_Collider() { return m_pColliderCom; } // Monster에서 화살 위치 접근용
+    int                 Get_Damage() const { return m_iDamage; }
 
+public:
+    int     m_iDamage = 8;
 public:
     static CArrow* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         const _vec3& vStartPos, const _vec3& vDir);
