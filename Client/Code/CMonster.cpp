@@ -21,7 +21,9 @@ CMonster::CMonster(const CGameObject& rhs)
 
 CMonster::~CMonster()
 {
-}
+} 
+
+
 
 HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 {
@@ -30,10 +32,21 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
-    case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
-    case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); break;
+    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); 
+        m_iHp = 20;
+        m_iAtkDamage = 10;
+        break;        
+    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); 
+        m_iHp = 20;
+        m_iAtkDamage = 0;
+        break;
+    case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z); 
+        m_iHp = 10;
+        m_iAtkDamage = 100;
+        break;
+    case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+        m_iHp = 20;
+        m_iAtkDamage = 10;
     }
 
     //=====Effect Emitter Connect======// 
@@ -380,8 +393,28 @@ void CMonster::Fire_Arrow()
     D3DXVec3Normalize(&vDir, &vDir);
 
     CArrow* pArrow = CArrow::Create(m_pGraphicDev, vStartPos, vDir);
+    pArrow->m_iDamage = 10;
     if (pArrow)
         m_vecArrows.push_back(pArrow);
+} 
+void CMonster::Take_Damage(int iDamage)
+{
+    if (m_bDeadDone) return;
+
+    m_iHp -= iDamage; 
+
+    CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
+    if (!pAnim) return;
+
+    if (m_iHp <= 0)
+    {
+        m_iHp = 0;
+        pAnim->Set_State(EMonsterState::DEAD);
+    }
+    else
+    {
+        pAnim->Set_State(EMonsterState::HIT);
+    }
 }
 
 void CMonster::Update_Arrow(const _float& fTimeDelta)

@@ -12,9 +12,10 @@
 #include "CBlockMgr.h"
 #include "CSceneChanger.h"
 #include "CRenderer.h"
+#include "CObjectEditor.h"
 
 CLogo::CLogo(LPDIRECT3DDEVICE9 pGraphicDev)
-    : Engine::CScene(pGraphicDev), m_pEditor(nullptr)
+    : Engine::CScene(pGraphicDev), m_pEditor(nullptr), m_pObjectEditor(nullptr)
 {
 }
 
@@ -36,6 +37,7 @@ HRESULT CLogo::Ready_Scene()
 _int CLogo::Update_Scene(const _float& fTimeDelta)
 {
     bool bF1 = CDInputMgr::GetInstance()->Get_DIKeyState(DIK_F1);
+    bool bF2 = CDInputMgr::GetInstance()->Get_DIKeyState(DIK_F2);
 
     //에디터 모드로 변경
     if (bF1 && !m_bF1Toggle)
@@ -51,7 +53,25 @@ _int CLogo::Update_Scene(const _float& fTimeDelta)
         m_pEditor->SetEditorMode(!m_pEditor->IsEditorMode());
     }
 
+    // 오브젝트 에디터 변경
+    if (bF2 && !m_bF2Toggle)
+    {
+        if (!m_pObjectEditor)
+        {
+            CRenderer::GetInstance()->Clear_RenderGroup();
+
+            if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, SCENE_OBJECT_EDITOR)))
+            {
+                MSG_BOX("ObjectEditor Scene Change Failed");
+                return -1;
+            }
+
+            return 0;
+        }
+    }
+
     m_bF1Toggle = bF1;
+    m_bF2Toggle = bF2;
 
     if (m_pEditor && m_pEditor->IsEditorMode())
     {

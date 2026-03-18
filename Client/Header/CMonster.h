@@ -21,7 +21,10 @@ public:
     
 
 
-    virtual bool        Is_Dead() override { return m_bDeadDone; } // 몬스터 삭제 
+    virtual bool        Is_Dead()                   override { return m_bDeadDone; } // 몬스터 삭제 
+    void                Take_Damage(int iDamage);
+    int                 Get_Hp()                    const { return m_iHp; }
+    int                 Get_AtkDamage()             const { return m_iAtkDamage; }
 
     //Get, Set Monster Active
     bool IsActive() { return m_bActive; }
@@ -67,6 +70,7 @@ private:
     bool                    m_bExploded = false;                // 폭발 1회 처리용
     bool                    m_bDeadDone = false; // 몬스터 삭제용도 
     int                     m_iHp = 2;
+    int                     m_iAtkDamage = 10;
     
     
     static constexpr float  m_fGravity = -20.f;

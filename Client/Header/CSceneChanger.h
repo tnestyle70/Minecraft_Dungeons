@@ -15,6 +15,9 @@ enum eSceneType
 	SCENE_OBSIDIAN_PLAY,
 	SCENE_CAMP_PLAY,
 
+	//오브젝트 에디터 씬
+	SCENE_OBJECT_EDITOR,
+
 	SCENE_END
 };
 

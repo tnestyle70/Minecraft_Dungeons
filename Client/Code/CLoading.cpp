@@ -86,6 +86,14 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemLegTex", Engine::CRedStoneGolemLegTex::Create(m_pGraphicDev))))
         return E_FAIL;
 
+
+    // Box
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxBottomTex", Engine::CBoxBottomTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxTopTex", Engine::CBoxTopTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
     lstrcpy(m_szLoading, L"Texture Loading.....................................");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
@@ -104,6 +112,12 @@ _uint CLoading::Loading_SquidCoast()
     // RedStoneGolem
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Boss/T_RedStone_Golem.png"))))
+        return E_FAIL;
+
+    // Object
+    // Box
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_LargeBoxChest.png"))))
         return E_FAIL;
 
     //오징어 해안 로딩 텍스쳐`
@@ -151,6 +165,13 @@ _uint CLoading::Loading_SquidCoast()
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPulling2",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_2.png"))))
+        return E_FAIL;
+
+
+    //플레이어 아머 텍스쳐
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArmorTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/T_BardsGarb.png"))))
         return E_FAIL;
 
     // 닭 텍스쳐

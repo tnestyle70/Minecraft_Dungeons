@@ -48,6 +48,8 @@ HRESULT CPlayer::Ready_GameObject()
 
 	m_pTransformCom->Set_Pos(0.f, 10.f, 0.f);
 
+	m_eArmorType = ARMOR_BARDSGARD;
+
 #pragma region 파트별 크기, 오프셋
 	m_vPartScale[PART_HEAD] = { 0.40f, 0.40f, 0.40f };
 	m_vPartScale[PART_BODY] = { 0.50f, 0.50f, 0.25f };
@@ -260,19 +262,63 @@ void CPlayer::Render_GameObject()
 		matRArmRoot._43 -= vRight.z * 0.4f;
 	}
 
-	Render_Part(PART_LARM, m_bCharging ? fLArmX : fSwing,
-		m_bCharging ? fLArmY : 0.f, 0.f, matRArmRoot);  // 당기기
-
+	// HEAD
 	Render_Part(PART_HEAD, 0.f, m_bCharging ? D3DXToRadian(90.f) : 0.f, 0.f, matRootWorld);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_HEAD] *= 1.05f;
+		Render_Part(PART_HEAD, 0.f, m_bCharging ? D3DXToRadian(90.f) : 0.f, 0.f, matRootWorld, m_pArmorTextureCom);
+		m_vPartScale[PART_HEAD] /= 1.05f;
+	}
 
+	// BODY
 	Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_BODY] *= 1.05f;
+		Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld, m_pArmorTextureCom);
+		m_vPartScale[PART_BODY] /= 1.05f;
+	}
 
+	// LARM
+	Render_Part(PART_LARM, m_bCharging ? fLArmX : fSwing,
+		m_bCharging ? fLArmY : 0.f, 0.f, matRArmRoot);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_LARM] *= 1.05f;
+		Render_Part(PART_LARM, m_bCharging ? fLArmX : fSwing,
+			m_bCharging ? fLArmY : 0.f, 0.f, matRArmRoot, m_pArmorTextureCom);
+		m_vPartScale[PART_LARM] /= 1.05f;
+	}
+
+	// RARM
 	Render_Part(PART_RARM, m_bCharging ? fRArmX : (m_iComboStep > 0 ? fAtkX : -fSwing),
-		m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f), 0.f, matRootWorld);  // 활 - 고정
+		m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f), 0.f, matRootWorld);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_RARM] *= 1.05f;
+		Render_Part(PART_RARM, m_bCharging ? fRArmX : (m_iComboStep > 0 ? fAtkX : -fSwing),
+			m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f), 0.f, matRootWorld, m_pArmorTextureCom);
+		m_vPartScale[PART_RARM] /= 1.05f;
+	}
 
+	// LLEG
 	Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_LLEG] *= 1.05f;
+		Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld, m_pArmorTextureCom);
+		m_vPartScale[PART_LLEG] /= 1.05f;
+	}
 
+	// RLEG
 	Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld);
+	if (m_eArmorType != ARMOR_NONE && m_pArmorTextureCom)
+	{
+		m_vPartScale[PART_RLEG] *= 1.05f;
+		Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld, m_pArmorTextureCom);
+		m_vPartScale[PART_RLEG] /= 1.05f;
+	}
 
 
 	// 칼 - 활 스위칭
@@ -420,6 +466,13 @@ HRESULT CPlayer::Add_Component()
 	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex1", m_pBowTexture[1] });
 	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex2", m_pBowTexture[2] });
 	m_mapComponent[ID_STATIC].insert({ L"Com_BowTex3", m_pBowTexture[3] });
+
+	//아머 텍스쳐
+	m_pArmorTextureCom = dynamic_cast<Engine::CTexture*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_ArmorTexture"));
+	if (nullptr == m_pArmorTextureCom)
+		return E_FAIL;
+	m_mapComponent[ID_STATIC].insert({ L"Com_ArmorTexture", m_pArmorTextureCom });
 
 
 	//플레이어 콜라이더
@@ -690,7 +743,8 @@ _vec3 CPlayer::Picking_OnBlock()
 	return vHit;
 }
 
-void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float fAngleZ, const _matrix& matRootWorld)
+void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float fAngleZ,
+							const _matrix& matRootWorld, Engine::CTexture* pTex)
 {
 	_matrix matScale;
 	D3DXMatrixScaling(&matScale,
@@ -737,7 +791,10 @@ void CPlayer::Render_Part(BODYPART ePart, _float fAngleX, _float fAngleY, _float
 		m_matLArmWorld = matPartWorld;
 
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matPartWorld);
-	m_pTextureCom->Set_Texture(0);
+	if (pTex)
+		pTex->Set_Texture(0);
+	else
+		m_pTextureCom->Set_Texture(0);
 	m_pBufferCom[ePart]->Render_Buffer();
 }
 

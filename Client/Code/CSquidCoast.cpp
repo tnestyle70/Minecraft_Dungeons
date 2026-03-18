@@ -21,6 +21,8 @@
 #include "CAncientGuardian.h"
 #include "CHUD.h"
 #include "CDragon.h"
+#include "CBox.h"
+
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -230,6 +232,15 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
+		return E_FAIL;
+
+	//Object
+	pGameObject = CBox::Create(m_pGraphicDev);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });

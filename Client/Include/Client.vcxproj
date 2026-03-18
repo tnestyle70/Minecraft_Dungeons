@@ -159,6 +159,8 @@
     <ClInclude Include="..\Header\CBlockRenderer.h" />
     <ClInclude Include="..\Header\CBlockPlacer.h" />
     <ClInclude Include="..\Header\CBodyBase.h" />
+    <ClInclude Include="..\Header\CBox.h" />
+    <ClInclude Include="..\Header\CBoxPart.h" />
     <ClInclude Include="..\Header\CCamp.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
     <ClInclude Include="..\Header\CDragon.h" />
@@ -180,6 +182,7 @@
     <ClInclude Include="..\Header\CMonsterMgr.h" />
     <ClInclude Include="..\Header\CMonsterUV.h" />
     <ClInclude Include="..\Header\CNavNode.h" />
+    <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
     <ClInclude Include="..\Header\CPlayer.h" />
@@ -223,6 +226,8 @@
     <ClCompile Include="..\Code\CBlockRenderer.cpp" />
     <ClCompile Include="..\Code\CBlockPlacer.cpp" />
     <ClCompile Include="..\Code\CBodyBase.cpp" />
+    <ClCompile Include="..\Code\CBox.cpp" />
+    <ClCompile Include="..\Code\CBoxPart.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
@@ -241,6 +246,7 @@
     <ClCompile Include="..\Code\CMonsterAnim.cpp" />
     <ClCompile Include="..\Code\CMonsterBody.cpp" />
     <ClCompile Include="..\Code\CMonsterMgr.cpp" />
+    <ClCompile Include="..\Code\CObjectEditor.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />
     <ClCompile Include="..\Code\CPlayer.cpp" />

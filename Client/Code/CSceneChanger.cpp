@@ -2,6 +2,9 @@
 #include "CSceneChanger.h"
 #include "CManagement.h"
 #include "CLoadingScene.h"
+// Object Editor
+#include "CObjectEditor.h"
+
 //stages
 #include "CLogo.h"
 #include "CStage.h"
@@ -59,6 +62,11 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 	case SCENE_OBSIDIAN_PLAY:
 		pScene = CObsidian::Create(pGraphicDev);
 		break;	
+
+		// 주승 오브젝트 에디터 씬
+	case SCENE_OBJECT_EDITOR:
+		pScene = CObjectEditor::Create(pGraphicDev);
+		break;
 	}
 
 	if (!pScene)
