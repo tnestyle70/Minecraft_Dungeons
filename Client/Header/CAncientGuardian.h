@@ -1,5 +1,6 @@
 #pragma once
-#include "CDLCBoss.h"  
+#include "CDLCBoss.h" 
+#include "CAGBody.h"
 
 enum class EPufferFishState
 {
@@ -18,7 +19,7 @@ private:
  
 public:
     virtual HRESULT Ready_GameObject();                              
-    virtual _int Update_GameObject(const _float fTimeDelta);
+    virtual _int Update_GameObject(const _float& fTimeDelta);
     virtual void    LateUpdate_GameObject(const _float& fTimeDelta);
 
  
@@ -39,7 +40,11 @@ private:
     void Update_Biomines(const _float& fTimeDelta); // 바이오마인 갱신 + 폭발 끝난 것 삭제
 
    
-private:
+private: 
+
+    CAGBody* m_pBodyCom = nullptr;  // CMonster 의 m_pBodyCom 과 동일한 역할  
+    Engine::CTexture* m_pTextureCom = nullptr;
+
     // 선회
     float m_fOrbitRadius = 6.f;  // 플레이어 기준 선회 반지름
     float m_fOrbitAngle = 0.f;  // 현재 선회 각도 (라디안, 매 프레임 증가)
@@ -59,7 +64,8 @@ private:
     float m_fChargeCoolMax = 5.f; // 5초마다 돌진
 
     // 현재 상태
-    EPufferFishState m_eState = EPufferFishState::IDLE;
+    EPufferFishState m_eState = EPufferFishState::IDLE; 
+    float m_fHoverTime = 0.f;
 
   
 public:

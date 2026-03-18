@@ -13,7 +13,8 @@
 #include "CDynamicCamera.h"
 #include "CSceneChanger.h"
 #include "CRenderer.h"
-#include "StageData.h"
+#include "StageData.h" 
+#include "CAncientGuardian.h"
 
 
 CCamp::CCamp(LPDIRECT3DDEVICE9 pGraphicDev)
@@ -163,7 +164,10 @@ HRESULT CCamp::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		m_pDynamicCamera->SetFollowTarget(
 			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 
+
+
 	m_mapLayer.insert({ pLayerTag, pLayer });
+
 
 	return S_OK;
 }

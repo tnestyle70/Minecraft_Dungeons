@@ -138,11 +138,26 @@
     <ClCompile Include="..\Code\CUI.cpp" />
     <ClCompile Include="..\Code\CHotbar.cpp" />
     <ClCompile Include="..\Code\CUI_Json.cpp" />
-    <ClCompile Include="..\Code\AncientGuardian.cpp">
+    <ClCompile Include="..\Code\CAncientGuardian.cpp">
       <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CDragon.cpp">
       <Filter>02. GameObject\10. Dragon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBeam.cpp">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CBiomine.cpp">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CVengefuHeartofEnder.cpp">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CAGAnim.cpp">
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CAGBody.cpp">
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -279,11 +294,29 @@
     <ClInclude Include="..\Header\CUI.h" />
     <ClInclude Include="..\Header\CHotbar.h" />
     <ClInclude Include="..\Header\CUI_Json.h" />
-    <ClInclude Include="..\Header\AncientGuardian.h">
+    <ClInclude Include="..\Header\CAncientGuardian.h">
       <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CDragon.h">
       <Filter>02. GameObject\10. Dragon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBeam.h">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CBiomine.h">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CVengefuHeartofEnder.h">
+      <Filter>02. GameObject\09. DLCBoss</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CAncientGuardianUV.h">
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CAGAnim.h">
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CAGBody.h">
+      <Filter>02. GameObject\09. DLCBoss\00. AncientGuardian</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
