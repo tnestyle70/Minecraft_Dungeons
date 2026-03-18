@@ -165,6 +165,9 @@
     <ClCompile Include="..\Code\CBoxPart.cpp">
       <Filter>02. GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CObjectEditor.cpp">
+      <Filter>01. Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -329,6 +332,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CBoxPart.h">
       <Filter>02. GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CObjectEditor.h">
+      <Filter>01. Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

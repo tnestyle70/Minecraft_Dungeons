@@ -6,6 +6,7 @@ CBox::CBox(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
 	, m_pTransformCom(nullptr)
 	, m_pTextureCom(nullptr)
+	, m_pColliderCom(nullptr)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -14,6 +15,7 @@ CBox::CBox(const CBox& rhs)
 	: CGameObject(rhs)
 	, m_pTransformCom(nullptr)
 	, m_pTextureCom(nullptr)
+	, m_pColliderCom(nullptr)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -44,6 +46,11 @@ _int CBox::Update_GameObject(const _float& fTimeDelta)
 	{
 		m_pParts[i]->Update_GameObject(fTimeDelta);
 	}
+
+	_vec3 vPos;
+	m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+	m_pColliderCom->Update_AABB(vPos);
 
 	CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
@@ -90,6 +97,11 @@ HRESULT CBox::Add_Component()
 		return E_FAIL;
 
 	m_mapComponent[ID_STATIC].insert({ { L"Com_Texture", pComponent } });
+
+	// Collider
+	m_pColliderCom = CCollider::Create(m_pGraphicDev, _vec3(3.5f, 2.5f, 2.5f), _vec3(0.f, 1.85f, 0.f));
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
 	// Create Child
 	for (int i = 0; i < BOX_END; i++)

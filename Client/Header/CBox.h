@@ -29,6 +29,7 @@ private:
 
 	CTexture* m_pTextureCom;
 	CTransform* m_pTransformCom;
+	CCollider* m_pColliderCom;
 
 public:
 	static CBox* Create(LPDIRECT3DDEVICE9 pGraphicDev);

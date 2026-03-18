@@ -3,6 +3,7 @@
 #include "CLoading.h"
 
 class CEditor;
+class CObjectEditor;
 
 class CLogo : public CScene
 {
@@ -22,7 +23,9 @@ private:
 
 private:
 	CEditor* m_pEditor;
+	CObjectEditor* m_pObjectEditor;
 	bool m_bF1Toggle = false;
+	bool m_bF2Toggle = false;
 public:
 	static CLogo* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
