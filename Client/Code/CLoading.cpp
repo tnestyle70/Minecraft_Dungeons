@@ -153,6 +153,13 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_2.png"))))
         return E_FAIL;
 
+
+    //플레이어 아머 텍스쳐
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArmorTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/T_BardsGarb.png"))))
+        return E_FAIL;
+
     // 닭 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))
