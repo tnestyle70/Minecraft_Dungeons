@@ -1,4 +1,4 @@
-#include "CParticleEmitter.h"
+﻿#include "CParticleEmitter.h"
 
 CParticleEmitter::CParticleEmitter(LPDIRECT3DDEVICE9 pGraphicDev)
     :CGameObject(pGraphicDev)
@@ -259,7 +259,7 @@ void CParticleEmitter::Set_RenderState()
         fMin = 1.f; fMax = 32.f;
         break;
     case PARTICLE_ATTACK:
-        fMin = 1.f; fMax = 32.f;
+        fMin = 1.f; fMax = 256.f;
         break;
     case PARTICLE_HIT:
         fMin = 1.f; fMax = 8.f;

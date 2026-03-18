@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "CScene.h"
+#include "CDynamicCamera.h"
 
 class CCamp : public CScene
 {
@@ -21,4 +22,6 @@ public:
 	static CCamp* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 private:
 	virtual void Free();
+
+	CDynamicCamera* m_pDynamicCamera = nullptr;
 };

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CGameObject.h"
 #include "ParticleType.h"
 
@@ -37,6 +37,9 @@ public:
 	//External Interface
 	void Set_Position(_vec3 vPos) { m_tParticleDesc.vEmitPos = vPos; }
 	_bool Is_Dead() const { return m_bDead; }
+
+	////태준 추가함수
+	//void Set_EmitDir(_vec3 vDir) { m_tParticleDesc.vEmitDir = vDir; }  // 파티클 퍼지는 방향 지정
 private:
 	HRESULT Ready_Emitter(const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture,
 		eParticlePreset& ePresetType);

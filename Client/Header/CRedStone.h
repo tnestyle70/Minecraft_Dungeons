@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "CScene.h"
+#include "CDynamicCamera.h"
 
 class CRedStone : public CScene
 {
@@ -21,4 +22,6 @@ public:
 	static CRedStone* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 private:
 	virtual void Free();
+
+	CDynamicCamera* m_pDynamicCamera = nullptr;
 };

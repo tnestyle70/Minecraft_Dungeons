@@ -100,7 +100,7 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 				m_fComboTimer = m_fComboWindow;
 		}
 		//========Attack Particle============//
-		if (m_pAttackEmitter)
+		if (m_iComboStep > 0 && m_pAttackEmitter)
 		{
 			_vec3 vPos;
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
@@ -119,24 +119,24 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 		}
 	}
 
-	//화살
-	for (auto& pArrow : m_vecArrows)
-		pArrow->Update_GameObject(fTimeDelta);
-
 	// 이동
 	if (m_bMoving)
 		m_fWalkTime += fTimeDelta * 8.f;
 
 	//======이동시 파티클 이펙트==========//
-	if (m_bMoving)
+	if (m_bMoving && m_pFootStepEmitter)
 	{
-		if (m_pFootStepEmitter)
-		{
-			_vec3 vPos;
-			m_pTransformCom->Get_Info(INFO_POS, &vPos);
-			vPos.y += vPos.y;
-			m_pFootStepEmitter->Set_Position(vPos);
-		}
+		_vec3 vPos, vLook;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+		D3DXVec3Normalize(&vLook, &vLook);
+
+		// 지나간 자리 = 플레이어 뒤쪽
+		vPos.x += vLook.x * 0.5f;
+		vPos.z += vLook.z * 0.5f;
+		// vPos.y = 발 아래
+
+		m_pFootStepEmitter->Set_Position(vPos);
 	}
 
 	// 피격
@@ -155,6 +155,7 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	m_pColliderCom->Update_AABB(vPos);
 
 	Attack_Collision();
+	//화살
 	for (auto& pArrow : m_vecArrows)
 		pArrow->Update_GameObject(fTimeDelta);
 
@@ -423,7 +424,7 @@ HRESULT CPlayer::Add_Component()
 
 	//플레이어 콜라이더
 	m_pColliderCom = CCollider::Create(m_pGraphicDev,
-										_vec3(0.8f, 3.2f, 0.8f),
+										_vec3(1.2f, 3.2f, 1.2f),
 										_vec3(0.f, 1.3f, 0.f));
 
 	if (nullptr == m_pColliderCom)
@@ -434,7 +435,7 @@ HRESULT CPlayer::Add_Component()
 
 	//플레이어 공격 콜라이더
 	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev,
-		_vec3(1.6f, 1.0f, 1.6f), //공격범위 크기
+		_vec3(3.5f, 2.0f, 3.5f), //공격범위 크기
 		_vec3(0.f, 0.f, 0.f)); //플레이어 기준 위치
 	if (nullptr == m_pAtkColliderCom)
 		return E_FAIL;
@@ -485,6 +486,18 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		m_fCharge += fTimeDelta;
 		if (m_fCharge > m_fMaxCharge)
 			m_fCharge = m_fMaxCharge;
+
+		// 클릭한 곳 바라보기
+		_vec3 vTarget = Picking_OnBlock();
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		_vec3 vDir = vTarget - vPos;
+		vDir.y = 0.f;
+		if (D3DXVec3Length(&vDir) > 0.1f)
+		{
+			D3DXVec3Normalize(&vDir, &vDir);
+			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+		}
 	}
 	else if (m_bCharging)
 	{
@@ -970,8 +983,13 @@ void CPlayer::Resolve_BlockCollision()
 
 void CPlayer::Hit()
 {
+	if (m_bHit)  // 이미 피격 중이면 무시
+		return;
+
 	m_bHit = true;
 	m_fHitTime = 0.f;
+	m_fHp -= 10.f;
+	if (m_fHp < 0.f) m_fHp = 0.f;
 }
 
 void CPlayer::Roll_Update(const _float& fTimeDelta)

@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CMonsterBody.h"
 #include "CMonsterAnim.h"
 #include "CArrow.h"
+
 
 class CMonster : public CGameObject
 {

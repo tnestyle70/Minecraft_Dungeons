@@ -124,8 +124,6 @@ private:
 private: //중력 적용과 충돌시 위치값 보정
 	void Apply_Gravity(const _float& fTimeDelta);
 	void Resolve_BlockCollision();
-	
-	void Hit();
 
 	//구르기
 	void Roll_Update(const _float& fTimeDelta);
@@ -138,6 +136,8 @@ private: //중력 적용과 충돌시 위치값 보정
 
 public:
 	static CPlayer* Create(LPDIRECT3DDEVICE9 pGraphicDev);
+
+	void Hit();
 
 private:
 	virtual void Free();

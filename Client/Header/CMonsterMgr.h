@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "CMonster.h"
+#include "CPlayer.h"
 //스테이지별로 트리거 박스 밟으면 생성될 몬스터 목록들 저장해두고,
 //트리거 박스 밟을 경우 몬스터들 지정된 위치로 쭉 스폰되도록 설정
 //MonsterMgr에서 IronBarMgr의 false 상태로 전환 시키기
@@ -30,6 +31,12 @@ private:
 public:
 	bool IsGroupAllDead(int iTriggerID);
 	void SetActiveMonsterGroup(int iTriggerID);
+	void SetPlayer(CPlayer* pPlayer) { m_pPlayer = pPlayer; }
+	CPlayer* Get_Player() const { return m_pPlayer; }
+
+private:
+	CPlayer* m_pPlayer = nullptr;
+
 public:
 	void AddMonster(CGameObject* pGameObject, int iTriggerID);
 	void Clear();

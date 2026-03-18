@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "CScene.h"
+#include "CDynamicCamera.h"
 
 class CObsidian : public CScene
 {
@@ -21,4 +22,6 @@ public:
 	static CObsidian* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 private:
 	virtual void Free();
+
+	CDynamicCamera* m_pDynamicCamera = nullptr;
 };

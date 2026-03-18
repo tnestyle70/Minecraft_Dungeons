@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include "CCamera.h"
 #include <deque>
+#include "CTransform.h"
 
 //Idea - deque에 waypoint를 저장하고 스테이지에서 위치값 뽑아내면서
 //쭉 훑고 deque가 비면 캠 전환
@@ -64,5 +65,18 @@ public:
 private:
 	virtual void		Free();
 
+
+
+//플레이어에게 카메라 고정
+public:
+	void SetFollowTarget(Engine::CTransform* pTransform) { m_pTargetTransform = pTransform; }
+
+private:
+	Engine::CTransform* m_pTargetTransform = nullptr;
+	_vec3 m_vFollowOffset = { 0.f, 15.f, -12.f };  // 등뒤 위치 오프셋
+
+	//자유카메라 <-> 고정카메라
+	bool m_bFollowMode = true;
+	bool m_bF2Check = false;
 };
 

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CObsidian.h"
 #include "CMonster.h"
 #include "CPlayer.h"
@@ -106,7 +106,8 @@ HRESULT CObsidian::Ready_Environment_Layer(const _tchar* pLayerTag)
 	_vec3 vAt{ 0.f, 0.f, 1.f };
 	_vec3 vUp{ 0.f, 1.f, 0.f };
 
-	pGameObject = CDynamicCamera::Create(m_pGraphicDev, &vEye, &vAt, &vUp);
+	m_pDynamicCamera = CDynamicCamera::Create(m_pGraphicDev, &vEye, &vAt, &vUp);
+	pGameObject = m_pDynamicCamera;
 
 	CDynamicCamera* pDynamicCam = dynamic_cast<CDynamicCamera*>(pGameObject);
 	if (!pDynamicCam)
@@ -152,8 +153,12 @@ HRESULT CObsidian::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		MSG_BOX("Player Collider Set Failed");
 	}
 	CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
-
+	CMonsterMgr::GetInstance()->SetPlayer(pPlayer);
 	
+	//고정카메라 추가
+	if (m_pDynamicCamera)
+		m_pDynamicCamera->SetFollowTarget(
+			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 

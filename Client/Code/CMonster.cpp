@@ -6,6 +6,8 @@
 #include "CBlockMgr.h"
 #include "CCollider.h"
 #include "CParticleMgr.h"
+#include "CPlayer.h"
+#include "CMonsterMgr.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -124,16 +126,28 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     // 좀비/스파이더 근접 공격 콜라이더 갱신
     if (m_pAtkColliderCom && pAnim &&
         (m_eType == EMonsterType::ZOMBIE || m_eType == EMonsterType::SPIDER) &&
-        pAnim->Get_State() == EMonsterState::ATTACK &&
-        pAnim->Get_StateTime() < 0.3f)
+        pAnim->Get_State() == EMonsterState::ATTACK)
     {
         _vec3 vPos, vLook;
         m_pTransformCom->Get_Info(INFO_POS, &vPos);
         m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
         D3DXVec3Normalize(&vLook, &vLook);
         _vec3 vAtkPos = vPos + vLook * 0.8f;
-        vAtkPos.y = 0.9f;
+        vAtkPos.y = vPos.y + 0.9f;
         m_pAtkColliderCom->Update_AABB(vAtkPos);
+    }
+
+    //몬스터 공격 - 플레이어 피격 충돌판정
+    if (m_pAtkColliderCom)
+    {
+        CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+        if (pPlayer)
+        {
+            Engine::CCollider* pPlayerCollider = dynamic_cast<Engine::CCollider*>(
+                pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+            if (pPlayerCollider && m_pAtkColliderCom->IsColliding(pPlayerCollider->Get_AABB()))
+                pPlayer->Hit();
+        }
     }
 
     // 크리퍼 폭발 처리
@@ -147,6 +161,19 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             m_pExplosionColliderCom->Update_AABB(vPos);
             m_bExploded = true;
             pAnim->Set_State(EMonsterState::DEAD);
+        }
+    }
+
+    // 크리퍼 폭발 → 플레이어 피격
+    if (m_eType == EMonsterType::CREEPER && m_bExploded && m_pExplosionColliderCom)
+    {
+        CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+        if (pPlayer)
+        {
+            Engine::CCollider* pPlayerCollider = dynamic_cast<Engine::CCollider*>(
+                pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+            if (pPlayerCollider && m_pExplosionColliderCom->IsColliding(pPlayerCollider->Get_AABB()))
+                pPlayer->Hit();
         }
     }
 
@@ -265,8 +292,7 @@ void CMonster::Render_GameObject()
     // 좀비/스파이더 공격 콜라이더 디버그 렌더
     if (m_pAtkColliderCom && pAnim &&
         (m_eType == EMonsterType::ZOMBIE || m_eType == EMonsterType::SPIDER) &&
-        pAnim->Get_State() == EMonsterState::ATTACK &&
-        pAnim->Get_StateTime() < 0.3f)
+        pAnim->Get_State() == EMonsterState::ATTACK)
     {
         m_pAtkColliderCom->Render_Collider();
     }

@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include "CScene.h"
 #include "CParticleEmitter.h"
+#include "CDynamicCamera.h"
 
 class CSquidCoast : public CScene
 {
@@ -22,4 +23,6 @@ public:
 	static CSquidCoast* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 private:
 	virtual void Free();
+
+	CDynamicCamera* m_pDynamicCamera = nullptr;
 };

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CDynamicCamera.h"
 #include "CDInputMgr.h"
 
@@ -45,14 +45,35 @@ _int CDynamicCamera::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CCamera::Update_GameObject(fTimeDelta);
 
+    // F1 토글
+    if (GetAsyncKeyState(VK_F2) & 0x8000)
+    {
+        if (!m_bF2Check)
+        {
+            m_bF2Check = true;
+            m_bFollowMode = !m_bFollowMode;
+            m_bFix = !m_bFollowMode;  // ← 추가
+        }
+    }
+    else
+    {
+        m_bF2Check = false;
+    }
+
     if (m_bActionCam)
     {
         Update_ActionCam(fTimeDelta);
     }
+    else if (m_pTargetTransform && m_bFollowMode)
+    {
+        _vec3 vPlayerPos;
+        m_pTargetTransform->Get_Info(INFO_POS, &vPlayerPos);
+        m_vEye = vPlayerPos + m_vFollowOffset;
+        m_vAt = vPlayerPos + _vec3(0.f, 1.5f, 0.f);
+    }
     else
     {
         Key_Input(fTimeDelta);
-
         if (m_bFix)
         {
             Mouse_Fix();
