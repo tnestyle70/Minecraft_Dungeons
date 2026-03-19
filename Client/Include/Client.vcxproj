@@ -167,6 +167,7 @@
     <ClInclude Include="..\Header\CDynamicCamera.h" />
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
+    <ClInclude Include="..\Header\CGolemStates.h" />
     <ClInclude Include="..\Header\CHUD.h" />
     <ClInclude Include="..\Header\CInventoryMgr.h" />
     <ClInclude Include="..\Header\CIronBar.h" />
@@ -203,6 +204,7 @@
     <ClInclude Include="..\Header\CHotbar.h" />
     <ClInclude Include="..\Header\CUI_Json.h" />
     <ClInclude Include="..\Header\CVengefuHeartofEnder.h" />
+    <ClInclude Include="..\Header\IGolemState.h" />
     <ClInclude Include="..\Header\StageData.h" />
     <ClInclude Include="..\Header\Templateblocks.h" />
     <ClInclude Include="Client.h" />
@@ -233,6 +235,7 @@
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />
+    <ClCompile Include="..\Code\CGolemStates.cpp" />
     <ClCompile Include="..\Code\CHUD.cpp" />
     <ClCompile Include="..\Code\CInventoryMgr.cpp" />
     <ClCompile Include="..\Code\CIronBar.cpp" />

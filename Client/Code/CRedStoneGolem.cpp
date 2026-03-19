@@ -15,20 +15,9 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_fAnimTime(0.f)
 	, m_bOnGround(false)
 	, m_fVelocityY(0.f)
-{
-	ZeroMemory(m_pParts, sizeof(m_pParts));
-}
-
-CRedStoneGolem::CRedStoneGolem(const CRedStoneGolem& rhs)
-	: CGameObject(rhs)
-	, m_pTextureCom(nullptr)
-	, m_pTransformCom(nullptr)
-	, m_pColliderCom(nullptr)
-	, m_pAtkColliderCom(nullptr)
-	, m_eState(rhs.m_eState)
-	, m_fAnimTime(rhs.m_fAnimTime)
-	, m_bOnGround(rhs.m_bOnGround)
-	, m_fVelocityY(rhs.m_fVelocityY)
+	, m_fMaxHp(5000.f)
+	, m_fHp(5000.f)
+	, m_fAtk(100.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -42,12 +31,21 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	if (FAILED(Add_Component()))
 		return E_FAIL;
 
-	m_pTransformCom->Set_Pos(0.f, 10.f, 0.f);
+	m_pStates[GOLEM_STATE_IDLE] = new CGolemState_Idle();
+	m_pStates[GOLEM_STATE_WALK] = new CGolemState_Walk();
+	m_pStates[GOLEM_STATE_ATTACK] = new CGolemState_Attack();
+	m_pStates[GOLEM_STATE_SKILL] = new CGolemState_Skill();
+	m_pStates[GOLEM_STATE_DEAD] = new CGolemState_Dead();
+
+	m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
 
 	Set_PartsOffset();
 	Set_DefaultScale();
 	Set_WorldScale();
 	Set_PartsParent();
+
+	m_pCurState = m_pStates[GOLEM_STATE_IDLE];
+	m_pCurState->Enter(this);
 
 	return S_OK;
 }
@@ -58,15 +56,17 @@ _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 
 	m_fAnimTime += fTimeDelta;
 
-	Chase_Player(fTimeDelta);
+	// 상태가 알아서 거리 체크, 애니메이션, 이동을 처리
+	if (m_pCurState)
+		m_pCurState->Update(this, fTimeDelta);
+
+	// Debug 입력은 골렘 본체에서 유지 (개발 편의)
 	Debug_Input();
-	Golem_Animation(fTimeDelta);
 
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
-	
-	//m_pColliderCom->Update_OBB(*m_pTransformCom->Get_World());
-	m_pAtkColliderCom->Update_AABB(vPos);
+	m_pColliderCom->Update_OBB(*m_pTransformCom->Get_World());
+	m_pAtkColliderCom->Update_OBB(*m_pTransformCom->Get_World());
 
 	Apply_Gravity(fTimeDelta);
 	Resolve_BlockCollision();
@@ -100,8 +100,8 @@ void CRedStoneGolem::Render_GameObject()
 		m_pParts[i]->Render_GameObject();
 	}
 
-	m_pColliderCom->Render_Collider();
-	//m_pAtkColliderCom->Render_Collider();
+	m_pColliderCom->Render_OBB();
+	m_pAtkColliderCom->Render_OBB();
 
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
@@ -127,11 +127,11 @@ HRESULT CRedStoneGolem::Add_Component()
 	m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
 
 	// Collider
-	m_pColliderCom = CCollider::Create(m_pGraphicDev, _vec3(3.5f, 3.f, 1.5f), _vec3(0.f, -0.8f, 0.f));
+	m_pColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 3.f), _vec3(0.f, -1.4f, 0.f));
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
-	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(2.f, 2.f, 1.5f), _vec3(0.f, -0.8f, -2.f));
+	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 2.5f), _vec3(0.f, -1.4f, 3.0f));
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pAtkColliderCom });
 
@@ -196,9 +196,9 @@ void CRedStoneGolem::Set_WorldScale()
 
 void CRedStoneGolem::Set_PartsOffset()
 {
-	m_pParts[GOLEM_HEAD]->Set_LocalOffset({ 0.f * m_fWorldScale,  0.15f * m_fWorldScale, -0.42f * m_fWorldScale });
+	m_pParts[GOLEM_HEAD]->Set_LocalOffset({ 0.f * m_fWorldScale,  0.15f * m_fWorldScale, 0.42f * m_fWorldScale });
 	m_pParts[GOLEM_BODY]->Set_LocalOffset({ 0.f * m_fWorldScale,  0.f * m_fWorldScale,    0.f * m_fWorldScale });
-	m_pParts[GOLEM_CORE]->Set_LocalOffset({ 0.f * m_fWorldScale, -0.1f * m_fWorldScale,   0.15f * m_fWorldScale });
+	m_pParts[GOLEM_CORE]->Set_LocalOffset({ 0.f * m_fWorldScale, -0.1f * m_fWorldScale,   -0.15f * m_fWorldScale });
 	m_pParts[GOLEM_LSHOULDER]->Set_LocalOffset({ 0.7f * m_fWorldScale,  0.f * m_fWorldScale,  0.f * m_fWorldScale });
 	m_pParts[GOLEM_RSHOULDER]->Set_LocalOffset({ -0.7f * m_fWorldScale,  0.f * m_fWorldScale,  0.f * m_fWorldScale });
 	m_pParts[GOLEM_LARM]->Set_LocalOffset({ 0.1f * m_fWorldScale, -0.6f * m_fWorldScale,  0.f * m_fWorldScale });
@@ -232,36 +232,16 @@ void CRedStoneGolem::Set_PartsParent()
 void CRedStoneGolem::Debug_Input()
 {
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_0))
-	{
-		m_eState = GOLEM_STATE_IDLE;
-	}
+		Change_State(GOLEM_STATE_IDLE);
 
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_9))
-	{
-		m_eState = GOLEM_STATE_WALK;
-	}
+		Change_State(GOLEM_STATE_WALK);
 
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_8))
-	{
-		if (m_eState != GOLEM_STATE_ATTACK)
-		{
-			m_eState = GOLEM_STATE_ATTACK;
-			m_fAnimTime = 0.f;
-
-			Reset_Pose();
-		}
-	}
+		Change_State(GOLEM_STATE_ATTACK);
 
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_7))
-	{
-		if (m_eState != GOLEM_STATE_SKILL)
-		{
-			m_eState = GOLEM_STATE_SKILL;
-			m_fAnimTime = 0.f;
-
-			Reset_Pose();
-		}
-	}
+		Change_State(GOLEM_STATE_SKILL);
 }
 
 void CRedStoneGolem::Golem_Animation(const _float& fTimeDelta)
@@ -269,23 +249,23 @@ void CRedStoneGolem::Golem_Animation(const _float& fTimeDelta)
 	switch (m_eState)
 	{
 	case GOLEM_STATE_IDLE:
-		Idle_Animation();
+		Anim_Idle();
 		break;
 
 	case GOLEM_STATE_WALK:
-		Walk_Animation();
+		Anim_Walk();
 		break;
 
 	case GOLEM_STATE_ATTACK:
-		NormalAttack_Animation();
+		Anim_NormalAttack();
 		break;
 
 	case GOLEM_STATE_SKILL:
-		Skill_Animation();
+		Anim_Skill();
 		break;
 
 	case GOLEM_STATE_DEAD:
-		Dead_Animation();
+		Anim_Dead();
 		break;
 
 	case GOLEM_STATE_END:
@@ -306,7 +286,7 @@ void CRedStoneGolem::Reset_Pose()
 	}
 }
 
-void CRedStoneGolem::Idle_Animation()
+void CRedStoneGolem::Anim_Idle()
 {
 	const _float fCycleSpeed = 1.2f;
 	const _float fAngle = m_fAnimTime * fCycleSpeed;
@@ -324,7 +304,7 @@ void CRedStoneGolem::Idle_Animation()
 	m_pParts[GOLEM_RLEG]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
 }
 
-void CRedStoneGolem::Walk_Animation()
+void CRedStoneGolem::Anim_Walk()
 {
 	const _float fCycleSpeed = 5.f;
 	const _float fAngle = m_fAnimTime * fCycleSpeed;
@@ -345,7 +325,7 @@ void CRedStoneGolem::Walk_Animation()
 	m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle * 2.f + D3DX_PI) * 2.f);
 }
 
-void CRedStoneGolem::NormalAttack_Animation()
+void CRedStoneGolem::Anim_NormalAttack()
 {
 	const _float t = m_fAnimTime;
 
@@ -473,13 +453,10 @@ void CRedStoneGolem::NormalAttack_Animation()
 	}
 
 	if (m_fAnimTime >= 1.2f)
-	{
-		m_eState = GOLEM_STATE_IDLE;
-		m_fAnimTime = 0.f;
-	}
+		Change_State(GOLEM_STATE_IDLE);
 }
 
-void CRedStoneGolem::Skill_Animation()
+void CRedStoneGolem::Anim_Skill()
 {
 	const _float t = m_fAnimTime;
 
@@ -551,13 +528,10 @@ void CRedStoneGolem::Skill_Animation()
 	m_pParts[GOLEM_RLEG]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
 
 	if (m_fAnimTime >= 2.4f)
-	{
-		m_eState = GOLEM_STATE_IDLE;
-		m_fAnimTime = 0.f;
-	}
+		Change_State(GOLEM_STATE_IDLE);
 }
 
-void CRedStoneGolem::Dead_Animation()
+void CRedStoneGolem::Anim_Dead()
 {
 	// todo
 }
@@ -569,7 +543,65 @@ void CRedStoneGolem::Chase_Player(const _float& fTimeDelta)
 	CTransform* pPlayerTransformCom = dynamic_cast<CTransform*>(CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
 	pPlayerTransformCom->Get_Info(INFO_POS, &vPlayerPos);
 
-	m_pTransformCom->Chase_Target(&vPlayerPos, 2.f, fTimeDelta);
+	m_pTransformCom->Chase_Target(&vPlayerPos, 4.f, fTimeDelta);
+}
+
+void CRedStoneGolem::LookAt_Player()
+{
+	_vec3 vPos, vPlayerPos, vDir;
+
+	m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+	CTransform* pPlayerTransform = dynamic_cast<CTransform*>(
+		CManagement::GetInstance()->Get_Component(
+			ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
+
+	pPlayerTransform->Get_Info(INFO_POS, &vPlayerPos);
+
+	vDir = vPlayerPos - vPos;
+	vDir.y = 0.f;   // 수평 방향만
+	D3DXVec3Normalize(&vDir, &vDir);
+
+	_float fAngle = atan2f(vDir.x, vDir.z);
+	m_pTransformCom->Set_Rotation(ROT_Y, D3DXToDegree(fAngle));
+}
+
+void CRedStoneGolem::Check_Distance()
+{
+	_vec3 vPos, vPlayerPos, vDir;
+
+	m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+	CTransform* pPlayerTransformCom = dynamic_cast<CTransform*>(CManagement::GetInstance()->Get_Component(ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
+
+	pPlayerTransformCom->Get_Info(INFO_POS, &vPlayerPos);
+
+	vDir = vPlayerPos - vPos;
+
+	_float fDistance = D3DXVec3Length(&vDir);
+
+	if (fDistance <= 6.f)
+		Change_State(GOLEM_STATE_ATTACK);
+	else if (fDistance <= 15.f)
+		Change_State(GOLEM_STATE_WALK);
+	else
+		Change_State(GOLEM_STATE_IDLE);
+}
+
+void CRedStoneGolem::Change_State(GOLEM_STATE eState)
+{
+	// 현재 상태가 전환을 허용하지 않으면 무시
+	// → 공격/스킬 중엔 Check_Distance가 Walk 요청해도 차단됨
+	if (m_pCurState && !m_pCurState->Can_Transition())
+		return;
+
+	if (m_pCurState)
+		m_pCurState->Exit(this);
+
+	m_pCurState = m_pStates[eState];
+	m_eState = eState;
+
+	m_pCurState->Enter(this);
 }
 
 void CRedStoneGolem::Apply_Gravity(const _float& fTimeDelta)
@@ -656,6 +688,12 @@ CRedStoneGolem* CRedStoneGolem::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CRedStoneGolem::Free()
 {
+	for (int i = 0; i < GOLEM_STATE_END; ++i)
+	{
+		delete m_pStates[i];
+		m_pStates[i] = nullptr;
+	}
+
 	for (int i = 0; i < GOLEM_END; ++i)
 	{
 		Safe_Release(m_pParts[i]);

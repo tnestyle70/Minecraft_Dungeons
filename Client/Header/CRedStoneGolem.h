@@ -2,6 +2,8 @@
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CRedStoneGolemPart.h"
+#include "IGolemState.h"
+#include "CGolemStates.h"
 
 enum GOLEM_STATE
 {
@@ -18,7 +20,6 @@ class CRedStoneGolem : public CGameObject
 {
 private:
 	explicit CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev);
-	explicit CRedStoneGolem(const CRedStoneGolem& rhs);
 	virtual ~CRedStoneGolem();
 
 public:
@@ -27,8 +28,24 @@ public:
 	virtual			void		LateUpdate_GameObject(const _float& fTimeDelta);
 	virtual			void		Render_GameObject();
 
+public:
+	void Change_State(GOLEM_STATE eState);
+	void Anim_Idle();
+	void Anim_Walk();
+	void Anim_NormalAttack();
+	void Anim_Skill();
+	void Anim_Dead();
+
+	void LookAt_Player();
+	void Check_Distance();
+	void Chase_Player(const _float& fTimeDelta);
+	void Reset_Pose();
+
+	void Set_AnimTime(_float f) { m_fAnimTime = f; }
+	_float Get_AnimTime() const { return m_fAnimTime; }
+
 private:
-	HRESULT			Add_Component();
+	HRESULT	Add_Component();
 	void Set_DefaultScale();
 	void Set_WorldScale();
 	void Set_PartsOffset();
@@ -37,24 +54,19 @@ private:
 private:
 	void Debug_Input();
 	void Golem_Animation(const _float& fTimeDelta);
-	void Reset_Pose();
-	void Idle_Animation();
-	void Walk_Animation();
-	void NormalAttack_Animation();
-	void Skill_Animation();
-	void Dead_Animation();
-	void Chase_Player(const _float& fTimeDelta);
 
 private:
 	void Apply_Gravity(const _float& fTimeDelta);
 	void Resolve_BlockCollision();
 	
 private:
-	static constexpr _float m_fWorldScale = 2.f;
+	static constexpr _float m_fWorldScale = 4.f;
 	static constexpr _float m_fGravity = -20.f;
 	static constexpr _float m_fMaxFall = -20.f;
 
 	CRedStoneGolemPart* m_pParts[GOLEM_END];
+	IGolemState* m_pCurState = nullptr;
+	IGolemState* m_pStates[GOLEM_STATE_END] = {};
 
 	Engine::CTransform* m_pTransformCom;
 	Engine::CTexture* m_pTextureCom;
@@ -67,6 +79,10 @@ private:
 
 	_bool m_bOnGround;
 	_float m_fVelocityY;
+
+	_float m_fMaxHp;
+	_float m_fHp;
+	_float m_fAtk;
 
 public:
 	static CRedStoneGolem* Create(LPDIRECT3DDEVICE9 pGraphicDev);

@@ -7,6 +7,8 @@ CBox::CBox(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_pTransformCom(nullptr)
 	, m_pTextureCom(nullptr)
 	, m_pColliderCom(nullptr)
+	, m_bIsOpen(false)
+	, m_fAnimTime(0.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -16,6 +18,8 @@ CBox::CBox(const CBox& rhs)
 	, m_pTransformCom(nullptr)
 	, m_pTextureCom(nullptr)
 	, m_pColliderCom(nullptr)
+	, m_bIsOpen(false)
+	, m_fAnimTime(0.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -41,6 +45,10 @@ HRESULT CBox::Ready_GameObject()
 _int CBox::Update_GameObject(const _float& fTimeDelta)
 {
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
+
+	m_fAnimTime += fTimeDelta;
+
+	Box_Animation();
 
 	for (_int i = 0; i < BOX_END; ++i)
 	{
@@ -130,6 +138,34 @@ void CBox::Set_PartsParent()
 {
 	m_pParts[BOX_BOTTOM]->Get_Transform()->Set_Parent(m_pTransformCom);
 	m_pParts[BOX_TOP]->Get_Transform()->Set_Parent(m_pTransformCom);
+}
+
+void CBox::Box_Animation()
+{
+	if (m_bIsOpen)
+		return;
+
+	const _float fCycleSpeed = 100.f;
+	const _float fAngle = m_fAnimTime * fCycleSpeed;
+
+	if (fAngle >= 70.f)
+	{
+		m_bIsOpen = true;
+		return;
+	}
+
+	CTransform* pTopTransform = m_pParts[BOX_TOP]->Get_Transform();
+	
+	// 힌지 오프셋 (상자의 뒤쪽)
+	_float hingeZ = -0.62f * m_fWorldScale;
+
+	// 회전할 각도 (X축)
+	pTopTransform->Set_Rotation(ROT_X, fAngle);
+
+	// X축 회전 기준으로 Z축 위치 이동 보정
+	_float rad = D3DXToRadian(fAngle);
+	_float dz = (hingeZ * cosf(rad) - hingeZ) * 0.5f; // 0.5f: 이동량 비율 조정
+	pTopTransform->Set_Pos(0.f, 0.62f * m_fWorldScale, dz);
 }
 
 CBox* CBox::Create(LPDIRECT3DDEVICE9 pGraphiDev)

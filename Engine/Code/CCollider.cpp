@@ -60,7 +60,14 @@ void CCollider::Update_AABB(const _vec3& vWorldPos)
 void CCollider::Update_OBB(const _matrix& matWorld)
 {
 	// 1. 중심 (translation)
-	m_tOBB.vCenter = D3DXVECTOR3(matWorld._41, matWorld._42, matWorld._43);
+	_vec3 vOffsetWorld;
+
+	// 회전까지 고려해서 offset 변환
+	vOffsetWorld.x = m_vOffset.x * matWorld._11 + m_vOffset.y * matWorld._21 + m_vOffset.z * matWorld._31;
+	vOffsetWorld.y = m_vOffset.x * matWorld._12 + m_vOffset.y * matWorld._22 + m_vOffset.z * matWorld._32;
+	vOffsetWorld.z = m_vOffset.x * matWorld._13 + m_vOffset.y * matWorld._23 + m_vOffset.z * matWorld._33;
+
+	m_tOBB.vCenter = D3DXVECTOR3(matWorld._41, matWorld._42, matWorld._43) + vOffsetWorld;
 
 	// 2. 축 추출 (회전 포함됨)
 	m_tOBB.vAxis[0] = D3DXVECTOR3(matWorld._11, matWorld._12, matWorld._13); // right
@@ -182,9 +189,9 @@ void CCollider::Render_OBB()
 	// -----------------------------
 	_matrix matScale;
 	D3DXMatrixScaling(&matScale,
-		m_tOBB.vHalfSize.x * 1.f,
-		m_tOBB.vHalfSize.y * 1.f,
-		m_tOBB.vHalfSize.z * 1.f);
+						1.f,
+						1.f,
+						1.f);
 
 	// -----------------------------
 	// 2. Rotation 행렬 (axis 기반)
@@ -192,15 +199,15 @@ void CCollider::Render_OBB()
 	_matrix matRot;
 
 	matRot._11 = m_tOBB.vAxis[0].x;
-	matRot._21 = m_tOBB.vAxis[0].y;
-	matRot._31 = m_tOBB.vAxis[0].z;
+	matRot._12 = m_tOBB.vAxis[0].y;
+	matRot._13 = m_tOBB.vAxis[0].z;
 
-	matRot._12 = m_tOBB.vAxis[1].x;
+	matRot._21 = m_tOBB.vAxis[1].x;
 	matRot._22 = m_tOBB.vAxis[1].y;
-	matRot._32 = m_tOBB.vAxis[1].z;
+	matRot._23 = m_tOBB.vAxis[1].z;
 
-	matRot._13 = m_tOBB.vAxis[2].x;
-	matRot._23 = m_tOBB.vAxis[2].y;
+	matRot._31 = m_tOBB.vAxis[2].x;
+	matRot._32 = m_tOBB.vAxis[2].y;
 	matRot._33 = m_tOBB.vAxis[2].z;
 
 	matRot._14 = matRot._24 = matRot._34 = 0.f;

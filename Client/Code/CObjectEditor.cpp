@@ -27,6 +27,11 @@ _int CObjectEditor::Update_Scene(const _float& fTimeDelta)
 {
     _int iExit = CScene::Update_Scene(fTimeDelta);
 
+    for (auto& pair : m_mapEditObject)
+    {
+        pair.second->Update_GameObject(fTimeDelta);
+    }
+
     Editor_Input();
 
     return iExit;
@@ -35,10 +40,20 @@ _int CObjectEditor::Update_Scene(const _float& fTimeDelta)
 void CObjectEditor::LateUpdate_Scene(const _float& fTimeDelta)
 {
     CScene::LateUpdate_Scene(fTimeDelta);
+
+    for (auto& pair : m_mapEditObject)
+    {
+        pair.second->LateUpdate_GameObject(fTimeDelta);
+    }
 }
 
 void CObjectEditor::Render_Scene()
 {
+    for (auto& pair : m_mapEditObject)
+    {
+        pair.second->Render_GameObject();
+    }
+
     if (!m_pSelectedObject) return;
 
     CTransform* pTrans = dynamic_cast<CTransform*>(
@@ -105,7 +120,8 @@ HRESULT CObjectEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
     if (!pGameObject)
         return E_FAIL;
 
-    pLayer->Add_GameObject(L"DynamicCamera", pGameObject);
+    if (FAILED(pLayer->Add_GameObject(L"DynamicCamera", pGameObject)))
+        return E_FAIL;
 
     m_mapLayer.insert({ pLayerTag, pLayer });
 
@@ -183,14 +199,49 @@ void CObjectEditor::Editor_Input()
             {
                 pBoxTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 
-                // 기존처럼 렌더/업데이트용으로 레이어에도 추가
-                m_mapLayer[L"Environment_Layer"]->Add_GameObject(L"Box", pBox);
+                static int iID = 0;
 
-                // 피킹/선택용으로 에디터 컨테이너에도 추가 (키를 unique하게)
-                wstring wstrKey = L"Box_" + to_wstring(m_mapEditObject.size());
+                wstring wstrKey = L"Box_" + to_wstring(iID++);
                 m_mapEditObject.insert({ wstrKey, pBox });
             }
         }
+    }
+
+    if (GetAsyncKeyState(VK_RBUTTON) & 0x0001)
+    {
+        if (m_pSelectedObject)
+        {
+            for (auto iter = m_mapEditObject.begin(); iter != m_mapEditObject.end(); )
+            {
+                if (iter->second == m_pSelectedObject)
+                {
+                    Safe_Release(iter->second);
+                    iter = m_mapEditObject.erase(iter);
+                }
+                else
+                    ++iter;
+            }
+
+            m_pSelectedObject = nullptr;
+        }
+    }
+
+    if (GetAsyncKeyState(VK_RIGHT))
+    {
+        if (m_pSelectedObject)
+        {
+            CTransform* pTrans = dynamic_cast<CTransform*>(
+                m_pSelectedObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+            pTrans->Rotation(ROT_Y, -3.f);
+        }
+    }
+    else if (GetAsyncKeyState(VK_LEFT))
+    {
+        CTransform* pTrans = dynamic_cast<CTransform*>(
+            m_pSelectedObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+        pTrans->Rotation(ROT_Y, 3.f);
     }
 }
 
@@ -292,6 +343,11 @@ CObjectEditor* CObjectEditor::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 
 void CObjectEditor::Free()
 {
+    for (auto& pair : m_mapEditObject)
+    {
+        Safe_Release(pair.second);
+    }
     m_mapEditObject.clear();
+
     CScene::Free();
 }

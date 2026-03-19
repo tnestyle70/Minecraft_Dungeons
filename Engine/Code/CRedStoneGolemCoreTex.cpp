@@ -40,28 +40,28 @@ HRESULT CRedStoneGolemCoreTex::Ready_Buffer()
     const _float fHalfZ = 0.5f;
 
     // FRONT
-    pVertex[0].vPosition = { -fHalfX,  fHalfY, -fHalfZ };
-    pVertex[1].vPosition = { fHalfX,  fHalfY, -fHalfZ };
-    pVertex[2].vPosition = { fHalfX, -fHalfY, -fHalfZ };
-    pVertex[3].vPosition = { -fHalfX, -fHalfY, -fHalfZ };
+    pVertex[0].vPosition = { -fHalfX,  fHalfY, fHalfZ };
+    pVertex[1].vPosition = { fHalfX,  fHalfY, fHalfZ };
+    pVertex[2].vPosition = { fHalfX, -fHalfY, fHalfZ };
+    pVertex[3].vPosition = { -fHalfX, -fHalfY, fHalfZ };
 
     //// BACK
-    pVertex[4].vPosition = { fHalfX,  fHalfY,  fHalfZ };
-    pVertex[5].vPosition = { -fHalfX,  fHalfY,  fHalfZ };
-    pVertex[6].vPosition = { -fHalfX, -fHalfY,  fHalfZ };
-    pVertex[7].vPosition = { fHalfX, -fHalfY,  fHalfZ };
+    pVertex[4].vPosition = { fHalfX,  fHalfY,  -fHalfZ };
+    pVertex[5].vPosition = { -fHalfX,  fHalfY,  -fHalfZ };
+    pVertex[6].vPosition = { -fHalfX, -fHalfY,  -fHalfZ };
+    pVertex[7].vPosition = { fHalfX, -fHalfY,  -fHalfZ };
 
     //// LEFT
-    pVertex[8].vPosition = { -fHalfX,  fHalfY,  fHalfZ };
-    pVertex[9].vPosition = { -fHalfX,  fHalfY, -fHalfZ };
-    pVertex[10].vPosition = { -fHalfX, -fHalfY, -fHalfZ };
-    pVertex[11].vPosition = { -fHalfX, -fHalfY,  fHalfZ };
+    pVertex[8].vPosition = { -fHalfX,  fHalfY,  -fHalfZ };
+    pVertex[9].vPosition = { -fHalfX,  fHalfY, fHalfZ };
+    pVertex[10].vPosition = { -fHalfX, -fHalfY, fHalfZ };
+    pVertex[11].vPosition = { -fHalfX, -fHalfY,  -fHalfZ };
 
     //// RIGHT
-    pVertex[12].vPosition = { fHalfX,  fHalfY, -fHalfZ };
-    pVertex[13].vPosition = { fHalfX,  fHalfY,  fHalfZ };
-    pVertex[14].vPosition = { fHalfX, -fHalfY,  fHalfZ };
-    pVertex[15].vPosition = { fHalfX, -fHalfY, -fHalfZ };
+    pVertex[12].vPosition = { fHalfX,  fHalfY, fHalfZ };
+    pVertex[13].vPosition = { fHalfX,  fHalfY,  -fHalfZ };
+    pVertex[14].vPosition = { fHalfX, -fHalfY,  -fHalfZ };
+    pVertex[15].vPosition = { fHalfX, -fHalfY, fHalfZ };
 
     //// TOP
     pVertex[16].vPosition = { -fHalfX,  fHalfY,  fHalfZ };

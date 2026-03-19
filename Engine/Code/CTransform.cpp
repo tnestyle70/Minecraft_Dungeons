@@ -110,7 +110,7 @@ void CTransform::Chase_Target(const _vec3* pPos, const _float& fSpeed, const _fl
 
     m_vInfo[INFO_POS] += *D3DXVec3Normalize(&vDir, &vDir) * fSpeed * fTimeDelta;
 
-    _float fAngle = atan2f(vDir.x, vDir.z) + D3DX_PI;
+    _float fAngle = atan2f(vDir.x, vDir.z);
 
     _matrix matScale, matRot, matTrans;
 

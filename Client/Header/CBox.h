@@ -23,6 +23,9 @@ private:
 	void Set_PartsParent();
 
 private:
+	void Box_Animation();
+
+private:
 	static constexpr _float m_fWorldScale = 3.f;
 
 	CBoxPart* m_pParts[BOX_END];
@@ -30,6 +33,9 @@ private:
 	CTexture* m_pTextureCom;
 	CTransform* m_pTransformCom;
 	CCollider* m_pColliderCom;
+
+	_bool m_bIsOpen;
+	_float m_fAnimTime;
 
 public:
 	static CBox* Create(LPDIRECT3DDEVICE9 pGraphicDev);

@@ -29,6 +29,7 @@ public:
 	virtual _int Update_Component(const _float& fTimeDelta) override;
 public:
 	AABB Get_AABB() const { return m_tAABB; }
+	OBB Get_OBB() const { return m_tOBB; }
 	//Transform 위치를 기준으로 AABB 업데이트
 	void Update_AABB(const _vec3& vWorldPos);
 	void Update_OBB(const _matrix& matWorld);
