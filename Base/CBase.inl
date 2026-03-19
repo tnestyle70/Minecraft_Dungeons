@@ -11,6 +11,7 @@ unsigned	long		CBase::AddRef()
 {
 	return ++m_dwRefCnt;
 }
+
 unsigned	long		CBase::Release()
 {	
 	if (0 == m_dwRefCnt)

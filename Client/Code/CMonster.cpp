@@ -8,6 +8,7 @@
 #include "CParticleMgr.h"
 #include "CPlayer.h"
 #include "CMonsterMgr.h"
+#include "CDamageMgr.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -408,6 +409,11 @@ void CMonster::Take_Damage(int iDamage)
 
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
     if (!pAnim) return;
+
+    //Damage Text
+    _vec3 vPos = m_pTransformCom->m_vInfo[INFO_POS];
+    vPos.y += 1.5f;
+    CDamageMgr::GetInstance()->AddDamage(vPos, iDamage);
 
     if (m_iHp <= 0)
     {

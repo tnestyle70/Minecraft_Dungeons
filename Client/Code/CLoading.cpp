@@ -32,7 +32,7 @@ HRESULT CLoading::Ready_Loading(LOADINGID eID)
 
 _uint CLoading::Loading_SquidCoast()
 {
-    lstrcpy(m_szLoading, L"Buffer Loading.....................................");
+    lstrcpy(m_szLoading, L"버퍼 로딩중");
 
     if (nullptr == CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_TriCol"))
     {
@@ -64,6 +64,31 @@ _uint CLoading::Loading_SquidCoast()
             return E_FAIL;
     }
 
+    //UI - Inventory
+    //Slot Frame
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_FrameTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/gear_main_slot.png"))))
+        return E_FAIL;
+    //Slot Hover Frame
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HoverFrameTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/hover_frame.png"))))
+        return E_FAIL;
+    //Slot Click slot
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ClickedFrameTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/click_frame.png"))))
+        return E_FAIL;
+    //small unique slot
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SmallUniqueSlotHoverTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/small_unique_slot.png"))))
+        return E_FAIL;
+    //Pickaxe
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PickAxeTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Pickaxe_Texture.png"))))
+        return E_FAIL;
+    //Bow
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Bow_Texture.png"))))
+        return E_FAIL;
     // RedStoneGolem
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))
         return E_FAIL;
@@ -86,7 +111,6 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemLegTex", Engine::CRedStoneGolemLegTex::Create(m_pGraphicDev))))
         return E_FAIL;
 
-
     // Box
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxBottomTex", Engine::CBoxBottomTex::Create(m_pGraphicDev))))
         return E_FAIL;
@@ -94,7 +118,7 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxTopTex", Engine::CBoxTopTex::Create(m_pGraphicDev))))
         return E_FAIL;
 
-    lstrcpy(m_szLoading, L"Texture Loading.....................................");
+    lstrcpy(m_szLoading, L"텍스쳐 로딩중");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Terrain/Grass_%d.tga", 2))))
@@ -368,7 +392,7 @@ _uint CLoading::Loading_SquidCoast()
         Engine::CCubeBodyTex::Create(m_pGraphicDev, SpiderUV::LEG))))
         return E_FAIL;
 
-
+    //가디언
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AncientGuardianTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/DLC boss/Ancient_Guardian.png"))))
         return E_FAIL; 
@@ -428,7 +452,7 @@ _uint CLoading::Loading_SquidCoast()
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI/Materials/hotbar.png"))))
         return E_FAIL;
 
-    lstrcpy(m_szLoading, L"Etc Loading.....................................");
+    lstrcpy(m_szLoading, L"기타 등등 로딩");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Transform", Engine::CTransform::Create(m_pGraphicDev))))
         return E_FAIL;
@@ -436,7 +460,7 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Calculator", Engine::CCalculator::Create(m_pGraphicDev))))
         return E_FAIL;
 
-    lstrcpy(m_szLoading, L"Loading Complete !!!!");
+    lstrcpy(m_szLoading, L"Loading Complete!!!!");
 
     m_bFinish = true;
 

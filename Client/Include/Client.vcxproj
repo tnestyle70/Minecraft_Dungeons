@@ -162,6 +162,8 @@
     <ClInclude Include="..\Header\CBox.h" />
     <ClInclude Include="..\Header\CBoxPart.h" />
     <ClInclude Include="..\Header\CCamp.h" />
+    <ClInclude Include="..\Header\CCursorMgr.h" />
+    <ClInclude Include="..\Header\CDamageMgr.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
     <ClInclude Include="..\Header\CDragon.h" />
     <ClInclude Include="..\Header\CDynamicCamera.h" />
@@ -170,6 +172,7 @@
     <ClInclude Include="..\Header\CGolemStates.h" />
     <ClInclude Include="..\Header\CHUD.h" />
     <ClInclude Include="..\Header\CInventoryMgr.h" />
+    <ClInclude Include="..\Header\CInventorySlot.h" />
     <ClInclude Include="..\Header\CIronBar.h" />
     <ClInclude Include="..\Header\CIronBarMgr.h" />
     <ClInclude Include="..\Header\CLoading.h" />
@@ -202,6 +205,7 @@
     <ClInclude Include="..\Header\CTriggerBoxMgr.h" />
     <ClInclude Include="..\Header\CUI.h" />
     <ClInclude Include="..\Header\CHotbar.h" />
+    <ClInclude Include="..\Header\CUIInterface.h" />
     <ClInclude Include="..\Header\CUI_Json.h" />
     <ClInclude Include="..\Header\CVengefuHeartofEnder.h" />
     <ClInclude Include="..\Header\IGolemState.h" />
@@ -231,6 +235,8 @@
     <ClCompile Include="..\Code\CBox.cpp" />
     <ClCompile Include="..\Code\CBoxPart.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
+    <ClCompile Include="..\Code\CCursorMgr.cpp" />
+    <ClCompile Include="..\Code\CDamageMgr.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
@@ -238,6 +244,7 @@
     <ClCompile Include="..\Code\CGolemStates.cpp" />
     <ClCompile Include="..\Code\CHUD.cpp" />
     <ClCompile Include="..\Code\CInventoryMgr.cpp" />
+    <ClCompile Include="..\Code\CInventorySlot.cpp" />
     <ClCompile Include="..\Code\CIronBar.cpp" />
     <ClCompile Include="..\Code\CIronBarMgr.cpp" />
     <ClCompile Include="..\Code\CLoading.cpp" />
@@ -267,6 +274,7 @@
     <ClCompile Include="..\Code\CTriggerBoxMgr.cpp" />
     <ClCompile Include="..\Code\CUI.cpp" />
     <ClCompile Include="..\Code\CHotbar.cpp" />
+    <ClCompile Include="..\Code\CUIInterface.cpp" />
     <ClCompile Include="..\Code\CUI_Json.cpp" />
     <ClCompile Include="..\Code\CVengefuHeartofEnder.cpp" />
     <ClCompile Include="..\Code\imgui.cpp">

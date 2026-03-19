@@ -34,6 +34,7 @@ enum class eDragonState
 //Tail -> Follow the Leader(꼬리 추종)
 //WingL/R sin 파형 날개짓
 //Compute BoneMatrix -> SetTransform -> Render
+
 class CDragon : public CGameObject
 {
 public:
@@ -89,7 +90,6 @@ private:
 	//쿼터니언 보간
 	void Slerp_NeckChain(DRAGON_BONE* pResult,
 		DRAGON_BONE* pCurrent, _int iCount, _float fAlpha);
-
 	//뼈 월드 행렬 - Look-At 방식, DX9 Row-Major
 	//vZ = Normalize(bone.vDir)
 	//vX = normalize(worldUp * z)

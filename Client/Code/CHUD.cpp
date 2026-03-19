@@ -82,7 +82,6 @@ void CHUD::Render_GameObject()
 
 	//알파블렌딩 - 옵션 다시 꺼주기!!
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 }
@@ -127,4 +126,6 @@ CHUD* CHUD::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 }
 
 void CHUD::Free()
-{}
+{
+
+}

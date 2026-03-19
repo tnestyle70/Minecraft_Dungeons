@@ -13,6 +13,7 @@
 #include "CSceneChanger.h"
 #include "CRenderer.h"
 #include "CObjectEditor.h"
+#include "CInventoryMgr.h"
 
 CLogo::CLogo(LPDIRECT3DDEVICE9 pGraphicDev)
     : Engine::CScene(pGraphicDev), m_pEditor(nullptr), m_pObjectEditor(nullptr)
@@ -117,6 +118,13 @@ void CLogo::Render_Scene()
     }
 }
 
+void CLogo::Render_UI()
+{
+    _vec2 vPos{ 460.f, 550.f };
+    CFontMgr::GetInstance()->Render_Font(
+        L"Font_Minecraft", L"Please Press Any Keys", &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));
+}
+
 HRESULT CLogo::Ready_Environment_Layer(const _tchar* pLayerTag)
 {
     CLayer* pLayer = CLayer::Create();
@@ -142,18 +150,10 @@ HRESULT CLogo::Ready_Environment_Layer(const _tchar* pLayerTag)
 }
 
 HRESULT CLogo::Ready_Prototype()
-{   
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RcTex", Engine::CRcTex::Create(m_pGraphicDev))))
-        return E_FAIL;
- 
+{    
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_MainMenuTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/MainMenu_Screen2.png"))))
         return E_FAIL;
-
-    //=======UI=========//
-    //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HUDTexture",
-    //    CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/hotbar.png"))))
-    //    return E_FAIL;
 
     //·Îµù¾À µî·Ï
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",

@@ -14,6 +14,9 @@
 #include "CSceneChanger.h"
 #include "CRenderer.h"
 #include "StageData.h"
+#include "CAncientGuardian.h"
+#include "CHUD.h"
+#include "CBox.h"
 
 CObsidian::CObsidian(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -91,6 +94,9 @@ void CObsidian::Render_Scene()
 	CBlockMgr::GetInstance()->Render();
 }
 
+void CObsidian::Render_UI()
+{}
+
 HRESULT CObsidian::Ready_Environment_Layer(const _tchar* pLayerTag)
 {
 	CLayer* pLayer = CLayer::Create();
@@ -160,6 +166,34 @@ HRESULT CObsidian::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		m_pDynamicCamera->SetFollowTarget(
 			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 
+	//Dragon
+	pGameObject = CDragon::Create(m_pGraphicDev);
+	if (!pGameObject)
+	{
+		MSG_BOX("Dragon Create Failed");
+		return E_FAIL;
+	}
+	pLayer->Add_GameObject(L"Dragon", pGameObject);
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
+	//Ancient Guardian
+	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(20.f, 5.f, 5.f));
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
+		return E_FAIL;
+
+	//Object
+	pGameObject = CBox::Create(m_pGraphicDev);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
+		return E_FAIL;
+
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
@@ -167,6 +201,23 @@ HRESULT CObsidian::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 HRESULT CObsidian::Ready_UI_Layer(const _tchar* pLayerTag)
 {
+	CLayer* pLayer = CLayer::Create();
+
+	if (!pLayer)
+		return E_FAIL;
+
+	CGameObject* pGameObject = nullptr;
+	//HUD
+	pGameObject = CHUD::Create(m_pGraphicDev);
+
+	if (nullptr == pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"HUD", pGameObject)))
+		return E_FAIL;
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	return S_OK;
 }
 

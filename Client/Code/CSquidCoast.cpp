@@ -22,7 +22,8 @@
 #include "CHUD.h"
 #include "CDragon.h"
 #include "CBox.h"
-
+#include "CInventoryMgr.h"
+#include "CInventorySlot.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -54,6 +55,13 @@ HRESULT CSquidCoast::Ready_Scene()
 
 _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 {
+	//Inventory 활성화되었을 경우 Inventory만 Update
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->Update(fTimeDelta);
+		return 0;
+	}
+
 	_int iExit = CScene::Update_Scene(fTimeDelta);
 
 	CBlockMgr::GetInstance()->Update(fTimeDelta);
@@ -80,7 +88,13 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 		);
 	}
 
+	//Inventory Toggle
+	if (GetAsyncKeyState('I') & 0x8000)
+	{
+		CInventoryMgr::GetInstance()->SetInventory(true);
+	}
 	
+	//Scene Change
 	if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
 	{
 		//Render Group Clear Before Change Scene!!!!
@@ -110,6 +124,12 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 
 void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 {
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->LateUpdate(fTimeDelta);
+		return;
+	}
+
 	CScene::LateUpdate_Scene(fTimeDelta);
 
 	CTriggerBoxMgr::GetInstance()->LateUpdate(fTimeDelta);
@@ -121,9 +141,23 @@ void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CSquidCoast::Render_Scene()
 {
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->Render();
+		return;
+	}
+
 	CBlockMgr::GetInstance()->Render();
 
 	CParticleMgr::GetInstance()->Render();
+}
+
+void CSquidCoast::Render_UI()
+{
+	if (CInventoryMgr::GetInstance()->IsActive())
+		return;
+	//데미지 폰트 렌더링
+	//CDamageMgr
 }
 
 HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -208,31 +242,31 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 	
 	//Dragon
-	pGameObject = CDragon::Create(m_pGraphicDev);
-	if (!pGameObject)
-	{
-		MSG_BOX("Dragon Create Failed");
-		return E_FAIL;
-	}
-	pLayer->Add_GameObject(L"Dragon", pGameObject);
+	//pGameObject = CDragon::Create(m_pGraphicDev);
+	//if (!pGameObject)
+	//{
+	//	MSG_BOX("Dragon Create Failed");
+	//	return E_FAIL;
+	//}
+	//pLayer->Add_GameObject(L"Dragon", pGameObject);
 
-	m_mapLayer.insert({ pLayerTag, pLayer });
+	//m_mapLayer.insert({ pLayerTag, pLayer });
 
-	//Boss
-	pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
+	////Boss
+	//pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
 
-	if (!pGameObject)
-		return E_FAIL;
+	//if (!pGameObject)
+	//	return E_FAIL;
 
-	if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
-		return E_FAIL; 
+	//if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
+	//	return E_FAIL; 
 
-	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(5.f, 5.f, 5.f));
-	if (!pGameObject) 
-		return E_FAIL;
+	//pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(5.f, 5.f, 5.f));
+	//if (!pGameObject) 
+	//	return E_FAIL;
 
-	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
-		return E_FAIL;
+	//if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
+	//	return E_FAIL;
 
 	//Object
 	pGameObject = CBox::Create(m_pGraphicDev);
@@ -266,6 +300,18 @@ HRESULT CSquidCoast::Ready_UI_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
+
+	//InventorySlot
+	//pGameObject = CInventorySlot::Create(m_pGraphicDev);
+	//if (!pGameObject)
+	//	return E_FAIL;
+	//if (FAILED(pLayer->Add_GameObject(L"InventorySlot", pGameObject)))
+	//	return E_FAIL;
+	////Set Position, Scale
+	//CInventorySlot* pSlot = dynamic_cast<CInventorySlot*>(pGameObject);
+	//pSlot->SetSlotInfo(300.f, 300.f, 150.f, 150.f);
+
+	//m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
 }

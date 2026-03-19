@@ -2,6 +2,8 @@
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 
+//HUD 플레이어의 생성과 동기화를 시켜서 체력 정보를 업데이트하는 것이 핵심
+
 class CHUD : public CGameObject
 {
 private:

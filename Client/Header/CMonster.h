@@ -30,6 +30,8 @@ public:
     bool IsActive() { return m_bActive; }
     void SetActive(bool bActive) { m_bActive = bActive; }
 
+    CCollider* Get_Collider() const { return m_pColliderCom; }
+
 private:
     HRESULT             Add_Component();
     void                Update_Arrow(const _float& fTimeDelta);

@@ -13,14 +13,9 @@
 #include "CMonsterMgr.h"
 #include "CIronBarMgr.h"
 #include "CTriggerBoxMgr.h"
-#include "CMonsterMgr.h" 
-#include "CTriggerBoxMgr.h"
-#include "CIronBarMgr.h"
-#include "CParticleMgr.h"
-
-/// <summary>
-/// test 1111111111
-/// </summary>
+#include "CInventoryMgr.h"
+#include "CCursorMgr.h"
+#include "CDamageMgr.h"
 
 CMainApp::CMainApp()
     : m_pDeviceClass(nullptr), m_pGraphicDev(nullptr)
@@ -53,6 +48,10 @@ HRESULT CMainApp::Ready_MainApp()
 int CMainApp::Update_MainApp(const float& fTimeDelta)
 {
     CDInputMgr::GetInstance()->Update_InputDev();
+
+    CDamageMgr::GetInstance()->Update(fTimeDelta);
+
+    CCursorMgr::GetInstance()->Update(fTimeDelta);
 
     m_pManagementClass->Update_Scene(fTimeDelta);
 
@@ -100,6 +99,10 @@ void CMainApp::Render_MainApp()
     ImGui::Render();               
     ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
+    CDamageMgr::GetInstance()->Render();
+
+    CCursorMgr::GetInstance()->Render();
+
     m_pDeviceClass->Render_End();
 }
 
@@ -118,6 +121,19 @@ HRESULT CMainApp::Ready_DefaultSetting(LPDIRECT3DDEVICE9* ppGraphicDev)
     (*ppGraphicDev)->SetRenderState(D3DRS_ZENABLE, TRUE);      
     (*ppGraphicDev)->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);  
 
+    //MineCraftStyle Font Add
+    if (0 == AddFontResourceEx(
+        L"../Bin/Resource/Font/minecraft.ttf",
+        FR_PRIVATE, nullptr))
+    {
+        MSG_BOX("Minecraft font load Failded");
+        return E_FAIL;
+    }
+
+    if (FAILED(CFontMgr::GetInstance()->Ready_Font(m_pGraphicDev,
+        L"Font_Minecraft", L"Minecraft", 16, 30, FW_NORMAL)))
+        return E_FAIL;
+
     if (FAILED(CFontMgr::GetInstance()->Ready_Font(m_pGraphicDev, L"Font_Default", L"????", 15, 20, FW_HEAVY)))
         return E_FAIL;
 
@@ -131,6 +147,38 @@ HRESULT CMainApp::Ready_DefaultSetting(LPDIRECT3DDEVICE9* ppGraphicDev)
     CSoundMgr::GetInstance()->Initialize();
 
     //CSoundMgr::GetInstance()->PlayBGM(L"BGM/Title.wav", 2.f);
+
+    //RcTex
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RcTex", Engine::CRcTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+    //Cursor - Default
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CursorTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/T_defaultCursor.png"))))
+        return E_FAIL;
+    //Cursor - Hover
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CursorClickTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/T_defaultCursorInteract.png"))))
+        return E_FAIL;
+    //Attack Cursor - Default
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AttackCursorTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/T_actionCursor.png"))))
+        return E_FAIL;
+    //Attack Cursor - Hover
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AttackCursorHoverTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/T_actionCursorInteract.png"))))
+        return E_FAIL;
+
+    //Inventory 세팅
+    if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))
+        return E_FAIL;
+
+    //CursorMgr
+    if (FAILED(CCursorMgr::GetInstance()->Ready_CursorMgr(m_pGraphicDev)))
+        return E_FAIL;
+
+    //DamageMgr
+    if (FAILED(CDamageMgr::GetInstance()->Ready_DamageMgr(m_pGraphicDev)))
+        return E_FAIL;
 
     (*ppGraphicDev)->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
     (*ppGraphicDev)->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
@@ -189,6 +237,9 @@ void CMainApp::Free()
     CTriggerBoxMgr::GetInstance()->DestroyInstance();
     CParticleMgr::GetInstance()->DestroyInstance();
     CBlockMgr::GetInstance()->DestroyInstance();
+    CInventoryMgr::GetInstance()->DestroyInstance();
+    CCursorMgr::GetInstance()->DestroyInstance();
+    CDamageMgr::GetInstance()->DestroyInstance();
 
     // 5. 엔진 서비스 매니저들
     CSoundMgr::GetInstance()->DestroyInstance();

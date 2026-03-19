@@ -101,6 +101,10 @@ void CObjectEditor::Render_Scene()
     m_pGraphicDev->SetFVF(dwFVF);
 }
 
+void CObjectEditor::Render_UI()
+{
+}
+
 HRESULT CObjectEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 {
     CLayer* pLayer = CLayer::Create();

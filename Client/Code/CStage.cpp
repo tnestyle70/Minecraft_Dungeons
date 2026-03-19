@@ -69,8 +69,11 @@ void CStage::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CStage::Render_Scene()
 {
-    //����ȭ ���� �ּ� ����
     CBlockMgr::GetInstance()->Render();
+}
+
+void CStage::Render_UI()
+{
 }
 
 HRESULT CStage::Ready_Environment_Layer(const _tchar* pLayerTag)

@@ -15,7 +15,7 @@
 #include "CRenderer.h"
 #include "StageData.h" 
 #include "CAncientGuardian.h"
-
+#include "CHUD.h"
 
 CCamp::CCamp(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -94,6 +94,9 @@ void CCamp::Render_Scene()
 {
 	CBlockMgr::GetInstance()->Render();
 }
+
+void CCamp::Render_UI()
+{}
 
 HRESULT CCamp::Ready_Environment_Layer(const _tchar* pLayerTag)
 {
@@ -174,6 +177,23 @@ HRESULT CCamp::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 HRESULT CCamp::Ready_UI_Layer(const _tchar* pLayerTag)
 {
+	CLayer* pLayer = CLayer::Create();
+
+	if (!pLayer)
+		return E_FAIL;
+
+	CGameObject* pGameObject = nullptr;
+	//HUD
+	pGameObject = CHUD::Create(m_pGraphicDev);
+
+	if (nullptr == pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"HUD", pGameObject)))
+		return E_FAIL;
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	return S_OK;
 }
 

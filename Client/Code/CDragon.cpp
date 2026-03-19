@@ -113,7 +113,7 @@ HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 		MSG_BOX("Dragon BoneBuffer Create Failed");
 		return E_FAIL;
 	}
-
+	
 	D3DXMatrixIdentity(&bone.matWorld);
 
 	return S_OK;
@@ -121,7 +121,7 @@ HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 
 void CDragon::Handle_Input(const _float& fTimeDelta)
 {
-	const _float fInputSpeed = 15.f;
+	const _float fInputSpeed = 200.f;
 	_vec3 vInputDelta(0.f, 0.f, 0.f);
 	m_bManualControl = false;
 	

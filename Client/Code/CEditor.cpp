@@ -6,6 +6,9 @@
 #include "CSceneChanger.h"
 #include "CTriggerBox.h"
 #include "CBlockPreset.h"
+#include "CRedStoneGolem.h"
+#include "CRedStoneGolemPart.h"
+#include "CAncientGuardian.h"
 
 CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
@@ -92,7 +95,7 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 	}
 	
 	//Particle
-	CParticleMgr::GetInstance()->Update(fTimeDelta);
+	//CParticleMgr::GetInstance()->Update(fTimeDelta);
 
 	switch (m_eEditMode)
 	{
@@ -113,7 +116,7 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 		UpdateTriggerBoxMode();
 		break;
 	case MODE_PARTICLE:
-		UpdateParticleMode();
+		//UpdateParticleMode();
 		break;
 	default:
 		break;
@@ -139,12 +142,16 @@ void CEditor::Render_Scene()
 	CBlockMgr::GetInstance()->Render();
 
 
-	CParticleMgr::GetInstance()->Render();
+	//CParticleMgr::GetInstance()->Render();
 
 	Render_MenuBar();
 	Render_Hierarchy();
 	Render_Inspector();
 	Render_Viewport();
+}
+
+void CEditor::Render_UI()
+{
 }
 
 HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -358,7 +365,7 @@ void CEditor::Render_Inspector()
 		Render_TriggerPalette();
 		break;
 	case MODE_PARTICLE:
-		Render_ParticleEditor();
+		//Render_ParticleEditor();
 		break;
 	default:
 		break;
@@ -488,12 +495,13 @@ void CEditor::Render_MonsterPalette()
 	//몬스터 타입 선택
 	const char* szMonsters[] =
 	{
-		"Zombie", "Skeleton", "Creeper", "Spider"
+		"Zombie", "Skeleton", "Creeper", "Spider",
+		"RedStoneGolem", "Ancient Guardian"
 	};
 
 	ImGui::Text("Type:");
 	
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 6; ++i)
 	{
 		//Allign Buttons to Coloum
 		if (i > 0)
@@ -1280,6 +1288,11 @@ HRESULT CEditor::Ready_ProtoType()
 		Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Explosion/Explosion%d.png", 90))))
 		return E_FAIL;
 
+	//가디언
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_AncientGuardianTexture",
+		CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/DLC boss/Ancient_Guardian.png"))))
+		return E_FAIL;
+
 	// BOSS
 	// RedStoneGolem
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemTexture",
@@ -1508,6 +1521,35 @@ HRESULT CEditor::Ready_ProtoType()
 
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Calculator", Engine::CCalculator::Create(m_pGraphicDev))))
 		return E_FAIL;
+
+	// RedStoneGolem
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", 
+	//	Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemHeadTex",
+	//	Engine::CRedStoneGolemHeadTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemShoulderTex", 
+	//	Engine::CRedStoneGolemShoulderTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemHipTex", 
+	//	Engine::CRedStoneGolemHipTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemCoreTex", 
+	//	Engine::CRedStoneGolemCoreTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemArmTex", 
+	//	Engine::CRedStoneGolemArmTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
+
+	//if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemLegTex",
+	//	Engine::CRedStoneGolemLegTex::Create(m_pGraphicDev))))
+	//	return E_FAIL;
 
 	return 0;
 }

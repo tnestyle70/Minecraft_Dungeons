@@ -21,7 +21,7 @@ private:
 private:
 	Engine::CRcTex*		m_pBufferCom;
 	Engine::CTexture*	m_pTextureCom;
-
+	
 public:
 	static CBackGround* Create(LPDIRECT3DDEVICE9 pGraphicDev,
 		const _tchar* pProtoPath);

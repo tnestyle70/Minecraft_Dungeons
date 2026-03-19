@@ -1,5 +1,6 @@
 #include "CManagement.h"
 #include "CRenderer.h"
+#include "CFontMgr.h"
 
 IMPLEMENT_SINGLETON(CManagement)
 
@@ -51,6 +52,8 @@ void CManagement::Render_Scene(LPDIRECT3DDEVICE9 pGraphicDev)
     m_pScene->Render_Scene();
 
     CRenderer::GetInstance()->Render_GameObject(pGraphicDev);
+
+    m_pScene->Render_UI();
 }
 
 void CManagement::Free()

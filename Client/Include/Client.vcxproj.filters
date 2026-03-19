@@ -180,6 +180,18 @@
     <ClCompile Include="..\Code\CObjectEditor.cpp">
       <Filter>01. Scene</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CInventorySlot.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CUIInterface.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CCursorMgr.cpp">
+      <Filter>03. Manager\03. CursorMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CDamageMgr.cpp">
+      <Filter>03. Manager\02. DamageMgr</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\CGolemStates.cpp">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClCompile>
@@ -363,6 +375,18 @@
     <ClInclude Include="..\Header\CObjectEditor.h">
       <Filter>01. Scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CInventorySlot.h">
+      <Filter>02. GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CUIInterface.h">
+      <Filter>02. GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCursorMgr.h">
+      <Filter>03. Manager\03. CursorMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CDamageMgr.h">
+      <Filter>03. Manager\02. DamageMgr</Filter>
+    </ClInclude>
     <ClInclude Include="..\Header\CGolemStates.h">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClInclude>
@@ -499,6 +523,12 @@
     </Filter>
     <Filter Include="03. Manager\01. Inventory">
       <UniqueIdentifier>{47eca706-72b7-404b-aea6-9d6a41c890ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\02. DamageMgr">
+      <UniqueIdentifier>{422bebb4-a8fc-4859-b2b3-d0fb29417f34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\03. CursorMgr">
+      <UniqueIdentifier>{d246c8c6-c5a7-453b-8008-c6cbc023f4bb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

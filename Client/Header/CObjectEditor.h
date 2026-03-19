@@ -13,6 +13,7 @@ public:
 	virtual			_int		Update_Scene(const _float& fTimeDelta);
 	virtual			void		LateUpdate_Scene(const _float& fTimeDelta);
 	virtual			void		Render_Scene();
+	virtual void Render_UI() override;
 
 private:
 	HRESULT			Ready_Environment_Layer(const _tchar* pLayerTag);
