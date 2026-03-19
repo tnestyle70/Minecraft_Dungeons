@@ -4,8 +4,8 @@
 #include "CCollider.h"
 #include "CBlockMgr.h"
 
-// CAncientGuardian 전용 낙하 폭탄
-// CCreeper의 m_pExplosionColliderCom 패턴 + CMonster의 중력/블록충돌 패턴 조합
+// CAncientGuardian CHARGE 중 투하하는 폭발 지뢰
+// 땅에 박힌 후 일정 시간 뒤 크리퍼처럼 폭발
 class CBiomine : public CGameObject
 {
 private:
@@ -15,38 +15,48 @@ private:
 
 public:
     virtual HRESULT Ready_GameObject();
-    virtual _int    Update_GameObject(const _float fTimeDelta); // CDLCBoss와 동일하게 레퍼런스 없음
+    virtual _int    Update_GameObject(const _float& fTimeDelta);
     virtual void    LateUpdate_GameObject(const _float& fTimeDelta);
     virtual void    Render_GameObject();
 
 private:
-    HRESULT         Add_Component();
-    void            Apply_Gravity(const _float fTimeDelta);    // CMonster와 동일한 패턴
-    void            Resolve_BlockCollision();                  // CMonster와 동일한 패턴
+    HRESULT Add_Component();
+    void    Apply_Gravity(const _float& fTimeDelta);   // CMonster 중력 코드 재사용
+    void    Resolve_BlockCollision();                  // 블록 충돌 - 땅에 박히는 처리
+    void    Explode();                                 // 폭발 처리 - 범위 콜라이더 활성화
 
 private:
-    Engine::CTransform* m_pTransformCom = nullptr;
-    Engine::CCollider* m_pColliderCom = nullptr; // 낙하 중 콜라이더
-    Engine::CCollider* m_pExplosionColliderCom = nullptr; // 폭발 범위 콜라이더 (CCreeper 패턴)
+    Engine::CTransform* m_pTransformCom = nullptr; // 위치, 회전, 크기
+    Engine::CTexture* m_pTextureCom = nullptr; // AG 텍스처 재사용
+    CCubeBodyTex* m_pBufferCom = nullptr; // AG_Spike 버퍼 재사용
+    Engine::CCollider* m_pColliderCom = nullptr; // 자신 충돌 콜라이더
+    Engine::CCollider* m_pExplosionColliderCom = nullptr; // 폭발 범위 콜라이더
 
-    // 중력
-    float   m_fVelocityY = 0.f;
-    float   m_fGravity = -20.f;
-    float   m_fMaxFall = -20.f;
-    bool    m_bOnGround = false;
+    // 낙하
+    float m_fVelocityY = 0.f;   // 낙하 속도
+    float m_fGravity = -20.f; // 중력 가속도
+    float m_fMaxFall = -20.f; // 최대 낙하 속도
+    bool  m_bOnGround = false; // 땅에 박혔는지
 
     // 폭발
-    float   m_fExplosionTimer = 0.f;
-    float   m_fExplosionMax = 1.5f; // 폭발 지속 시간
-    bool    m_bExploded = false;
-    bool    m_bDead = false;
+    float m_fExplodeTimer = 0.f;  // 폭발까지 남은 시간 누적
+    float m_fExplodeMax = 2.f;  // 2초 후 폭발
+    bool  m_bExploded = false; // 폭발 1회 처리용
+    bool  m_bDead = false; // 삭제 플래그
+
+    // 폭발 이펙트용 플래시 타이머 (크리퍼처럼 깜빡임)
+    float m_fFlashTimer = 0.f;  // 깜빡임 누적 시간
+    bool  m_bFlash = false; // 현재 깜빡임 상태
 
 public:
-    bool    Is_Dead() const { return m_bDead; }
+    int   m_iDamage = 25;   // 폭발 데미지 - 플레이어 팀원이 Get해서 사용
+    bool  Is_Dead()  const { return m_bDead; }
+    bool  Is_Exploded() const { return m_bExploded; }                    // 폭발 여부
+    Engine::CCollider* Get_ExplosionCollider() { return m_pExplosionColliderCom; } // 폭발 범위 콜라이더
 
 public:
     static CBiomine* Create(LPDIRECT3DDEVICE9 pGraphicDev,
-        const _vec3& vStartPos);
+        const _vec3& vStartPos); // 보스 위치에서 생성
 
 private:
     virtual void Free();

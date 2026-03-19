@@ -96,7 +96,6 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
             vMyPos.z += vDir.z * 3.f * fTimeDelta;
         }
 
-        // 헤엄 모션 - IDLE에서만
         m_fHoverTime += fTimeDelta;
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 20.f;
         {
@@ -109,6 +108,12 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
 
         if (fDist < m_fDetectRange)
         {
+            // 현재 위치 기준으로 궤도 각도 초기화 - 순간이동 방지
+            _vec3 vDiff = vMyPos - vPlayerPos;
+            vDiff.y = 0.f;
+            m_fOrbitAngle = atan2f(vDiff.z, vDiff.x);
+            m_fOrbitHeight = vMyPos.y - vPlayerPos.y; // 수정 - 현재 Y 기준으로 고정
+
             m_eState = EPufferFishState::ORBIT;
             m_fChargeCooldown = m_fChargeCoolMax;
             if (m_pBodyCom->Get_Anim())
@@ -120,24 +125,36 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
         m_fHoverTime += fTimeDelta;
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 10.f;
 
-        Update_Orbit(fTimeDelta);
+        Update_Orbit(fTimeDelta); // 순간이동 방지 - ORBIT 상태일 때만 호출
 
-        m_bFiring = true; // 수정 - ORBIT 중 항상 발사
+        m_bFiring = true;
         Update_Beams(fTimeDelta);
+        Update_Biomines(fTimeDelta);
 
         if (m_fChargeCooldown <= 0.f)
         {
-            m_bFiring = false; // 추가 - CHARGE 진입 시 발사 중지
-            m_eState = EPufferFishState::CHARGE;
-            m_vChargeTarget = vPlayerPos;
+            m_bFiring = false;
+
+            _vec3 vChargeDir = vPlayerPos - vMyPos;
+            vChargeDir.y = 0.f;
+            D3DXVec3Normalize(&vChargeDir, &vChargeDir);
+
+            m_vChargeTarget.x = vPlayerPos.x + vChargeDir.x * 15.f;
+            m_vChargeTarget.y = vMyPos.y; // Y 고정 (위를 지나감)
+            m_vChargeTarget.z = vPlayerPos.z + vChargeDir.z * 15.f;
+
             m_fCurSpeed = 0.f;
+            m_bDropped = false; // 새 CHARGE 시작 시 투하 여부 초기화
+            m_fDropTimer = 0.f;   // 투하 타이머 초기화
+
+            m_eState = EPufferFishState::CHARGE;
             if (m_pBodyCom->Get_Anim())
                 m_pBodyCom->Get_Anim()->Set_State(EAGState::CHARGE);
         }
 
         if (fDist >= m_fDetectRange)
         {
-            m_bFiring = false; // 추가 - IDLE 복귀 시 발사 중지
+            m_bFiring = false;
             m_eState = EPufferFishState::IDLE;
             if (m_pBodyCom->Get_Anim())
                 m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE);
@@ -146,8 +163,14 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
 
     case EPufferFishState::CHARGE:
         m_fHoverTime += fTimeDelta;
-        Update_Charge(fTimeDelta);
-        Update_Beams(fTimeDelta);
+        Update_Charge(fTimeDelta); // Update_Orbit 호출 없음 - 순간이동 방지
+        Update_Biomines(fTimeDelta);
+        break;
+
+    case EPufferFishState::REPOSITION: // 돌진 후 제자리 정지
+        m_fHoverTime += fTimeDelta;
+        Update_Reposition(fTimeDelta);
+        Update_Biomines(fTimeDelta); // REPOSITION 중에도 바이오마인 업데이트
         break;
     }
 }
@@ -168,10 +191,8 @@ void CAncientGuardian::Update_Orbit(const _float& fTimeDelta)
     _vec3 vPlayerPos;
     pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
 
-    // 각도 누적
     m_fOrbitAngle += m_fOrbitSpeed * fTimeDelta;
 
-    // 플레이어 주변 원형 궤도 위치 계산
     _vec3 vMyPos;
     m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
 
@@ -180,11 +201,10 @@ void CAncientGuardian::Update_Orbit(const _float& fTimeDelta)
     vTargetPos.y = vPlayerPos.y + m_fOrbitHeight;
     vTargetPos.z = vPlayerPos.z + sinf(m_fOrbitAngle) * m_fOrbitRadius;
 
-    // 부드럽게 이동
     vMyPos.x += (vTargetPos.x - vMyPos.x) * 5.f * fTimeDelta;
+    //vMyPos.y += (vTargetPos.y - vMyPos.y) * 1.f * fTimeDelta; // 추가 - Y도 부드럽게 이동
     vMyPos.z += (vTargetPos.z - vMyPos.z) * 5.f * fTimeDelta;
 
-    // 항상 플레이어를 바라보도록 Y 회전
     _vec3 vLookDir = vPlayerPos - vMyPos;
     vLookDir.y = 0.f;
     if (D3DXVec3Length(&vLookDir) > 0.1f)
@@ -213,32 +233,81 @@ void CAncientGuardian::Update_Charge(const _float& fTimeDelta)
     vDir.y = 0.f;
     float fDist = D3DXVec3Length(&vDir);
 
-    // 목표 도달 → ORBIT 복귀
+    // 돌진 중 일정 간격으로 바이오마인 연속 투하
+    m_fDropTimer += fTimeDelta;
+    if (m_fDropTimer >= m_fDropInterval) // 0.3초마다 투하
+    {
+        m_fDropTimer = 0.f;
+        Drop_Biomine(); // 연속 투하
+    }
+
+    // 목표 통과 후 REPOSITION으로 전환
     if (fDist < 1.5f)
     {
-        m_eState = EPufferFishState::ORBIT;
-        m_fChargeCooldown = m_fChargeCoolMax;
+        m_eState = EPufferFishState::REPOSITION;
+        m_fRepoTimer = 0.f; // 대기 타이머 초기화
+        m_fDropTimer = 0.f; // 투하 타이머 초기화
         if (m_pBodyCom->Get_Anim())
-            m_pBodyCom->Get_Anim()->Set_State(EAGState::ORBIT);
+            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE); // 대기 애니메이션
         return;
     }
 
-    // 가속 후 감속
-    float fMaxSpeed = 20.f;
+    // 빠른 돌진 속도
+    float fMaxSpeed = 50.f;
     if (fDist > 5.f)
         m_fCurSpeed = min(m_fCurSpeed + m_fAccel * fTimeDelta, fMaxSpeed);
     else
-        m_fCurSpeed = max(m_fCurSpeed - m_fBrake * fTimeDelta, 3.f);
+        m_fCurSpeed = max(m_fCurSpeed - m_fBrake * fTimeDelta, 5.f);
 
     D3DXVec3Normalize(&vDir, &vDir);
     vMyPos.x += vDir.x * m_fCurSpeed * fTimeDelta;
     vMyPos.z += vDir.z * m_fCurSpeed * fTimeDelta;
 
-    // 돌진 방향으로 즉시 회전
     float fTargetAngleY = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
     m_pTransformCom->m_vAngle.y = fTargetAngleY;
 
     m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
+}
+
+void CAncientGuardian::Update_Reposition(const _float& fTimeDelta)
+{
+    m_fRepoTimer += fTimeDelta; // 대기 시간 누적
+
+    // 제자리에서 플레이어 천천히 바라보기
+    Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(
+        CManagement::GetInstance()->Get_Component(
+            ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
+    if (pPlayerTrans)
+    {
+        _vec3 vMyPos, vPlayerPos;
+        m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+        pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
+
+        _vec3 vLookDir = vPlayerPos - vMyPos;
+        vLookDir.y = 0.f;
+        if (D3DXVec3Length(&vLookDir) > 0.1f)
+        {
+            float fTargetAngleY = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z)) + 180.f;
+            float fCurAngleY = m_pTransformCom->m_vAngle.y;
+            float fDiffY = fTargetAngleY - fCurAngleY;
+            while (fDiffY > 180.f) fDiffY -= 360.f;
+            while (fDiffY < -180.f) fDiffY += 360.f;
+
+            float fMaxRot = 60.f * fTimeDelta; // 60도/초 (느린 회전)
+            if (fabsf(fDiffY) < fMaxRot)
+                m_pTransformCom->m_vAngle.y = fTargetAngleY;
+            else
+                m_pTransformCom->m_vAngle.y += (fDiffY > 0.f ? fMaxRot : -fMaxRot);
+        }
+    }
+
+    // 1.5초 후 IDLE 복귀 - 다시 천천히 플레이어에게 접근 // 수정
+    if (m_fRepoTimer >= m_fRepoMax)
+    {
+        m_eState = EPufferFishState::IDLE; // 수정 - ORBIT → IDLE
+        if (m_pBodyCom->Get_Anim())
+            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE); // 수정
+    }
 }
 
 void CAncientGuardian::Fire_Beam()
@@ -249,7 +318,6 @@ void CAncientGuardian::Fire_Beam()
     m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
     m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
 
-    // 머리 위치 계산
     _vec3 vHeadPos = vMyPos + vLook * 1.5f;
     vHeadPos.y += 1.5f;
 
@@ -271,7 +339,6 @@ void CAncientGuardian::Fire_Beam()
 
 void CAncientGuardian::Update_Beams(const _float& fTimeDelta)
 {
-    // 연속 발사 처리
     if (m_bFiring)
     {
         m_fFireTimer += fTimeDelta;
@@ -280,38 +347,56 @@ void CAncientGuardian::Update_Beams(const _float& fTimeDelta)
             m_fFireTimer = 0.f;
             Fire_Beam();
             m_iFireCount++;
-
-            if (m_iFireCount >= m_iFireMax) // 10발 다 쏘면 카운트 리셋
-            {
-                m_iFireCount = 0; // 수정 - false 대신 카운트만 리셋 (ORBIT 중 계속 발사)
-            }
+            if (m_iFireCount >= m_iFireMax)
+                m_iFireCount = 0;
         }
     }
 
-    // 가시 업데이트 + 죽은 것 제거
     for (auto iter = m_vecBeams.begin(); iter != m_vecBeams.end();)
     {
         (*iter)->Update_GameObject(fTimeDelta);
         (*iter)->LateUpdate_GameObject(fTimeDelta);
-
         if ((*iter)->Is_Dead())
         {
             Safe_Release(*iter);
             iter = m_vecBeams.erase(iter);
         }
         else
-        {
             ++iter;
-        }
     }
 }
 
 void CAncientGuardian::Drop_Biomine()
 {
+    if (!m_pTransformCom) return;
+
+    // 보스 현재 위치에서 바이오마인 생성
+    _vec3 vMyPos;
+    m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+
+    CBiomine* pMine = CBiomine::Create(m_pGraphicDev, vMyPos);
+    if (pMine)
+        m_vecBiomines.push_back(pMine);
 }
 
 void CAncientGuardian::Update_Biomines(const _float& fTimeDelta)
 {
+    for (auto iter = m_vecBiomines.begin(); iter != m_vecBiomines.end();)
+    {
+        (*iter)->Update_GameObject(fTimeDelta);
+        (*iter)->LateUpdate_GameObject(fTimeDelta);
+
+        if (!(*iter)->Is_Dead())
+            CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, *iter);
+
+        if ((*iter)->Is_Dead())
+        {
+            Safe_Release(*iter);
+            iter = m_vecBiomines.erase(iter);
+        }
+        else
+            ++iter;
+    }
 }
 
 CAncientGuardian* CAncientGuardian::Create(LPDIRECT3DDEVICE9 pGraphicDev, _vec3 vPos)
@@ -336,6 +421,11 @@ void CAncientGuardian::Free()
     for (auto* pBeam : m_vecBeams)
         Safe_Release(pBeam);
     m_vecBeams.clear();
+
+    // 바이오마인 정리
+    for (auto* pMine : m_vecBiomines)
+        Safe_Release(pMine);
+    m_vecBiomines.clear();
 
     Safe_Release(m_pBodyCom);
     CDLCBoss::Free();

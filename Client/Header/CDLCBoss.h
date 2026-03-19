@@ -34,7 +34,7 @@ protected:
 	int  m_iMaxHp = 100;
 
 	float m_fMoveSpeed = 3.f;
-	float m_fDetectRange = 20.f;
+	float m_fDetectRange = 10.f;
 
 protected:
 	virtual void Free();											   // 메모리 해제 - 콜라이더 Release 후 CGameObject::Free() 호출
