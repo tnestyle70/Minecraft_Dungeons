@@ -31,7 +31,7 @@ _int CObjectEditor::Update_Scene(const _float& fTimeDelta)
     {
         pair.second->Update_GameObject(fTimeDelta);
     }
-
+     
     Editor_Input();
 
     return iExit;
@@ -154,7 +154,16 @@ HRESULT CObjectEditor::Ready_Prototype()
 
 void CObjectEditor::Editor_Input()
 {
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x0001)
+    bool bLButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+    bool bRButtonDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
+    bool bLButtonClicked = bLButtonDown && !m_bLButtonPrev;
+    bool bRButtonClicked = bRButtonDown && !m_bRButtonPrev;
+
+    m_bLButtonPrev = bLButtonDown;
+    m_bRButtonPrev = bRButtonDown;
+
+    if (bLButtonClicked)
     {
         if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         {
@@ -211,7 +220,7 @@ void CObjectEditor::Editor_Input()
         }
     }
 
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x0001)
+    if (bRButtonClicked)
     {
         if (m_pSelectedObject)
         {

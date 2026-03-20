@@ -184,5 +184,10 @@ CBox* CBox::Create(LPDIRECT3DDEVICE9 pGraphiDev)
 
 void CBox::Free()
 {
+	for (_int i = 0; i < BOX_END; ++i)
+	{
+		Safe_Release(m_pParts[i]);
+	}
+
 	CGameObject::Free();
 }

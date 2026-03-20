@@ -29,6 +29,9 @@ private:
 	CGameObject* m_pSelectedObject = nullptr;
 	map<wstring, CGameObject*> m_mapEditObject;
 
+	_bool m_bLButtonPrev = false;
+	_bool m_bRButtonPrev = false;
+
 public:
 	static CObjectEditor* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
