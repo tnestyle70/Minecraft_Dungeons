@@ -16,7 +16,6 @@ CBlockMgr::~CBlockMgr()
 
 HRESULT CBlockMgr::Ready_BlockMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-	//이미 graphicDev가 설정되어있을 경우 return
 	if (m_pGraphicDev)
 		return S_OK;
 
@@ -43,32 +42,22 @@ HRESULT CBlockMgr::Ready_Textures()
 void CBlockMgr::Update(const _float& fTimeDelta)
 {
 	for (auto& pair : m_mapBlocks)
-	{
 		pair.second->Update_GameObject(fTimeDelta);
-	}
 }
 
 void CBlockMgr::Render()
 {
 	switch (m_eRenderMode)
 	{
-	case RENDER_EDITOR:
-		Render_Editor();
-		break;
-	case RENDER_BATCH:
-		Render_Stage();
-		break;
-	case RENDER_QUADTREE:
-		Rendre_QuadTree();
-		break;
-	default:
-		break;
+	case RENDER_EDITOR:   Render_Editor();    break;
+	case RENDER_BATCH:    Render_Stage();     break;
+	case RENDER_QUADTREE: Rendre_QuadTree(); break;
+	default: break;
 	}
 }
 
 void CBlockMgr::Render_Editor()
 {
-	//기존 최적화 X 렌더링
 	for (auto& pair : m_mapBlocks)
 		pair.second->Render_GameObject();
 }
@@ -79,17 +68,12 @@ void CBlockMgr::Render_Stage()
 		return;
 
 	_matrix matIdentity;
-
 	D3DXMatrixIdentity(&matIdentity);
-
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matIdentity);
-
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
-	//블럭 깨짐 방지 - Texture Address Mode가 D3DTADDRESS_WRAP이라 카메라 이동으로 서브픽셀 오차가 조금만 생겨도
-	//UV가 1.0을 넘어서 반대편 0, 0 으로 이동해버림! -> Address UV Clamping 걸기
+	//블럭 깨짐 방지 - UV Clamping
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
@@ -97,27 +81,24 @@ void CBlockMgr::Render_Stage()
 	if (m_pTexture)
 		m_pTexture->Set_Texture(0);
 
-	m_pBatchBuffer->Render_Buffer();   // 드로우콜 1번
+	m_pBatchBuffer->Render_Buffer();
 
-	//UV 복구 
+	//UV 복구
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
 	m_pGraphicDev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
-
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 }
 
 void CBlockMgr::Rendre_QuadTree()
 {
-
 }
 
 void CBlockMgr::SetRenderMode(eRenderMode eMode)
 {
 	m_eRenderMode = eMode;
-	
+
 	if (eMode == RENDER_BATCH)
 		RebuildBatchMesh();
 	else if (eMode == RENDER_QUADTREE)
@@ -125,21 +106,19 @@ void CBlockMgr::SetRenderMode(eRenderMode eMode)
 }
 
 void CBlockMgr::BuildQuadTree()
-{}
+{
+}
 
 void CBlockMgr::RebuildBatchMesh()
 {
-	//면컬링용 인접 방향 오프셋
-	//BatchBuffer::EFace 순서와 일치 시키기
-	//인접한 면에 블럭 면이 있는지 판단해서 있으면 그리지 않기!
 	static const BlockPos s_NeighborDir[CBatchBuffer::FACE_END] =
 	{
-		{0, 1, 0}, //FACE_TOP
-		{0, -1, 0}, //FACE_BOTTOM
-		{1, 0, 0}, //FACE_RIGHT
-		{-1, 0, 0}, //FACE_LEFT
-		{0, 0, 1}, //FACE_FRONT
-		{0, 0, -1} //FACE_BACK
+		{0,  1, 0},  //FACE_TOP
+		{0, -1, 0},  //FACE_BOTTOM
+		{1,  0, 0},  //FACE_RIGHT
+		{-1, 0, 0},  //FACE_LEFT
+		{0,  0, 1},  //FACE_FRONT
+		{0,  0, -1}  //FACE_BACK
 	};
 
 	if (!m_pBatchBuffer)
@@ -155,18 +134,18 @@ void CBlockMgr::RebuildBatchMesh()
 		return;
 	}
 
-	vector<_vec3> vecPos;
+	vector<_vec3>      vecPos;
 	vector<eBlockType> vecType;
-	vector<bool> vecFaceVisible;
+	vector<bool>       vecFaceVisible;
 
 	for (const auto& pair : m_mapBlocks)
 	{
 		const BlockPos& pos = pair.first;
-		eBlockType eType = pair.second->GetBlockType();
+		eBlockType      eType = pair.second->GetBlockType();
 
 		vecPos.push_back({ (float)pos.x, (float)pos.y, (float)pos.z });
 		vecType.push_back(eType);
-		
+
 		for (int f = 0; f < CBatchBuffer::FACE_END; ++f)
 		{
 			BlockPos neighbor = {
@@ -177,41 +156,19 @@ void CBlockMgr::RebuildBatchMesh()
 			vecFaceVisible.push_back(!HasBlock(neighbor));
 		}
 	}
-	//vecType 쪽 분리
+
 	m_pBatchBuffer->Rebuild(vecPos, vecType, vecFaceVisible);
 }
 
 void CBlockMgr::AddBlock(const _vec3& vPos, eBlockType eType)
 {
-	//입력 좌표 변환값을 기준으로 계산
-	BlockPos tInputPos = ToPos(vPos);
+	// 수정 - vPos.y 그대로 사용
+	BlockPos tPos = ToPos(vPos);
 
-	//해당 xz에서 가장 높은 Y 찾아서 배치
-	int iTopY = 0;
-
-	//for (auto& pair : m_mapBlocks)
-	//{
-	//	//같은 위치일 경우 y 값보다 더 위에 배치
-	//	if (pair.first.x == tInputPos.x &&
-	//		pair.first.z == tInputPos.z)
-	//	{
-	//		if (pair.first.y >= iTopY)
-	//		{
-	//			iTopY = pair.first.y + 1;
-	//		}
-	//	}
-	//}
-
-	_vec3 vStackedPos = { vPos.x, (float)iTopY, vPos.z };
-	BlockPos tPos = ToPos(vStackedPos);
-	//해당 위치에 이미 블럭이 존재할 경우 return 
 	if (m_mapBlocks.find(tPos) != m_mapBlocks.end())
-	{
 		return;
-	}
 
-	CBlock* pBlock = CBlock::Create(m_pGraphicDev, vStackedPos, eType);
-
+	CBlock* pBlock = CBlock::Create(m_pGraphicDev, vPos, eType);
 	if (!pBlock)
 		return;
 
@@ -235,12 +192,12 @@ void CBlockMgr::AddBlock(int x, int y, int z, eBlockType eType)
 
 void CBlockMgr::RemoveBlock(const _vec3& vPos)
 {
-	//스크린 -> exe 클라 화면(뷰포트) -> 투영 -> 뷰스페이스 -> 월드 -> 로컬
 	BlockPos tPos = ToPos(vPos);
 
 	auto iter = m_mapBlocks.find(tPos);
 	if (iter == m_mapBlocks.end())
 		return;
+
 	Safe_Release(iter->second);
 	m_mapBlocks.erase(iter);
 }
@@ -250,35 +207,26 @@ void CBlockMgr::RemoveBlockByPos(const BlockPos& pos)
 	auto iter = m_mapBlocks.find(pos);
 	if (iter == m_mapBlocks.end())
 		return;
+
 	Safe_Release(iter->second);
 	m_mapBlocks.erase(iter);
 }
 
 void CBlockMgr::ClearBlocks()
 {
-	//map에 존재하는 블럭들 비워주기
 	for_each(m_mapBlocks.begin(), m_mapBlocks.end(), [](auto& pair)
 		{
 			if (pair.second)
-			{
 				Safe_Release(pair.second);
-			}
 		});
 	m_mapBlocks.clear();
-
-	//if (!m_bEditorMode)
-	//{
-	//	//블럭이 갱신될 때마다 배치 매쉬 갱신
-	//	RebuildBatchMesh();
-	//}
 }
 
 HRESULT CBlockMgr::SaveBlocks(FILE* pFile)
 {
-	//매개 변수로 넘겨 받은 파일에 정보 저장
 	int iCount = (int)m_mapBlocks.size();
 	fwrite(&iCount, sizeof(int), 1, pFile);
-	
+
 	for (auto& pair : m_mapBlocks)
 	{
 		BlockData tData;
@@ -293,7 +241,6 @@ HRESULT CBlockMgr::SaveBlocks(FILE* pFile)
 
 HRESULT CBlockMgr::LoadBlocks(FILE* pFile)
 {
-	// 기존 블럭 전부 제거 (내부에서 Rebuild 1번 호출되지만 무시)
 	for_each(m_mapBlocks.begin(), m_mapBlocks.end(), [](auto& pair)
 		{
 			if (pair.second) Safe_Release(pair.second);
@@ -302,18 +249,19 @@ HRESULT CBlockMgr::LoadBlocks(FILE* pFile)
 
 	int iCount = 0;
 	fread(&iCount, sizeof(int), 1, pFile);
-	
+
 	for (int i = 0; i < iCount; ++i)
 	{
 		BlockData tData;
 		fread(&tData, sizeof(tData), 1, pFile);
 
-		_vec3    vPos = { static_cast<float>(tData.x),
-						  static_cast<float>(tData.y),
-						  static_cast<float>(tData.z) };
+		_vec3 vPos = {
+			static_cast<float>(tData.x),
+			static_cast<float>(tData.y),
+			static_cast<float>(tData.z)
+		};
 		BlockPos tPos = ToPos(vPos);
 
-		// 중복 방지 후 직접 삽입 (Rebuild 없음)
 		if (m_mapBlocks.find(tPos) == m_mapBlocks.end())
 		{
 			CBlock* pBlock = CBlock::Create(m_pGraphicDev, vPos,
@@ -323,7 +271,6 @@ HRESULT CBlockMgr::LoadBlocks(FILE* pFile)
 		}
 	}
 
-	//로드 완료 후 현재 모드에 맞게 처리
 	if (m_eRenderMode == RENDER_BATCH)
 		RebuildBatchMesh();
 	else if (m_eRenderMode == RENDER_QUADTREE)
@@ -332,54 +279,42 @@ HRESULT CBlockMgr::LoadBlocks(FILE* pFile)
 	return S_OK;
 }
 
-bool CBlockMgr::RayAABBIntersect(const _vec3& vRayPos, const _vec3& vRayDir, 
+// 기존 - 단순 충돌 체크 (선택 모드, 몬스터 배치 등에서 사용)
+bool CBlockMgr::RayAABBIntersect(const _vec3& vRayPos, const _vec3& vRayDir,
 	BlockPos* pOutBlockPos, float* pOutT)
 {
-	//Calculator에서 계산한 Ray를 바탕으로 AABB 충돌 처리 후 
-	//충돌한 블럭 반환
 	float fMinT = FLT_MAX;
-	bool bHit = false;
-	//모든 블럭들과 충돌 처리
+	bool  bHit = false;
+
 	for (auto& pair : m_mapBlocks)
 	{
-		AABB tAABB = Get_BlockAABB(pair.first);
-		float fT = 0.f;
-		//X축
-		float tMin = 0.f;
-		float tMax = FLT_MAX;
+		AABB  tAABB = Get_BlockAABB(pair.first);
+		float tMin = 0.f, tMax = FLT_MAX;
 
+		// X축
 		float t1 = (tAABB.vMin.x - vRayPos.x) / vRayDir.x;
 		float t2 = (tAABB.vMax.x - vRayPos.x) / vRayDir.x;
-		if (t1 > t2)
-			swap(t1, t2);
-
+		if (t1 > t2) swap(t1, t2);
 		tMin = max(tMin, t1);
 		tMax = min(tMax, t2);
+		if (tMin > tMax) continue;
 
-		if (tMin > tMax)
-			continue;
-
-		//Y축
+		// Y축
 		t1 = (tAABB.vMin.y - vRayPos.y) / vRayDir.y;
 		t2 = (tAABB.vMax.y - vRayPos.y) / vRayDir.y;
-		if (t1 > t2)
-			swap(t1, t2);
+		if (t1 > t2) swap(t1, t2);
 		tMin = max(tMin, t1);
 		tMax = min(tMax, t2);
-		if (tMin > tMax)
-			continue;
+		if (tMin > tMax) continue;
 
-		//Z축
+		// Z축
 		t1 = (tAABB.vMin.z - vRayPos.z) / vRayDir.z;
 		t2 = (tAABB.vMax.z - vRayPos.z) / vRayDir.z;
-		if (t1 > t2)
-			swap(t1, t2);
+		if (t1 > t2) swap(t1, t2);
 		tMin = max(tMin, t1);
 		tMax = min(tMax, t2);
-		if (tMin > tMax)
-			continue;
+		if (tMin > tMax) continue;
 
-		//가장 가까운 블럭 갱신
 		if (tMin < fMinT)
 		{
 			fMinT = tMin;
@@ -388,14 +323,79 @@ bool CBlockMgr::RayAABBIntersect(const _vec3& vRayPos, const _vec3& vRayDir,
 			bHit = true;
 		}
 	}
-	
+
+	return bHit;
+}
+
+// 추가 - 법선 포함 충돌 체크 (블록 배치 미리보기, 옆면 배치에 사용)
+bool CBlockMgr::RayAABBIntersectWithNormal(const _vec3& vRayPos, const _vec3& vRayDir,
+	BlockPos* pOutBlockPos, float* pOutT, BlockPos* pOutNormal)
+{
+	float fMinT = FLT_MAX;
+	bool  bHit = false;
+
+	for (auto& pair : m_mapBlocks)
+	{
+		AABB  tAABB = Get_BlockAABB(pair.first);
+		float tMin = 0.f, tMax = FLT_MAX;
+		int   iHitAxis = -1;
+		bool  bNegative = false;
+
+		// X축
+		if (fabsf(vRayDir.x) > 0.0001f)
+		{
+			float t1 = (tAABB.vMin.x - vRayPos.x) / vRayDir.x;
+			float t2 = (tAABB.vMax.x - vRayPos.x) / vRayDir.x;
+			if (t1 > t2) swap(t1, t2);
+			if (t1 > tMin) { tMin = t1; iHitAxis = 0; bNegative = vRayDir.x > 0; }
+			tMax = min(tMax, t2);
+			if (tMin > tMax) continue;
+		}
+
+		// Y축
+		if (fabsf(vRayDir.y) > 0.0001f)
+		{
+			float t1 = (tAABB.vMin.y - vRayPos.y) / vRayDir.y;
+			float t2 = (tAABB.vMax.y - vRayPos.y) / vRayDir.y;
+			if (t1 > t2) swap(t1, t2);
+			if (t1 > tMin) { tMin = t1; iHitAxis = 1; bNegative = vRayDir.y > 0; }
+			tMax = min(tMax, t2);
+			if (tMin > tMax) continue;
+		}
+
+		// Z축
+		if (fabsf(vRayDir.z) > 0.0001f)
+		{
+			float t1 = (tAABB.vMin.z - vRayPos.z) / vRayDir.z;
+			float t2 = (tAABB.vMax.z - vRayPos.z) / vRayDir.z;
+			if (t1 > t2) swap(t1, t2);
+			if (t1 > tMin) { tMin = t1; iHitAxis = 2; bNegative = vRayDir.z > 0; }
+			tMax = min(tMax, t2);
+			if (tMin > tMax) continue;
+		}
+
+		if (tMin < fMinT)
+		{
+			fMinT = tMin;
+			*pOutBlockPos = pair.first;
+			*pOutT = tMin;
+
+			// 법선 계산 - 충돌한 면의 반대 방향
+			pOutNormal->x = pOutNormal->y = pOutNormal->z = 0;
+			if (iHitAxis == 0) pOutNormal->x = bNegative ? -1 : 1;
+			else if (iHitAxis == 1) pOutNormal->y = bNegative ? -1 : 1;
+			else if (iHitAxis == 2) pOutNormal->z = bNegative ? -1 : 1;
+
+			bHit = true;
+		}
+	}
+
 	return bHit;
 }
 
 AABB CBlockMgr::Get_BlockAABB(const BlockPos& tPos)
 {
 	AABB tAABB;
-	//tPos 기준 aabb 값 설정해서 return
 	tAABB.vMax = { tPos.x + 0.5f, tPos.y + 0.5f, tPos.z + 0.5f };
 	tAABB.vMin = { tPos.x - 0.5f, tPos.y - 0.5f, tPos.z - 0.5f };
 	return tAABB;
@@ -403,14 +403,62 @@ AABB CBlockMgr::Get_BlockAABB(const BlockPos& tPos)
 
 bool CBlockMgr::HasBlock(const BlockPos& tPos)
 {
-	//헤당 tPos에 블럭이 존재하는지 판단
 	return m_mapBlocks.find(tPos) != m_mapBlocks.end();
 }
 
 BlockPos CBlockMgr::ToPos(const _vec3& vPos)
 {
-	//float로 들어온 값을 int로 변환해서 저장
-	return {(int)ceilf(vPos.x), (int)ceilf(vPos.y), (int)ceilf(vPos.z)};
+	return { (int)ceilf(vPos.x), (int)ceilf(vPos.y), (int)ceilf(vPos.z) };
+}
+
+void CBlockMgr::FillBlocks(BlockPos pos1, BlockPos pos2, eBlockType eType)
+{
+	int iMinX = min(pos1.x, pos2.x), iMaxX = max(pos1.x, pos2.x);
+	int iMinY = min(pos1.y, pos2.y), iMaxY = max(pos1.y, pos2.y);
+	int iMinZ = min(pos1.z, pos2.z), iMaxZ = max(pos1.z, pos2.z);
+
+	for (int x = iMinX; x <= iMaxX; ++x)
+		for (int y = iMinY; y <= iMaxY; ++y)
+			for (int z = iMinZ; z <= iMaxZ; ++z)
+				AddBlock(x, y, z, eType);
+}
+
+void CBlockMgr::EraseBlocks(BlockPos pos1, BlockPos pos2)
+{
+	int iMinX = min(pos1.x, pos2.x), iMaxX = max(pos1.x, pos2.x);
+	int iMinY = min(pos1.y, pos2.y), iMaxY = max(pos1.y, pos2.y);
+	int iMinZ = min(pos1.z, pos2.z), iMaxZ = max(pos1.z, pos2.z);
+
+	for (int x = iMinX; x <= iMaxX; ++x)
+		for (int y = iMinY; y <= iMaxY; ++y)
+			for (int z = iMinZ; z <= iMaxZ; ++z)
+				RemoveBlockByPos({ x, y, z });
+}
+
+vector<BlockData> CBlockMgr::GetBlocksInRange(BlockPos pos1, BlockPos pos2)
+{
+	vector<BlockData> vecResult;
+
+	int iMinX = min(pos1.x, pos2.x), iMaxX = max(pos1.x, pos2.x);
+	int iMinY = min(pos1.y, pos2.y), iMaxY = max(pos1.y, pos2.y);
+	int iMinZ = min(pos1.z, pos2.z), iMaxZ = max(pos1.z, pos2.z);
+
+	for (auto& pair : m_mapBlocks)
+	{
+		const BlockPos& p = pair.first;
+		if (p.x >= iMinX && p.x <= iMaxX &&
+			p.y >= iMinY && p.y <= iMaxY &&
+			p.z >= iMinZ && p.z <= iMaxZ)
+		{
+			BlockData tData;
+			tData.x = p.x;
+			tData.y = p.y;
+			tData.z = p.z;
+			tData.eType = (int)pair.second->GetBlockType();
+			vecResult.push_back(tData);
+		}
+	}
+	return vecResult;
 }
 
 void CBlockMgr::Free()

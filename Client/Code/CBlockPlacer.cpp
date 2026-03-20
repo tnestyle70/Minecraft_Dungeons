@@ -17,7 +17,7 @@ CBlockPlacer::~CBlockPlacer()
 _int CBlockPlacer::Update_Placer(eBlockType eType)
 {
 	if (ImGui::GetIO().WantCaptureMouse)
-		return 0;  // ImGui가 마우스 쓰고 있으면 피킹 안 함
+		return 0;
 
 	bool bLBtn = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 	bool bRBtn = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
@@ -31,16 +31,13 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 			m_undoStack.pop();
 		}
 	}
-
 	m_bZBtnPrev = bZBtn;
-	
-	//If Holding Q && E skip return 
+
 	bool bQBtn = (GetAsyncKeyState('Q') & 0x8000) != 0;
 	bool bEBtn = (GetAsyncKeyState('E') & 0x8000) != 0;
 
 	if (!bQBtn && !bEBtn)
 	{
-		// 클릭 없으면 레이 계산 안 함
 		if ((!bLBtn || m_bLBtnPrev) && (!bRBtn || m_bRBtnPrev))
 		{
 			m_bLBtnPrev = bLBtn;
@@ -50,30 +47,30 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 	}
 
 	_vec3 vRayPos, vRayDir;
-	
 	Compute_Ray(&vRayPos, &vRayDir);
 
-	//기존 블럭에 레이 충돌 체크
-	BlockPos tHitPos;
+	BlockPos tHitPos, tNormal;
 	float fT = 0.f;
-	bool bBlockHit = CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos,
-		vRayDir, &tHitPos, &fT);
 
-	//No Delay Picking
+	// 수정 - 법선 기반 충돌 체크
+	bool bBlockHit = CBlockMgr::GetInstance()->RayAABBIntersectWithNormal(
+		vRayPos, vRayDir, &tHitPos, &fT, &tNormal);
+
+	// Q - 연속 배치
 	if (GetAsyncKeyState('Q') & 0x8000)
 	{
 		if (bBlockHit)
 		{
-			//히트된 블럭 위에 배치
-			_vec3 vPlacePos = { (float)tHitPos.x, (float)tHitPos.y + 1.f,
-				(float)tHitPos.z };
-
+			// 수정 - 법선 방향으로 배치
+			_vec3 vPlacePos = {
+				(float)(tHitPos.x + tNormal.x),
+				(float)(tHitPos.y + tNormal.y),
+				(float)(tHitPos.z + tNormal.z)
+			};
 			CBlockMgr::GetInstance()->AddBlock(vPlacePos, eType);
-			
-			//실제 삽입된 PlacePos를 stack에 저장
 			m_undoStack.push(CBlockMgr::GetInstance()->ToPos(vPlacePos));
 		}
-		else //바닥일 경우 그냥 배치
+		else
 		{
 			_vec3 vHit;
 			if (RayOnGround(&vRayPos, &vRayDir, &vHit))
@@ -85,19 +82,24 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 		}
 	}
 
+	// E - 연속 삭제
 	if (GetAsyncKeyState('E') & 0x8000)
 	{
 		if (bBlockHit)
-		{
 			CBlockMgr::GetInstance()->RemoveBlockByPos(tHitPos);
-		}
 	}
-	
+
+	// 좌클릭 - 단일 배치
 	if (bLBtn && !m_bLBtnPrev)
 	{
 		if (bBlockHit)
 		{
-			_vec3 vPlacePos = { (float)tHitPos.x, (float)tHitPos.y + 1.f, (float)tHitPos.z };
+			// 수정 - 법선 방향으로 배치
+			_vec3 vPlacePos = {
+				(float)(tHitPos.x + tNormal.x),
+				(float)(tHitPos.y + tNormal.y),
+				(float)(tHitPos.z + tNormal.z)
+			};
 
 			if (m_bPresetMode)
 			{
@@ -105,7 +107,7 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 				{
 				case 0: CBlockPreset::Place_OakTree((int)vPlacePos.x, (int)vPlacePos.y, (int)vPlacePos.z);    break;
 				case 1: CBlockPreset::Place_CherryTree((int)vPlacePos.x, (int)vPlacePos.y, (int)vPlacePos.z); break;
-				case 2: CBlockPreset::Place_Dragon((int)vPlacePos.x, (int)vPlacePos.y, (int)vPlacePos.z); break;
+				case 2: CBlockPreset::Place_Dragon((int)vPlacePos.x, (int)vPlacePos.y, (int)vPlacePos.z);     break;
 				}
 			}
 			else
@@ -126,7 +128,7 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 					{
 					case 0: CBlockPreset::Place_OakTree((int)vSnap.x, (int)vSnap.y, (int)vSnap.z);    break;
 					case 1: CBlockPreset::Place_CherryTree((int)vSnap.x, (int)vSnap.y, (int)vSnap.z); break;
-					case 2: CBlockPreset::Place_Dragon((int)vSnap.x, (int)vSnap.y, (int)vSnap.z); break;
+					case 2: CBlockPreset::Place_Dragon((int)vSnap.x, (int)vSnap.y, (int)vSnap.z);     break;
 					}
 				}
 				else
@@ -139,16 +141,14 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 		}
 	}
 
+	// 우클릭 - 삭제
 	if (bRBtn && !m_bRBtnPrev)
 	{
 		if (bBlockHit)
 		{
 			CBlockMgr::GetInstance()->RemoveBlockByPos(tHitPos);
-			//스택 클리어 해주기
 			while (!m_undoStack.empty())
-			{
 				m_undoStack.pop();
-			}
 		}
 	}
 
@@ -158,17 +158,94 @@ _int CBlockPlacer::Update_Placer(eBlockType eType)
 	return 0;
 }
 
+// 추가 - 현재 배치될 위치 계산
+BlockPos CBlockPlacer::GetPlacePos(eBlockType eType)
+{
+	_vec3 vRayPos, vRayDir;
+	Compute_Ray(&vRayPos, &vRayDir);
+
+	BlockPos tHitPos, tNormal;
+	float fT = 0.f;
+
+	if (CBlockMgr::GetInstance()->RayAABBIntersectWithNormal(
+		vRayPos, vRayDir, &tHitPos, &fT, &tNormal))
+	{
+		// 법선 방향으로 배치될 위치
+		return { tHitPos.x + tNormal.x,
+				 tHitPos.y + tNormal.y,
+				 tHitPos.z + tNormal.z };
+	}
+
+	// 바닥 평면
+	_vec3 vGroundHit;
+	if (RayOnGround(&vRayPos, &vRayDir, &vGroundHit))
+	{
+		_vec3 vSnap = SnapToGrid(&vGroundHit, eType);
+		return CBlockMgr::GetInstance()->ToPos(vSnap);
+	}
+
+	return { 0, 0, 0 };
+}
+
+// 추가 - 배치 위치 미리보기 (흰색 와이어프레임 박스)
+void CBlockPlacer::Render_Preview(eBlockType eType)
+{
+	if (ImGui::GetIO().WantCaptureMouse) return;
+
+	BlockPos tPlacePos = GetPlacePos(eType);
+
+	// 이미 블록 있으면 미리보기 안 보여줌
+	if (CBlockMgr::GetInstance()->HasBlock(tPlacePos)) return;
+
+	float fX = (float)tPlacePos.x;
+	float fY = (float)tPlacePos.y;
+	float fZ = (float)tPlacePos.z;
+
+	float fMinX = fX - 0.5f, fMaxX = fX + 0.5f;
+	float fMinY = fY - 0.5f, fMaxY = fY + 0.5f;
+	float fMinZ = fZ - 0.5f, fMaxZ = fZ + 0.5f;
+
+	DWORD dwColor = 0xAAFFFFFF; // 반투명 흰색
+
+	struct LineVertex { float x, y, z; DWORD color; };
+	LineVertex verts[24] =
+	{
+		// 아래 면
+		{fMinX, fMinY, fMinZ, dwColor}, {fMaxX, fMinY, fMinZ, dwColor},
+		{fMaxX, fMinY, fMinZ, dwColor}, {fMaxX, fMinY, fMaxZ, dwColor},
+		{fMaxX, fMinY, fMaxZ, dwColor}, {fMinX, fMinY, fMaxZ, dwColor},
+		{fMinX, fMinY, fMaxZ, dwColor}, {fMinX, fMinY, fMinZ, dwColor},
+		// 위 면
+		{fMinX, fMaxY, fMinZ, dwColor}, {fMaxX, fMaxY, fMinZ, dwColor},
+		{fMaxX, fMaxY, fMinZ, dwColor}, {fMaxX, fMaxY, fMaxZ, dwColor},
+		{fMaxX, fMaxY, fMaxZ, dwColor}, {fMinX, fMaxY, fMaxZ, dwColor},
+		{fMinX, fMaxY, fMaxZ, dwColor}, {fMinX, fMaxY, fMinZ, dwColor},
+		// 기둥
+		{fMinX, fMinY, fMinZ, dwColor}, {fMinX, fMaxY, fMinZ, dwColor},
+		{fMaxX, fMinY, fMinZ, dwColor}, {fMaxX, fMaxY, fMinZ, dwColor},
+		{fMaxX, fMinY, fMaxZ, dwColor}, {fMaxX, fMaxY, fMaxZ, dwColor},
+		{fMinX, fMinY, fMaxZ, dwColor}, {fMinX, fMaxY, fMaxZ, dwColor},
+	};
+
+	DWORD dwLighting;
+	m_pGraphicDev->GetRenderState(D3DRS_LIGHTING, &dwLighting);
+
+	_matrix matIdentity;
+	D3DXMatrixIdentity(&matIdentity);
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matIdentity);
+	m_pGraphicDev->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+	m_pGraphicDev->SetTexture(0, nullptr);
+	m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, FALSE);
+	m_pGraphicDev->DrawPrimitiveUP(D3DPT_LINELIST, 12, verts, sizeof(LineVertex));
+	m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, dwLighting);
+}
+
 void CBlockPlacer::Compute_Ray(_vec3* pRayPos, _vec3* pRayDir)
 {
-	//모니터 -> 클라이언트(뷰포트) -> 투영 -> 뷰 -> 월드 -> 로컬 
-
-	//마우스 전체 모니터 화면 스크린 좌표
 	POINT ptMouse;
 	GetCursorPos(&ptMouse);
-	//모니터 화면 좌표 -> exe 클라이언트 좌표로 변환
 	ScreenToClient(g_hWnd, &ptMouse);
 
-	//뷰포트 -> (Normalized Device Coordinated -1 ~ 1사이)
 	_vec3 vMousePos;
 	D3DVIEWPORT9 ViewPort;
 	ZeroMemory(&ViewPort, sizeof(D3DVIEWPORT9));
@@ -177,36 +254,31 @@ void CBlockPlacer::Compute_Ray(_vec3* pRayPos, _vec3* pRayDir)
 	vMousePos.x = ptMouse.x / (ViewPort.Width * 0.5f) - 1.f;
 	vMousePos.y = ptMouse.y / -(ViewPort.Height * 0.5f) + 1.f;
 	vMousePos.z = 0.f;
-	
-	//NDC 투영 역행렬 적용 후 뷰로 변환
+
 	_matrix matInvProj;
 	m_pGraphicDev->GetTransform(D3DTS_PROJECTION, &matInvProj);
 	D3DXMatrixInverse(&matInvProj, 0, &matInvProj);
 	D3DXVec3TransformCoord(&vMousePos, &vMousePos, &matInvProj);
-	//뷰 -> 월드
+
 	_matrix matInvView;
 	m_pGraphicDev->GetTransform(D3DTS_VIEW, &matInvView);
 	D3DXMatrixInverse(&matInvView, 0, &matInvView);
-	//원점에서 카메라의 역행렬을 곱해서 카메라 좌표를 얻어낸다
+
 	*pRayPos = _vec3(0.f, 0.f, 0.f);
 	*pRayDir = vMousePos - *pRayPos;
-	
+
 	D3DXVec3TransformCoord(pRayPos, pRayPos, &matInvView);
 	D3DXVec3TransformNormal(pRayDir, pRayDir, &matInvView);
 	D3DXVec3Normalize(pRayDir, pRayDir);
-
-	return;
 }
 
 bool CBlockPlacer::RayOnGround(_vec3* pRayPos, _vec3* pRayDir, _vec3* pHitOut)
 {
-	//y = 0 평면 : t = -raypos.y / raydir.y
 	if (fabsf(pRayDir->y) < 0.0001f)
 		return false;
 
 	float t = -pRayPos->y / pRayDir->y;
 
-	//카메라 뒤쪽 
 	if (t < 0.f)
 		return false;
 
@@ -220,13 +292,11 @@ bool CBlockPlacer::RayOnGround(_vec3* pRayPos, _vec3* pRayDir, _vec3* pHitOut)
 _vec3 CBlockPlacer::SnapToGrid(_vec3* pHit, eBlockType eType)
 {
 	float fBlockSize = m_fBlockSize;
-	//창살일 경우 사이즈 0.5로 줄이기
 	if (eType == eBlockType::BLOCK_IRONBAR)
-	{
 		fBlockSize = 0.5f;
-	}
-	//ceilf로 블럭 크기 단위에 맞춰서 스냅 시키기
-	_vec3 vSnapPos = _vec3(ceilf(pHit->x / fBlockSize) * fBlockSize,
+
+	_vec3 vSnapPos = _vec3(
+		ceilf(pHit->x / fBlockSize) * fBlockSize,
 		ceilf(pHit->y / fBlockSize) * fBlockSize,
 		ceilf(pHit->z / fBlockSize) * fBlockSize);
 

@@ -120,9 +120,9 @@ void CLogo::Render_Scene()
 
 void CLogo::Render_UI()
 {
-    _vec2 vPos{ 460.f, 550.f };
+    /*_vec2 vPos{ 460.f, 550.f };
     CFontMgr::GetInstance()->Render_Font(
-        L"Font_Minecraft", L"Please Press Any Keys", &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));
+        L"Font_Minecraft", L"Please Press Any Keys", &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));*/
 }
 
 HRESULT CLogo::Ready_Environment_Layer(const _tchar* pLayerTag)
