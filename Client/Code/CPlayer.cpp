@@ -77,7 +77,7 @@ HRESULT CPlayer::Ready_GameObject()
 	CParticleMgr::GetInstance()->Add_Emitter(m_pFootStepEmitter);
 
 	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/Attack.png", &pEffectTexture);
+		L"../Bin/Resource/Texture/Effect/Attack.png", &m_pAttackTexture);
 
 	m_pAttackEmitter = CParticleEmitter::Create(
 		m_pGraphicDev, PARTICLE_ATTACK, _vec3(0.f, 0.f, 0.f), pEffectTexture);
@@ -572,17 +572,28 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			if (m_iComboStep == 1 || m_iComboStep == 2)  // 1,2타 리셋
 				m_fAtkTime = 0.f;
 			m_fComboTimer = m_fComboWindow;
+
+		//	if (m_pAttackEmitter)
+		//	{
+		//		_vec3 vPos, vLook;
+		//		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		//		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+		//		D3DXVec3Normalize(&vLook, &vLook);
+		//		vPos -= vLook * 1.5f;
+		//		vPos.y += 2.5f;
+		//
+		//		float fRad = D3DXToRadian(m_pTransformCom->m_vAngle.y);					//공격 이펙트 보류
+		//		_vec3 vDir = _vec3(sinf(fRad), 0.f, cosf(fRad));
+		//		OutputDebugStringA(("vDir: " + std::to_string(vDir.x) + " " + std::to_string(vDir.z) + "\n").c_str());
+		//
+		//		CParticleEmitter* pEmitter = CParticleEmitter::Create_Attack(
+		//			m_pGraphicDev, vPos, -vLook, m_pAttackTexture);
+		//		if (pEmitter)
+		//			CParticleMgr::GetInstance()->Add_Emitter(pEmitter);
+		//	}
 		}
 	}
 	m_bAtkKeyPrev = bAtkKey;
-
-	// 임시 피격 테스트
-	if (GetAsyncKeyState('R') & 0x8000)
-	{
-		m_fHp -= 10.f;
-		if (m_fHp < 0.f) m_fHp = 0.f;
-		Hit();
-	}
 
 	// 화살
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);

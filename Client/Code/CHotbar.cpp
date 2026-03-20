@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CHotbar.h"
 #include "CUI_Json.h"
 
@@ -91,7 +91,7 @@ HRESULT CHotbar::Add_Children()
 	}
 
 	// 2. Create and show the Test Hotbar LAST so it renders on top
-	CUI_Json* pTestHotbar = CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
+	 CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
 	if (pTestHotbar)
 	{
 		this->Add_Child(pTestHotbar);
