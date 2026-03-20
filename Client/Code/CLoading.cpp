@@ -118,6 +118,13 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxTopTex", Engine::CBoxTopTex::Create(m_pGraphicDev))))
         return E_FAIL;
 
+    // Lamp
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampBodyTex", Engine::CLampBodyTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampHeadTex", Engine::CLampHeadTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
     lstrcpy(m_szLoading, L"텍스쳐 로딩중");
 
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TerrainTexture",
@@ -142,6 +149,11 @@ _uint CLoading::Loading_SquidCoast()
     // Box
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BoxTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_LargeBoxChest.png"))))
+        return E_FAIL;
+
+    // Lamp
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_Lamp.png"))))
         return E_FAIL;
 
     //오징어 해안 로딩 텍스쳐`

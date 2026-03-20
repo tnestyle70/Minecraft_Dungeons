@@ -22,6 +22,7 @@
 #include "CHUD.h"
 #include "CDragon.h"
 #include "CBox.h"
+#include "CLamp.h"
 #include "CInventoryMgr.h"
 #include "CInventorySlot.h"
 
@@ -275,6 +276,14 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
+		return E_FAIL;
+
+	pGameObject = CLamp::Create(m_pGraphicDev);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"Lamp", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });

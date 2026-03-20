@@ -243,6 +243,12 @@
     <ClCompile Include="..\Code\CBoxTopTex.cpp">
       <Filter>03. Component\00. VIBuffer\07. Box</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CLampHeadTex.cpp">
+      <Filter>03. Component\00. VIBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CLampBodyTex.cpp">
+      <Filter>03. Component\00. VIBuffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\CGraphicDev.h">
@@ -392,6 +398,12 @@
     </ClInclude>
     <ClInclude Include="..\Header\CBoxTopTex.h">
       <Filter>03. Component\00. VIBuffer\07. Box</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CLampHeadTex.h">
+      <Filter>03. Component\00. VIBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CLampBodyTex.h">
+      <Filter>03. Component\00. VIBuffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

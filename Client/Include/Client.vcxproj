@@ -175,6 +175,8 @@
     <ClInclude Include="..\Header\CInventorySlot.h" />
     <ClInclude Include="..\Header\CIronBar.h" />
     <ClInclude Include="..\Header\CIronBarMgr.h" />
+    <ClInclude Include="..\Header\CLamp.h" />
+    <ClInclude Include="..\Header\CLampPart.h" />
     <ClInclude Include="..\Header\CLoading.h" />
     <ClInclude Include="..\Header\CLoadingScene.h" />
     <ClInclude Include="..\Header\CLogo.h" />
@@ -247,6 +249,8 @@
     <ClCompile Include="..\Code\CInventorySlot.cpp" />
     <ClCompile Include="..\Code\CIronBar.cpp" />
     <ClCompile Include="..\Code\CIronBarMgr.cpp" />
+    <ClCompile Include="..\Code\CLamp.cpp" />
+    <ClCompile Include="..\Code\CLampPart.cpp" />
     <ClCompile Include="..\Code\CLoading.cpp" />
     <ClCompile Include="..\Code\CLoadingScene.cpp" />
     <ClCompile Include="..\Code\CLogo.cpp" />
