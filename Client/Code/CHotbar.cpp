@@ -91,14 +91,14 @@ HRESULT CHotbar::Add_Children()
 	}
 
 	// 2. Create and show the Test Hotbar LAST so it renders on top
-	CUI_Json* pTestHotbar = CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
-	if (pTestHotbar)
-	{
-		this->Add_Child(pTestHotbar);
-		pTestHotbar->Set_Scale(1.f);
-		pTestHotbar->Set_Pos(0.f, 0.f); 
-		pTestHotbar->Set_Visible(true);
-	}
+	//CUI_Json* pTestHotbar = CUI_Json::Create(m_pGraphicDev, nullptr, L"Proto_TestHotbarTexture");
+	//if (pTestHotbar)
+	//{
+	//	this->Add_Child(pTestHotbar);
+	//	pTestHotbar->Set_Scale(1.f);
+	//	pTestHotbar->Set_Pos(0.f, 0.f); 
+	//	pTestHotbar->Set_Visible(true);
+	//}
 
 	return S_OK;
 }

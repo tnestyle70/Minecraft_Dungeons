@@ -25,7 +25,7 @@ x86/
 *.pch
 
 # Resources - 리소스는 별도 관리
-Resources/
+Resource/
 Texture/
 Sound/
 Model/
@@ -37,6 +37,9 @@ Mesh/
 
 # 스테이지 데이터 (에디터에서 각자 생성)
 *.dat
+
+# 폰트
+*.ttf
 
 # Intermediate files
 *.tlog

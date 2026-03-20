@@ -112,6 +112,9 @@
     <Filter Include="03. Component\00. VIBuffer\06. Boss\00. RedStoneGolem">
       <UniqueIdentifier>{160779b1-8928-47a8-851b-b633bb821476}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03. Component\00. VIBuffer\07. Box">
+      <UniqueIdentifier>{6dde4542-d4af-4bf2-b3c8-1f517e4edca2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Code\CGraphicDev.cpp">
@@ -235,10 +238,10 @@
       <Filter>03. Component</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CBoxBottomTex.cpp">
-      <Filter>03. Component\00. VIBuffer</Filter>
+      <Filter>03. Component\00. VIBuffer\07. Box</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CBoxTopTex.cpp">
-      <Filter>03. Component\00. VIBuffer</Filter>
+      <Filter>03. Component\00. VIBuffer\07. Box</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,10 +388,10 @@
       <Filter>03. Component</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CBoxBottomTex.h">
-      <Filter>03. Component\00. VIBuffer</Filter>
+      <Filter>03. Component\00. VIBuffer\07. Box</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CBoxTopTex.h">
-      <Filter>03. Component\00. VIBuffer</Filter>
+      <Filter>03. Component\00. VIBuffer\07. Box</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
