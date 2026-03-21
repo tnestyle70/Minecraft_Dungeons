@@ -83,7 +83,8 @@ private:
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
 	bool m_bAtkColliderActive = false;
 
-
+	//공격 이펙트
+	LPDIRECT3DTEXTURE9 m_pAttackTexture = nullptr;
 
 public:
 	//플레이어 정보 Get / Set
