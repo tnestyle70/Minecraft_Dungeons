@@ -21,6 +21,10 @@
 #include "CBoxBottomTex.h"
 #include "CBoxTopTex.h"
 
+// Lamp
+#include "CLampBodyTex.h"
+#include "CLampHeadTex.h"
+
 //Effect
 #include "CParticleEmitter.h"
 

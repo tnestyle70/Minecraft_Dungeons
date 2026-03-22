@@ -20,6 +20,12 @@ private:
 	HRESULT			Ready_Prototype();
 
 private:
+	void Render_CreateUI();
+	void Render_Inspector();
+	void Create_Object(const wstring& type);
+	void Start_CreateMode(const wstring& type);
+
+private:
 	void Editor_Input();
 	_vec3 Get_MouseWorldPos();
 	void Get_MouseRay(_vec3& vOrigin, _vec3& vDir);
@@ -27,7 +33,13 @@ private:
 
 private:
 	CGameObject* m_pSelectedObject = nullptr;
+	CGameObject* m_pPreviewObject = nullptr;
 	map<wstring, CGameObject*> m_mapEditObject;
+
+	_bool m_bLButtonPrev = false;
+	_bool m_bRButtonPrev = false;
+
+	wstring m_wstrCreateType;
 
 public:
 	static CObjectEditor* Create(LPDIRECT3DDEVICE9 pGraphicDev);

@@ -62,7 +62,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     if (FAILED(CTimerMgr::GetInstance()->Ready_Timer(L"Timer_FPS60")))
         return E_FAIL;
 
-    if (FAILED(CFrameMgr::GetInstance()->Ready_Frame(L"Frame60", 60.f)))
+    if (FAILED(CFrameMgr::GetInstance()->Ready_Frame(L"Frame60", 300.f)))
         return E_FAIL;
 
     // 기본 메시지 루프입니다:

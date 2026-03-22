@@ -38,14 +38,20 @@ public:
 	void Set_Position(_vec3 vPos) { m_tParticleDesc.vEmitPos = vPos; }
 	_bool Is_Dead() const { return m_bDead; }
 
-	////태준 추가함수
-	//void Set_EmitDir(_vec3 vDir) { m_tParticleDesc.vEmitDir = vDir; }  // 파티클 퍼지는 방향 지정
+	//태준 추가함수
+	void Set_EmitDir(_vec3 vDir) { m_tParticleDesc.vEmitDir = vDir; }  // 파티클 퍼지는 방향 지정
+	void Reset_Burst() { m_bBurstDone = false; m_bDead = false; Emit_Burst(); } //버스트 리셋
+	void Kill() { m_bDead = true; } // m_bDead 플래그 외부에서 사용
+	void Emit_Burst();
+
+	static CParticleEmitter* Create_Attack(LPDIRECT3DDEVICE9 pGraphicDev,
+		_vec3 vPos, _vec3 vDir, LPDIRECT3DTEXTURE9 pTexture);
 private:
 	HRESULT Ready_Emitter(const ParticleDesc& desc, LPDIRECT3DTEXTURE9 pTexture,
 		eParticlePreset& ePresetType);
 
 	void Reset_Particle(Particle& particle);
-	void Emit_Burst();
+
 	void Emit_ByRate(const _float& fTimeDelta);
 	
 	void Update_Particles(const _float& fTimeDelta);

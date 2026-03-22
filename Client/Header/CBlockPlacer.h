@@ -7,7 +7,6 @@
 struct BlockPos
 {
 	int x, y, z;
-	//이게 무슨 역할을 하는 거지?
 	bool operator<(const BlockPos& pos)const
 	{
 		if (x != pos.x)
@@ -43,32 +42,29 @@ public:
 	virtual ~CBlockPlacer();
 public:
 	_int Update_Placer(eBlockType eType);
+	void Render_Preview(eBlockType eType); // 추가 - 배치 위치 미리보기
 public:
-	//마우스에서 발사하는 Ray
 	void Compute_Ray(_vec3* pRayPos, _vec3* pRayDir);
-	//Ray와 Y = 0 평면의 교차
 	bool RayOnGround(_vec3* pRayPos, _vec3* pRayDir, _vec3* pHitOut);
-	//그리드 스냅
 	_vec3 SnapToGrid(_vec3* pHit, eBlockType eType);
-
 	void Undo();
+	BlockPos GetPlacePos(eBlockType eType); // 추가 - 현재 배치될 위치 반환
 public:
 	void SetPresetMode(bool bPreset, int iPreset = 0)
 	{
 		m_bPresetMode = bPreset;
 		m_iSelectedPreset = iPreset;
 	}
-
 private:
 	bool m_bPresetMode = false;
 	int  m_iSelectedPreset = 0;
-private: 
+private:
 	LPDIRECT3DDEVICE9 m_pGraphicDev;
-	float m_fBlockSize;
-	bool m_bLBtnPrev;
-	bool m_bRBtnPrev;
-	bool m_bZBtnPrev;
-	stack<BlockPos> m_undoStack;
+	float             m_fBlockSize;
+	bool              m_bLBtnPrev;
+	bool              m_bRBtnPrev;
+	bool              m_bZBtnPrev;
+	stack<BlockPos>   m_undoStack;
 private:
 	void Free() override;
 };

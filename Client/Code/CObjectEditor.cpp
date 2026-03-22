@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CObjectEditor.h"
 #include "CBox.h"
+#include "CLamp.h"
 #include "CDynamicCamera.h"
 
 CObjectEditor::CObjectEditor(LPDIRECT3DDEVICE9 pGraphicDev)
@@ -32,6 +33,22 @@ _int CObjectEditor::Update_Scene(const _float& fTimeDelta)
         pair.second->Update_GameObject(fTimeDelta);
     }
 
+    if (m_pPreviewObject)
+    {
+        _vec3 vPos = Get_MouseWorldPos();
+
+        CTransform* pTrans = dynamic_cast<CTransform*>(
+            m_pPreviewObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+        if (pTrans)
+            pTrans->Set_Pos(vPos.x, vPos.y, vPos.z);
+    }
+
+    if (m_pPreviewObject)
+    {
+        m_pPreviewObject->Update_GameObject(fTimeDelta);
+    }
+     
     Editor_Input();
 
     return iExit;
@@ -45,6 +62,11 @@ void CObjectEditor::LateUpdate_Scene(const _float& fTimeDelta)
     {
         pair.second->LateUpdate_GameObject(fTimeDelta);
     }
+
+    if (m_pPreviewObject)
+    {
+        m_pPreviewObject->LateUpdate_GameObject(fTimeDelta);
+    }
 }
 
 void CObjectEditor::Render_Scene()
@@ -52,6 +74,11 @@ void CObjectEditor::Render_Scene()
     for (auto& pair : m_mapEditObject)
     {
         pair.second->Render_GameObject();
+    }
+
+    if (m_pPreviewObject)
+    {
+        m_pPreviewObject->Render_GameObject();
     }
 
     if (!m_pSelectedObject) return;
@@ -96,13 +123,143 @@ void CObjectEditor::Render_Scene()
 
     m_pGraphicDev->DrawPrimitiveUP(D3DPT_LINELIST, 12, lines, sizeof(D3DXVECTOR3));
 
-    // ¿ø·¡ »óÅÂ º¹±¸
+    // Â¿Ã¸Â·Â¡ Â»Ã³Ã…Ã‚ ÂºÂ¹Â±Â¸
     m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, dwLighting);
     m_pGraphicDev->SetFVF(dwFVF);
 }
 
 void CObjectEditor::Render_UI()
 {
+    // Object List
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(200, 300), ImGuiCond_Once);
+
+    ImGui::Begin("Object List");
+
+    ImGui::BeginChild("ObjectListChild", ImVec2(0, 0), true);
+
+    for (auto& pair : m_mapEditObject)
+    {
+        std::string str(pair.first.begin(), pair.first.end());
+
+        if (ImGui::Selectable(str.c_str(),
+            m_pSelectedObject == pair.second))
+        {
+            m_pSelectedObject = pair.second;
+        }
+    }
+
+    ImGui::EndChild();
+    ImGui::End();
+
+    Render_CreateUI();
+
+    Render_Inspector();
+}
+
+void CObjectEditor::Render_CreateUI()
+{
+    ImGui::SetNextWindowPos(ImVec2(970, 10), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_Once);
+
+    ImGui::Begin("Create");
+
+    if (ImGui::Button("Box"))
+    {
+        Start_CreateMode(L"Box");
+    }
+
+    if (ImGui::Button("Lamp"))
+    {
+        Start_CreateMode(L"Lamp");
+    }
+
+    ImGui::End();
+}
+
+void CObjectEditor::Render_Inspector()
+{
+    ImGui::SetNextWindowPos(ImVec2(970, 170), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_Once);
+
+    ImGui::Begin("Inspector");
+
+    if (!m_pSelectedObject)
+    {
+        ImGui::Text("No Object Selected");
+        ImGui::End();
+        return;
+    }
+
+    CTransform* pTrans = dynamic_cast<CTransform*>(
+        m_pSelectedObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+    if (!pTrans)
+    {
+        ImGui::End();
+        return;
+    }
+
+    _vec3 vPos;
+    pTrans->Get_Info(INFO_POS, &vPos);
+
+    float pos[3] = { vPos.x, vPos.y, vPos.z };
+
+    if (ImGui::DragFloat3("Position", pos, 0.1f))
+    {
+        pTrans->Set_Pos(pos[0], pos[1], pos[2]);
+    }
+
+    ImGui::End();
+}
+
+void CObjectEditor::Create_Object(const wstring& type)
+{
+    if (!m_pPreviewObject)
+        return;
+
+    CGameObject* pObj = nullptr;
+
+    if (type == L"Box")
+        pObj = CBox::Create(m_pGraphicDev);
+    else if (type == L"Lamp")
+        pObj = CLamp::Create(m_pGraphicDev);
+
+    if (!pObj) return;
+
+    CTransform* pPreviewTrans = dynamic_cast<CTransform*>(
+        m_pPreviewObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+    CTransform* pNewTrans = dynamic_cast<CTransform*>(
+        pObj->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+    if (pPreviewTrans && pNewTrans)
+    {
+        _vec3 vPos;
+        pPreviewTrans->Get_Info(INFO_POS, &vPos);
+
+        pNewTrans->Set_Pos(vPos.x, vPos.y, vPos.z);
+    }
+
+    static int iID = 0;
+    wstring key = type + L"_" + to_wstring(iID++);
+
+    m_mapEditObject.insert({ key, pObj });
+
+    m_pSelectedObject = pObj;
+}
+
+void CObjectEditor::Start_CreateMode(const wstring& type)
+{
+    m_wstrCreateType = type;
+
+    if (m_pPreviewObject)
+        Safe_Release(m_pPreviewObject);
+
+    if (type == L"Box")
+        m_pPreviewObject = CBox::Create(m_pGraphicDev);
+    else if (type == L"Lamp")
+        m_pPreviewObject = CLamp::Create(m_pGraphicDev);
 }
 
 HRESULT CObjectEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -149,12 +306,37 @@ HRESULT CObjectEditor::Ready_Prototype()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_LargeBoxChest.png"))))
         return E_FAIL;
 
+    // Lamp
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampBodyTex", Engine::CLampBodyTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampHeadTex", Engine::CLampHeadTex::Create(m_pGraphicDev))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LampTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_Lamp.png"))))
+        return E_FAIL;
+
     return S_OK;
 }
 
 void CObjectEditor::Editor_Input()
 {
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (io.WantCaptureMouse || io.WantCaptureKeyboard)
+        return;
+
+    bool bLButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+    bool bRButtonDown = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
+    bool bLButtonClicked = bLButtonDown && !m_bLButtonPrev;
+    bool bRButtonClicked = bRButtonDown && !m_bRButtonPrev;
+
+    m_bLButtonPrev = bLButtonDown;
+    m_bRButtonPrev = bRButtonDown;
+
+    if (bLButtonClicked)
     {
         if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         {
@@ -191,27 +373,9 @@ void CObjectEditor::Editor_Input()
 
             m_pSelectedObject = pPicked;
         }
-        else
-        {
-            D3DXVECTOR3 vPos = Get_MouseWorldPos();
-
-            CGameObject* pBox = CBox::Create(m_pGraphicDev);
-
-            CTransform* pBoxTransformCom = dynamic_cast<CTransform*>(pBox->Get_Component(ID_DYNAMIC, L"Com_Transform"));
-
-            if (pBox)
-            {
-                pBoxTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-
-                static int iID = 0;
-
-                wstring wstrKey = L"Box_" + to_wstring(iID++);
-                m_mapEditObject.insert({ wstrKey, pBox });
-            }
-        }
     }
 
-    if (GetAsyncKeyState(VK_RBUTTON) & 0x0001)
+    if (bRButtonClicked)
     {
         if (m_pSelectedObject)
         {
@@ -242,10 +406,24 @@ void CObjectEditor::Editor_Input()
     }
     else if (GetAsyncKeyState(VK_LEFT))
     {
-        CTransform* pTrans = dynamic_cast<CTransform*>(
-            m_pSelectedObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+        if (m_pSelectedObject)
+        {
+            CTransform* pTrans = dynamic_cast<CTransform*>(
+                m_pSelectedObject->Get_Component(ID_DYNAMIC, L"Com_Transform"));
 
-        pTrans->Rotation(ROT_Y, 3.f);
+            pTrans->Rotation(ROT_Y, 3.f);
+        }
+    }
+
+    if (bLButtonClicked && !m_wstrCreateType.empty())
+    {
+        Create_Object(m_wstrCreateType);
+
+        Safe_Release(m_pPreviewObject);
+        m_pPreviewObject = nullptr;
+        m_wstrCreateType = L"";
+
+        return;
     }
 }
 

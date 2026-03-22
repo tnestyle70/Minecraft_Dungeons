@@ -149,6 +149,28 @@ void CParticleEmitter::Emit_Burst()
     m_bBurstDone = true;
 }
 
+CParticleEmitter* CParticleEmitter::Create_Attack(LPDIRECT3DDEVICE9 pGraphicDev, _vec3 vPos, _vec3 vDir, LPDIRECT3DTEXTURE9 pTexture)
+{
+    ParticleDesc desc;
+    ZeroMemory(&desc, sizeof(ParticleDesc));
+    desc.vEmitPos = vPos;
+    desc.vEmitDir = vDir;  //방향 직접 지정
+    desc.fSpreadAngle = D3DX_PI * 0.4f;
+    desc.fMinSpeed = 0.1f;     desc.fMaxSpeed = 0.3f;
+    desc.fMinLifeTime = 0.5f;  desc.fMaxLifeTime = 0.8f;
+    desc.fMinSize = 20.f;      desc.fMaxSize = 60.f;
+    desc.colorStart = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+    desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);
+    desc.bUseTextureAsIs = true;
+    desc.iMaxParticles = 10;
+    desc.fEmitRate = 0.f;  // Burst
+    desc.bLoop = false;
+    desc.fGravity = 4.f;
+
+    eParticlePreset eType = PARTICLE_ATTACK;
+    return Create(pGraphicDev, eType, desc, pTexture);
+}
+
 void CParticleEmitter::Emit_ByRate(const _float& fTimeDelta)
 {
     m_fEmitAccTime += fTimeDelta;
@@ -385,7 +407,7 @@ CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev,
         desc.colorEnd = D3DXCOLOR(1.f, 1.f, 1.f, 0.f);  // 서서히 투명
         desc.bUseTextureAsIs = true;  // 원본 이미지 그대로 (알파만 페이드)
         desc.iMaxParticles = 10;
-        desc.fEmitRate = 20.f;      // Burst
+        desc.fEmitRate = 1.f;      // Burst
         desc.bLoop = false;
         desc.fGravity = 4.f;
         break;
