@@ -154,7 +154,7 @@ HRESULT CObjectEditor::Ready_Prototype()
 
 void CObjectEditor::Editor_Input()
 {
-    if (GetAsyncKeyState(VK_LBUTTON) & 0x0001)
+    if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
     {
         if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
         {

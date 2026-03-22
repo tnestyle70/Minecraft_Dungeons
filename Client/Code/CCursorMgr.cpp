@@ -36,17 +36,18 @@ _int CCursorMgr::Update(const _float& fTimeDelta)
 	GetCursorPos(&pt);
 	ScreenToClient(g_hWnd, &pt);
 	m_vMousePos = _vec2((_float)pt.x, (_float)pt.y);
-	//좌클릭 감지시 마우스 커서 교체
-	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
-	{
-		m_eCursorState = eCursorState::CLICK;
-	}
-	//좌클릭이 아니고, Click 상태일 경우 Default로 되돌리기
-	else if (m_eCursorState == eCursorState::CLICK)
-	{
-		m_eCursorState = eCursorState::DEFAULT;
-	}
+	//플래그로 이번 프레임에 눌렸는지 아닌지를 판단
+	bool bLButton = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
+
+	//이번 프레임에 눌렸는지 판단 - 이번 프레임
+	m_bClickedThisFrame = bLButton && !m_bClicked;
+	m_bClicked = bLButton;
 	
+	if (bLButton)
+		m_eCursorState = eCursorState::CLICK;
+	else if (m_eCursorState == eCursorState::CLICK)
+		m_eCursorState = eCursorState::DEFAULT;
+
 	return 0;
 }
 
@@ -69,6 +70,7 @@ void CCursorMgr::Render()
 	_float fScaleY = m_fCursorSize / WINCY;
 
 	_matrix matWorld;
+
 	D3DXMatrixTransformation2D(&matWorld,
 		nullptr, 0.f,
 		&_vec2(fScaleX, fScaleY),
@@ -78,9 +80,35 @@ void CCursorMgr::Render()
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
 
 	pTex->Set_Texture(0);
+
 	m_pBufferCom->Render_Buffer();
 
 	EndCursorRender();
+}
+
+void CCursorMgr::GetPickingRay(_vec3& vRayOrigin, _vec3& vRayDir) const
+{
+	//마우스 커서의 위치에 따른 방향을 넘겨주는 함수
+	//스크린 픽셀 -> NDC
+	float fNDCX = (2.f * m_vMousePos.x / WINCX) - 1.f;
+	float fNDCY = 1.f - (2.f * m_vMousePos.y / WINCY);
+	//NDC -> View(투영 역변환)
+	_vec3 vRayView;
+	vRayView.x = fNDCX / m_matOriginProj._11;
+	vRayView.y = fNDCY / m_matOriginProj._22;
+	vRayView.z = 1.f;
+	//view 공간에서 ray z=1 방향 고정
+	_matrix matViewInv;
+	D3DXMatrixInverse(&matViewInv, nullptr, &m_matOriginView);
+	//Ray 방향 변환
+	vRayDir.x = vRayView.x * matViewInv._11 + vRayView.y * matViewInv._21 + vRayView.z * matViewInv._31;
+	vRayDir.y = vRayView.x * matViewInv._12 + vRayView.y * matViewInv._22 + vRayView.z * matViewInv._32;
+	vRayDir.z = vRayView.x * matViewInv._13 + vRayView.y * matViewInv._23 + vRayView.z * matViewInv._33;
+	D3DXVec3Normalize(&vRayDir, &vRayDir);
+	//레이 원점 = 카메라 위치(View 역행렬의 이동)
+	vRayOrigin.x = matViewInv._41;
+	vRayOrigin.y = matViewInv._42;
+	vRayOrigin.z = matViewInv._43;
 }
 
 HRESULT CCursorMgr::AddComponent()

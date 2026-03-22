@@ -85,6 +85,9 @@ private:
 
     bool m_bActive = false;
 
+    //===이전 프레임 Player Collider와 충돌 상태 기억===
+    bool m_bPrevAtkColliding = false;
+
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         EMonsterType eType = EMonsterType::ZOMBIE, _vec3 vPos = { -1.f, 5.f, 3.f });
