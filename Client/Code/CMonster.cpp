@@ -198,19 +198,49 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
     CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
 
+    bool bCurColliding = pPlayer->Get_AtkColliderActive() &&
+        m_pColliderCom->IsColliding(pAtkCollider->Get_AABB());
+
     if (pAtkCollider && pAnim
         && pAnim->Get_State() != EMonsterState::HIT
         && pAnim->Get_State() != EMonsterState::DEAD
-        && pPlayer && pPlayer->Get_AtkColliderActive()
-        && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
+        && bCurColliding && !m_bPrevAtkColliding)
     {
         m_iHp -= 1;
+
+        //DamageText
+        _vec3 vPos;
+        m_pTransformCom->Get_Info(INFO_POS, &vPos);
+        vPos.y += 1.5f;
+        CDamageMgr::GetInstance()->AddDamage(vPos, pPlayer->Get_MeleeDmg());
 
         if (m_iHp <= 0)
             pAnim->Set_State(EMonsterState::DEAD);
         else
             pAnim->Set_State(EMonsterState::HIT);
     }
+    //===이전 프레임 상태====
+    m_bPrevAtkColliding = bCurColliding;
+
+    //if (pAtkCollider && pAnim
+    //    && pAnim->Get_State() != EMonsterState::HIT
+    //    && pAnim->Get_State() != EMonsterState::DEAD
+    //    && pPlayer && pPlayer->Get_AtkColliderActive()
+    //    && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
+    //{
+    //    m_iHp -= 1;
+
+    //    //DamageText
+    //    _vec3 vPos;
+    //    m_pTransformCom->Get_Info(INFO_POS, &vPos);
+    //    vPos.y += 1.5f;
+    //    CDamageMgr::GetInstance()->AddDamage(vPos, pPlayer->Get_MeleeDmg());
+
+    //    if (m_iHp <= 0)
+    //        pAnim->Set_State(EMonsterState::DEAD);
+    //    else
+    //        pAnim->Set_State(EMonsterState::HIT);
+    //}
 
     m_pBodyCom->Update_Body(fTimeDelta, m_bIsMoving, false);
 

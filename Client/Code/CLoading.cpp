@@ -203,9 +203,45 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_2.png"))))
         return E_FAIL;
 
+    //=======UI=========//
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HUDTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/hotbar.png"))))
+        return E_FAIL;
+
+    //UI - 하트 
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_FilledHeart",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/filled_heart.png"))))
+        return E_FAIL;
+    //Gray Heart
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EmptyHeart",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/gray_heart.png"))))
+        return E_FAIL;
+    //Inventory sword tab on
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTabOff",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/gear_icon.png"))))
+        return E_FAIL;
+    //Inventory sword tab off
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SwordTabOn",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/gear_icon_bright.png"))))
+        return E_FAIL;
+    //Inventory armor tab on
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArmorTabOn",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/armour_select.png"))))
+        return E_FAIL;
+    //Inventory armor tab off
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArmorTabOff",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/armour_default.png"))))
+        return E_FAIL;
+    //Inventory bow tab on
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowTabOn",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/bow_icon_bright.png"))))
+        return E_FAIL;
+    //Inventory bow tab off
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowTabOff",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/bow_icon.png"))))
+        return E_FAIL;
 
     //플레이어 아머 텍스쳐
-
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArmorTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/T_EndRobes.png"))))
         return E_FAIL;
@@ -274,11 +310,6 @@ _uint CLoading::Loading_SquidCoast()
     // Zobie
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ZombieTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/zombie.png"))))
-        return E_FAIL;
-
-    //=======UI=========//
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HUDTexture",
-        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/hotbar.png"))))
         return E_FAIL;
 
     // 좀비 파츠 버퍼
@@ -456,13 +487,6 @@ _uint CLoading::Loading_SquidCoast()
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI/Materials/Hotbar2/Heart/heart_main.png"))) )
         return E_FAIL;
 
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_FilledHeart",
-        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI/Materials/HotBar2/Heart/filled_heart.png"))))
-        return E_FAIL;
-
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HotbarTexture",
-        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI/Materials/hotbar.png"))))
-        return E_FAIL;
 
     lstrcpy(m_szLoading, L"기타 등등 로딩");
 

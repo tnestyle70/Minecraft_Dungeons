@@ -101,6 +101,42 @@ bool CCollider::IsColliding(const AABB& other) const
 	return true;
 }
 
+bool CCollider::IntersectRay(const _vec3& vRayOrigin, const _vec3& vRayDir)
+{
+	//AABB 기준으로 슬랩 테스트 - AABB의 각 축을 두 평면 한 쌍의 슬랩으로 판단
+	float tMin = -FLT_MAX;
+	float tMax = FLT_MAX;
+
+	float* pOrigin[3] = { (float*)&vRayOrigin.x, (float*)&vRayOrigin.y, (float*)&vRayOrigin.z };
+	float* pDir[3] = { (float*)&vRayDir.x, (float*)&vRayDir.y, (float*)&vRayDir.z };
+	float* pMin[3] = { (float*)&m_tAABB.vMin.x, (float*)&m_tAABB.vMin.y, (float*)&m_tAABB.vMin.z };
+	float* pMax[3] = { (float*)&m_tAABB.vMax.x, (float*)&m_tAABB.vMax.y, (float*)&m_tAABB.vMax.z };
+
+	for (int i = 0; i < 3; ++i)
+	{
+		float fDir = *pDir[i];
+
+		//예외처리 추가 - 평행일 경우 
+
+		//Ray의 Origin과 AABB와의 충돌 처리
+		float fT1 = (*pMin[i] - *pOrigin[i]) / fDir;
+		float fT2 = (*pMax[i] - *pOrigin[i]) / fDir;
+		
+		if (fT1 > fT2)
+		{
+			swap(fT1, fT2);
+		}
+		//모든 AABB 축 방향에 대한 충돌 처리를 진행
+		tMin = max(tMin, fT1);
+		tMax = min(tMax, fT2);
+
+		if (tMin > tMax)
+			return false;
+	}
+	//tMax가 < 0일 경우 뒤쪽에 존재하는 상태
+	return tMax >= 0;
+}
+
 _vec3 CCollider::Resolve(const AABB& other) const
 {
 	//충돌했을 경우 반대 방향으로 밀어주기

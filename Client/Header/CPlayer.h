@@ -47,7 +47,7 @@ private:
 	void			Render_Sword(float fAtkX, float fAtkY, float fSwing);
 	void			Render_Bow();
 
-
+	
 private:
 	//플레이어 정보
 
@@ -58,6 +58,7 @@ private:
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];
+
 	//공격모션
 	int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
 	float m_fAtkTime = 0.f;    // 현재 공격 경과 시간

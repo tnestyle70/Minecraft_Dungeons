@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CUIInterface.h"
+#include "CCursorMgr.h"
 
 CUIInterface::CUIInterface(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CGameObject(pGraphicDev)
@@ -15,6 +16,8 @@ HRESULT CUIInterface::Ready_GameObject()
 
 _int CUIInterface::Update_GameObject(const _float& fTimeDelta)
 {
+	int iExit = CGameObject::Update_GameObject(fTimeDelta);
+
 	_bool bInRect = IsMouseInRect();
 	_bool bLBtn = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 
@@ -22,17 +25,13 @@ _int CUIInterface::Update_GameObject(const _float& fTimeDelta)
 	if (bInRect && !m_bHovered) { m_bHovered = true;  Hover(); }
 	if (!bInRect && m_bHovered) { m_bHovered = false; Leave(); }
 
-	// ── 클릭 감지 (단발) ───────────────────────
-	static bool bPrev = false;
-	if (bLBtn && !bPrev && bInRect)
+	if (bLBtn && bInRect)
 	{
 		m_bClicked = true;
 		Clicked();
 	}
-	if (!bLBtn) m_bClicked = false;
-	bPrev = bLBtn;
 
-	return CGameObject::Update_GameObject(fTimeDelta);
+	return iExit;
 }
 
 void CUIInterface::LateUpdate_GameObject(const _float& fTimeDelta)
@@ -86,14 +85,14 @@ void CUIInterface::BeginUIRender()
 	//CullMode 설정
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	//알파 블렌딩 활성화
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 
-	//m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	//m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 0xc0);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 0xc0);
 }
 
 void CUIInterface::EndUIRender()
@@ -105,9 +104,14 @@ void CUIInterface::EndUIRender()
 	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &m_matOriginProj);
 
 	//알파블렌딩 - 옵션 다시 꺼주기!!
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-	//m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	//m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+}
+
+void CUIInterface::Set_Info(float fX, float fY, float fW, float fH)
+{
+	m_fX = fX, m_fY = fY, m_fW = fW, m_fH = fH;
 }
 
 void CUIInterface::Free()

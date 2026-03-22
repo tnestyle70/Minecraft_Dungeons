@@ -168,10 +168,6 @@ HRESULT CMainApp::Ready_DefaultSetting(LPDIRECT3DDEVICE9* ppGraphicDev)
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/T_actionCursorInteract.png"))))
         return E_FAIL;
 
-    //Inventory 세팅
-    if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))
-        return E_FAIL;
-
     //CursorMgr
     if (FAILED(CCursorMgr::GetInstance()->Ready_CursorMgr(m_pGraphicDev)))
         return E_FAIL;

@@ -48,7 +48,7 @@ void CDamageMgr::Render()
 		vScreen.y -= tDamage.fOffsetY; //위로 올라가기
 		//시간에 비례해서 투명
 		_float fAlpha = tDamage.fLifeTime / m_fLifeTime;
-		D3DXCOLOR color(1.f, 0.2f, 0.2f, fAlpha);
+		D3DXCOLOR color(1.f, 1.f, 1.f, fAlpha);
 
 		_tchar szDamage[16];
 		wsprintf(szDamage, L"%d", tDamage.iDamage);

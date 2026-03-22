@@ -34,6 +34,7 @@ public:
 	void Update_AABB(const _vec3& vWorldPos);
 	void Update_OBB(const _matrix& matWorld);
 	bool IsColliding(const AABB& other) const;
+	bool IntersectRay(const _vec3& vRayOrigin, const _vec3& vRayDir);
 	_vec3 Resolve(const AABB& other) const;
 	//디버그용 렌더링
 	void Render_Collider();

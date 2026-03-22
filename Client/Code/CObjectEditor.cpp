@@ -123,7 +123,7 @@ void CObjectEditor::Render_Scene()
 
     m_pGraphicDev->DrawPrimitiveUP(D3DPT_LINELIST, 12, lines, sizeof(D3DXVECTOR3));
 
-    // ¿ø·¡ »óÅÂ º¹±¸
+    // Â¿Ã¸Â·Â¡ Â»Ã³Ã…Ã‚ ÂºÂ¹Â±Â¸
     m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, dwLighting);
     m_pGraphicDev->SetFVF(dwFVF);
 }

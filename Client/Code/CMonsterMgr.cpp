@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CMonsterMgr.h"
+#include "CCursorMgr.h"
 
 IMPLEMENT_SINGLETON(CMonsterMgr)
 
@@ -27,8 +28,11 @@ _int CMonsterMgr::Update(const _float& fTimeDelta)
 		for (auto& pMonster : group.vecMonsters)
 		{
 			if (pMonster->IsActive())
+			{
 				pMonster->Update_GameObject(fTimeDelta);
+			}
 		}
+
 		//트리거 안 되었거나, 모두 스폰된 그룹은 continue
 		if (!group.bTriggered || group.bAllSpawned)
 			continue;
@@ -46,6 +50,9 @@ _int CMonsterMgr::Update(const _float& fTimeDelta)
 			group.bAllSpawned = true;
 		}
 	}
+	//커서 업데이트
+	CheckCursorHover();
+
 	return 0;
 }
 
@@ -79,6 +86,44 @@ void CMonsterMgr::Render()
 
 void CMonsterMgr::SpawnMonsters(const _float& fTimeDelta)
 {
+}
+
+void CMonsterMgr::CheckCursorHover()
+{
+	//마우스 커서와 몬스터 콜라이더 충돌 상태 검증 이후 CursorMgr에 플래그 보내기
+	//cursormgr에서 ray origin과 ray dir 구하기
+	_vec3 vRayOrigin, vRayDir;
+	
+	CCursorMgr::GetInstance()->GetPickingRay(vRayOrigin, vRayDir);
+
+	bool bHover = false;
+
+	for (auto& pair : m_mapMonsterGroups)
+	{
+		for (auto& pMonster : pair.second.vecMonsters)
+		{
+			if (!pMonster->IsActive())
+				continue;
+			
+			CCollider* pCollider = pMonster->Get_Collider();
+			if (!pCollider)
+				continue;
+			//Collider와 충돌을 했을 경우, Hover true로 설정
+			if (pCollider->IntersectRay(vRayOrigin, vRayDir))
+			{
+				CCursorMgr::GetInstance()->SetCursorState(eCursorState::ENEMY_HOVER);
+				bHover = true;
+				break;
+			}
+		}
+		if (bHover)
+			break;
+	}
+
+	if (!bHover && !CCursorMgr::GetInstance()->IsClicked())
+	{
+		CCursorMgr::GetInstance()->SetCursorState(eCursorState::DEFAULT);
+	}
 }
 
 bool CMonsterMgr::IsGroupAllDead(int iTriggerID)

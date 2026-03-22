@@ -195,6 +195,12 @@
     <ClCompile Include="..\Code\CUIInterface.cpp">
       <Filter>02. GameObject\12. UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CTabButton.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CEquipSlot.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\CLamp.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClCompile>
@@ -397,6 +403,12 @@
       <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CUIInterface.h">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CTabButton.h">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CEquipSlot.h">
       <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CLamp.h">
