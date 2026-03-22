@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "CGolemStates.h"
 #include "CRedStoneGolem.h"
+#include "CPlayer.h"
+#include "CMonsterMgr.h"
 
 // ====================== IDLE ======================
 void CGolemState_Idle::Enter(CRedStoneGolem* pGolem)
@@ -39,9 +41,24 @@ void CGolemState_Attack::Update(CRedStoneGolem* pGolem, const _float& fTimeDelta
 {
     pGolem->Anim_NormalAttack();
 
+    if (pGolem->Get_AnimTime() > 0.45f && pGolem->Get_AnimTime() < 0.5f && !m_bHit)
+    {
+        if (pGolem->Check_AttackHit())
+        {
+            CPlayer* pPlayer;
+            pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+
+            if (pPlayer)
+                pPlayer->Hit();
+        }
+
+        m_bHit = true;
+    }
+
     if (pGolem->Get_AnimTime() >= 1.2f)
     {
         m_bFinished = true;
+        m_bHit = false;
         pGolem->Change_State(GOLEM_STATE_IDLE);
     }
 }

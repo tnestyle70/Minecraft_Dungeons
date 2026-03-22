@@ -101,6 +101,96 @@ bool CCollider::IsColliding(const AABB& other) const
 	return true;
 }
 
+bool CCollider::IsColliding_OBB(const OBB& A, const OBB& B)
+{
+	const float EPSILON = 1e-5f;
+
+	float R[3][3], AbsR[3][3];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			R[i][j] = D3DXVec3Dot(&A.vAxis[i], &B.vAxis[j]);
+			AbsR[i][j] = fabs(R[i][j]) + EPSILON;
+		}
+	}
+
+	_vec3 tVec = B.vCenter - A.vCenter;
+	float t[3] =
+	{
+		D3DXVec3Dot(&tVec, &A.vAxis[0]),
+		D3DXVec3Dot(&tVec, &A.vAxis[1]),
+		D3DXVec3Dot(&tVec, &A.vAxis[2])
+	};
+
+	float ra, rb;
+
+	// A의 축 3개
+	for (int i = 0; i < 3; ++i)
+	{
+		ra = A.vHalfSize[i];
+		rb = B.vHalfSize.x * AbsR[i][0] + B.vHalfSize.y * AbsR[i][1] + B.vHalfSize.z * AbsR[i][2];
+
+		if (fabs(t[i]) > ra + rb)
+			return false;
+	}
+
+	// B의 축 3개
+	for (int i = 0; i < 3; ++i)
+	{
+		ra = A.vHalfSize.x * AbsR[0][i] + A.vHalfSize.y * AbsR[1][i] + A.vHalfSize.z * AbsR[2][i];
+		rb = B.vHalfSize[i];
+
+		float tVal =
+			fabs(t[0] * R[0][i] +
+				t[1] * R[1][i] +
+				t[2] * R[2][i]);
+
+		if (tVal > ra + rb)
+			return false;
+	}
+
+	// Cross product 축 9개
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			ra =
+				A.vHalfSize[(i + 1) % 3] * AbsR[(i + 2) % 3][j] +
+				A.vHalfSize[(i + 2) % 3] * AbsR[(i + 1) % 3][j];
+
+			rb =
+				B.vHalfSize[(j + 1) % 3] * AbsR[i][(j + 2) % 3] +
+				B.vHalfSize[(j + 2) % 3] * AbsR[i][(j + 1) % 3];
+
+			float tVal =
+				fabs(t[(i + 2) % 3] * R[(i + 1) % 3][j] -
+					t[(i + 1) % 3] * R[(i + 2) % 3][j]);
+
+			if (tVal > ra + rb)
+				return false;
+		}
+	}
+
+	return true;
+}
+
+OBB CCollider::ConvertAABBtoOBB(const AABB& aabb)
+{
+	OBB obb;
+
+	obb.vCenter = (aabb.vMin + aabb.vMax) * 0.5f;
+
+	obb.vAxis[0] = _vec3(1.f, 0.f, 0.f);
+	obb.vAxis[1] = _vec3(0.f, 1.f, 0.f);
+	obb.vAxis[2] = _vec3(0.f, 0.f, 1.f);
+
+	obb.vHalfSize = (aabb.vMax - aabb.vMin) * 0.5f;
+
+	return obb;
+}
+
 _vec3 CCollider::Resolve(const AABB& other) const
 {
 	//충돌했을 경우 반대 방향으로 밀어주기
