@@ -2,6 +2,8 @@
 #include "CAncientGuardian.h"
 #include "CRenderer.h"
 #include "CManagement.h"
+#include "CFontMgr.h"
+#include "CDamageMgr.h"
 
 CAncientGuardian::CAncientGuardian(LPDIRECT3DDEVICE9 pGraphicDev)
     : CDLCBoss(pGraphicDev)
@@ -179,6 +181,14 @@ void CAncientGuardian::Render_GameObject()
 {
     if (!m_pBodyCom || !m_pTransformCom || !m_pTextureCom) return;
     m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
+    
+    //보스 이름, 체력바 렌더링
+    if (m_eState != EPufferFishState::IDLE)
+    {
+        _vec2 vPos{ 500.f, 10.f };
+        CFontMgr::GetInstance()->Render_Font(
+            L"Font_Minecraft", L"Ancient Guardian", &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));
+    }
 }
 
 void CAncientGuardian::Update_Orbit(const _float& fTimeDelta)

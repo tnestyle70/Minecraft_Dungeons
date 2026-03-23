@@ -21,7 +21,7 @@ HRESULT CFont::Ready_Font(const _tchar* pFontType,
 	tFont_Desc.Height = iHeight;
 	tFont_Desc.Weight = iWeight;
 	lstrcpy(tFont_Desc.FaceName, pFontType);
-
+	
 	if (FAILED(D3DXCreateFontIndirect(m_pGraphicDev, &tFont_Desc, &m_pFont)))
 	{
 		MSG_BOX("Font Create Failed");
@@ -34,7 +34,6 @@ HRESULT CFont::Ready_Font(const _tchar* pFontType,
 		return E_FAIL;
 	}
 	
-
 	return S_OK;
 }
 

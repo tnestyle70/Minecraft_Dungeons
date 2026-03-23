@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CBase.h"
 #include "Engine_Define.h"
 #include "CFont.h"

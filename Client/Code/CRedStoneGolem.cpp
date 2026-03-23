@@ -4,6 +4,8 @@
 #include "CDInputMgr.h"
 #include "CBlockMgr.h"
 #include "CManagement.h"
+#include "CFontMgr.h"
+#include "CDamageMgr.h"
 
 CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -36,8 +38,10 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	m_pStates[GOLEM_STATE_ATTACK] = new CGolemState_Attack();
 	m_pStates[GOLEM_STATE_SKILL] = new CGolemState_Skill();
 	m_pStates[GOLEM_STATE_DEAD] = new CGolemState_Dead();
-
+	
 	m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
+
+	//m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
 
 	Set_PartsOffset();
 	Set_DefaultScale();
@@ -109,6 +113,14 @@ void CRedStoneGolem::Render_GameObject()
 
 	//m_pColliderCom->Render_OBB();
 	//m_pAtkColliderCom->Render_OBB();
+
+	//Boss Name, HealthBar Rendering
+	if (m_eState != GOLEM_STATE::GOLEM_STATE_IDLE)
+	{
+		_vec2 vPos{ 500.f, 10.f };
+		CFontMgr::GetInstance()->Render_Font(
+			L"Font_Minecraft", L"RedStone Golem", &vPos, D3DXCOLOR(1.f, 1.f, 1.f, 1.f));
+	}
 
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }

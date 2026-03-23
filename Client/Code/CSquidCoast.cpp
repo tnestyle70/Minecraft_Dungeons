@@ -26,6 +26,7 @@
 #include "CInventoryMgr.h"
 #include "CInventorySlot.h"
 #include "CTNT.h"
+#include "CDamageMgr.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -101,12 +102,13 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 		CIronBarMgr::GetInstance()->Clear();
 		CMonsterMgr::GetInstance()->Clear();
 		CParticleMgr::GetInstance()->Clear_Emitters();
+		CInventoryMgr::GetInstance()->Clear_Player();
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_CAMP)))
 		{
 			MSG_BOX("Camp Create Failed");
 			return -1;
 		}
-
+		
 		return iExit;
 	}
 
@@ -224,12 +226,20 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
 
+	//Inventory 세팅
+	if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))
+		return E_FAIL;
+
+	CInventoryMgr::GetInstance()->Set_Player(pPlayer);
+
 	//TNT
 	CTNT* pTNT = CTNT::Create(m_pGraphicDev, _vec3(5.f, 1.5f, 3.f));
 	if (pTNT)
 	{
 		pLayer->Add_GameObject(L"TNT", pTNT);
 		pPlayer->Add_TNT(pTNT);
+	}
+
 	//HUD
 	pGameObject = CHUD::Create(m_pGraphicDev);
 
@@ -277,6 +287,35 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
+	//Boss
+	pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
+
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
+		return E_FAIL;
+
+	CRedStoneGolem* pGolem = dynamic_cast<CRedStoneGolem*>(pGameObject);
+	
+	if (pGolem)
+	{
+		CDamageMgr::GetInstance()->Ready_Component();
+		CDamageMgr::GetInstance()->Set_RedStone(pGolem);
+	}
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
+	//Ancient Guardian
+	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 129.f));
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
+		return E_FAIL;
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	return S_OK;
 }
 
@@ -288,10 +327,6 @@ HRESULT CSquidCoast::Ready_UI_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	CGameObject* pGameObject = nullptr;
-
-	//Inventory 세팅
-	if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))
-		return E_FAIL;
 
 	return S_OK;
 }

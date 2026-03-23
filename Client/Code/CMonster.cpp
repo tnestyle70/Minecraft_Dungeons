@@ -62,6 +62,8 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 
     CParticleMgr::GetInstance()->Add_Emitter(m_pDeathEmitter);
 
+    Safe_Release(pDeathEffectTexture);
+
     return S_OK;
 }
 
@@ -200,6 +202,10 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     Engine::CCollider* pAtkCollider = dynamic_cast<Engine::CCollider*>(pAtkCom);
 
     CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+    if (m_eType == EMonsterType::SKELETON)
+        CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
+    else
+        CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
     //====Editor용======//
     if (!pPlayer)
@@ -349,10 +355,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         Update_Arrow(fTimeDelta);
     }
 
-    if (m_eType == EMonsterType::SKELETON)
-        CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
-    else
-        CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
+    
 
     return iExit;
 }

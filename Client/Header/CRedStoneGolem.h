@@ -45,6 +45,10 @@ public:
 	_float Get_AnimTime() const { return m_fAnimTime; }
 	_bool Check_AttackHit();
 
+	_float Get_HP() { return m_fHp; }
+	_float Get_MaxHP() { return m_fMaxHp; }
+	GOLEM_STATE Get_State() { return m_eState; }
+
 private:
 	HRESULT	Add_Component();
 	void Set_DefaultScale();

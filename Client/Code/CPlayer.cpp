@@ -76,6 +76,8 @@ HRESULT CPlayer::Ready_GameObject()
 
 	CParticleMgr::GetInstance()->Add_Emitter(m_pFootStepEmitter);
 
+	Safe_Release(pEffectTexture);
+
 	D3DXCreateTextureFromFile(m_pGraphicDev,
 		L"../Bin/Resource/Texture/Effect/Attack.png", &m_pAttackTexture);
 
@@ -83,6 +85,8 @@ HRESULT CPlayer::Ready_GameObject()
 		m_pGraphicDev, PARTICLE_ATTACK, _vec3(0.f, 0.f, 0.f), pEffectTexture);
 
 	CParticleMgr::GetInstance()->Add_Emitter(m_pAttackEmitter);
+
+	Safe_Release(m_pAttackEmitter);
 
 	return S_OK;
 }
@@ -315,9 +319,9 @@ void CPlayer::Render_GameObject()
 
 
 	// 칼 - 활 스위칭
-	if (m_bCharging)
+	if (m_bCharging || m_bBowEquipped)
 		Render_Bow();
-	else
+	else if(m_bSwordEquipped)
 		Render_Sword(fAtkX, fAtkY, fSwing);
 
 	m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
@@ -1108,6 +1112,32 @@ void CPlayer::Attack_Collision()
 	else
 	{
 		m_bAtkColliderActive = false;
+	}
+}
+
+void CPlayer::Equip(eEquipType eType)
+{
+	switch (eType)
+	{
+	case eEquipType::MELEE: m_bSwordEquipped = true;            
+		break;
+	case eEquipType::ARMOR: m_eArmorType = ARMOR_BARDSGARD;     
+		break;
+	case eEquipType::RANGED:   m_bBowEquipped = true;              
+		break;
+	}
+}
+
+void CPlayer::UnEquip(eEquipType eType)
+{
+	switch (eType)
+	{
+	case eEquipType::MELEE: m_bSwordEquipped = false;            
+		break;
+	case eEquipType::ARMOR: m_eArmorType = ARMOR_NONE;		
+		break;
+	case eEquipType::RANGED:   m_bBowEquipped = false;              
+		break;
 	}
 }
 

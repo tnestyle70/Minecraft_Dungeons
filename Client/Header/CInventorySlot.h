@@ -36,7 +36,6 @@ enum class eSlotState
 	CLICK
 };
 
-
 class CInventorySlot : public CUIInterface
 {
 private:
@@ -55,7 +54,7 @@ public:
 
 	void Set_SlotInfo(float fX, float fY, float fW, float fH, eInventoryTab eType);
 
-	void Set_ItemInfo(float fX, float fY, float fW, float fH);
+	void Set_ItemInfo(float fX, float fY, float fW, float fH, bool bEmpty);
 	void Clear_Item() { m_tItemData = {}; m_bEmpty = true; }
 	const ItemData& Get_ItemData() const { return m_tItemData; }
 	bool Is_Empty()        const { return m_bEmpty; }
@@ -84,6 +83,7 @@ private:
 
 	void BeginItemRender();
 	void EndItemRender();
+	
 public:
 	static CInventorySlot* Create(LPDIRECT3DDEVICE9 pGraphicDev, eInventoryTab eTab);
 private:

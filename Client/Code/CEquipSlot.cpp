@@ -55,7 +55,7 @@ void CEquipSlot::Render_GameObject()
 		m_pFrameTexture->Set_Texture(0);
 		break;
 	case eSlotState::HOVER:
-		m_pFrameTexture->Set_Texture(0);
+		m_pHoverTexture->Set_Texture(0);
 		break;
 	case eSlotState::CLICK:
 		m_pClickedTexture->Set_Texture(0);
@@ -63,10 +63,24 @@ void CEquipSlot::Render_GameObject()
 	default:
 		break;
 	}
-
+	
 	m_pBufferCom->Render_Buffer();
 
 	EndUIRender();
+
+	//2. 아이템 렌더링
+	if (!m_bEquipped)
+		return;
+
+	BeginItemRender();
+
+	matWorld = Calc_WorldMatrix(m_fItemX, m_fItemY, m_fItemW, m_fItemH);
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
+
+	m_pItemTexture->Set_Texture(0);
+	m_pBufferCom->Render_Buffer();
+
+	EndItemRender();
 }
 
 void CEquipSlot::BeginUIRender()
@@ -92,10 +106,14 @@ void CEquipSlot::BeginUIRender()
 void CEquipSlot::EndUIRender()
 {
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-
 	//투영 다시 적용시켜주기
 	m_pGraphicDev->SetTransform(D3DTS_VIEW, &m_matOriginView);
 	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &m_matOriginProj);
+}
+
+void CEquipSlot::Set_ItemInfo(float fX, float fY, float fW, float fH)
+{
+	m_fItemX = fX; m_fItemY = fY; m_fItemW = fW; m_fItemH = fH;
 }
 
 HRESULT CEquipSlot::Add_Component()
@@ -120,6 +138,15 @@ HRESULT CEquipSlot::Add_Component()
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_NormalTexture", pComponent });
 
+	//Hover Texture
+	pComponent = m_pHoverTexture = dynamic_cast<CTexture*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_HoverFrameTexture"));
+
+	if (nullptr == pComponent)
+		return E_FAIL;
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_HoverTexture", pComponent });
+
 	//Clicked Texture
 	pComponent = m_pClickedTexture = dynamic_cast<CTexture*>
 		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_ClickedFrameTexture"));
@@ -128,8 +155,91 @@ HRESULT CEquipSlot::Add_Component()
 		return E_FAIL;
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_ClickedTexture", pComponent });
+	
+	//Item Texture
+	const _tchar* pTexture = nullptr;
+
+	switch (m_eEquipType)
+	{
+	case eEquipType::MELEE:
+		pTexture = L"Proto_IronSwordTexture";
+		break;
+	case eEquipType::ARMOR:
+		pTexture = L"Proto_RobeTexture";
+		break;
+	case eEquipType::RANGED:
+		pTexture = L"Proto_ArrowLoadedBowTexture";
+		break;
+	default:
+		break;
+	}
+	
+	pComponent = m_pItemTexture = dynamic_cast<CTexture*>
+		(CProtoMgr::GetInstance()->Clone_Prototype(pTexture));
+
+	if (nullptr == pComponent)
+		return E_FAIL;
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_ItemTexture", pComponent });
 
 	return S_OK;
+}
+
+_matrix CEquipSlot::Calc_WorldMatrix(float fX, float fY, float fW, float fH)
+{
+	_matrix matWorld;
+
+	float fNDCX = (fX + fW * 0.5f) / (WINCX * 0.5f) - 1.f;
+	float fNDCY = 1.f - (fY + fH * 0.5f) / (WINCY * 0.5f);
+	float fScaleX = fW / WINCX;
+	float fScaleY = fH / WINCY;
+	
+	D3DXMatrixTransformation2D(&matWorld,
+		nullptr, 0.f,
+		&_vec2(fScaleX, fScaleY),
+		nullptr, 0.f,
+		&_vec2(fNDCX, fNDCY));
+
+	return matWorld;
+}
+
+void CEquipSlot::BeginItemRender()
+{
+	//Alpha Blending On
+	//월드 행렬 항등 행렬로 설정
+	_matrix matWorld;
+	D3DXMatrixIdentity(&matWorld);
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
+	//원본 뷰, 투영 저장
+	m_pGraphicDev->GetTransform(D3DTS_VIEW, &m_matOriginView);
+	m_pGraphicDev->GetTransform(D3DTS_PROJECTION, &m_matOriginProj);
+	//뷰, 투영 풀어주기
+	_matrix matView, matProj;
+	D3DXMatrixIdentity(&matView);
+	D3DXMatrixIdentity(&matProj);
+	m_pGraphicDev->SetTransform(D3DTS_VIEW, &matView);
+	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &matProj);
+	//CullMode 설정
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	//알파 블렌딩 활성화
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHAREF, 0xc0);
+}
+
+void CEquipSlot::EndItemRender()
+{
+	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+	//투영 다시 적용시켜주기
+	m_pGraphicDev->SetTransform(D3DTS_VIEW, &m_matOriginView);
+	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &m_matOriginProj);
+	//알파블렌딩 - 옵션 다시 꺼주기!!
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 }
 
 void CEquipSlot::Hover()
@@ -139,6 +249,13 @@ void CEquipSlot::Hover()
 
 void CEquipSlot::Clicked()
 {
+	//더블 클릭 감지
+	DWORD dwNow = GetTickCount();
+
+	if (dwNow - m_dwLastClickTime < DOUBLE_CLICK_MS)
+		m_bDoubleClicked = true;
+
+	m_dwLastClickTime = dwNow;
 	m_eState = eSlotState::CLICK;
 }
 
