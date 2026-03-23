@@ -6,6 +6,9 @@
 #include "CDInputMgr.h"
 #include "CCollider.h"
 #include "CParticleMgr.h"
+#include "CEnvironmentMgr.h"
+#include "CMonster.h"
+#include "CMonsterMgr.h"
 
 CPlayer::CPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -124,6 +127,14 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 		}
 	}
 
+	if (m_iComboStep == 3 && m_fAtkTime >= m_fAtkDuration)
+	{
+		m_iComboStep = 0;
+		m_fAtkTime = 0.f;
+		m_fComboTimer = 0.f;
+		m_pAtkColliderCom->Update_AABB(_vec3(0.f, -9999.f, 0.f));
+	}
+
 	// 이동
 	if (m_bMoving)
 		m_fWalkTime += fTimeDelta * 8.f;
@@ -160,6 +171,7 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	m_pColliderCom->Update_AABB(vPos);
 
 	Attack_Collision();
+
 	//화살
 	for (auto& pArrow : m_vecArrows)
 		pArrow->Update_GameObject(fTimeDelta);
@@ -562,8 +574,6 @@ HRESULT CPlayer::Add_Component()
 		return E_FAIL;
 	m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
 
-
-
 	pComponent = m_pCalculatorCom = dynamic_cast<Engine::CCalculator*>
 		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_Calculator"));
 	if (nullptr == pComponent)
@@ -576,39 +586,6 @@ HRESULT CPlayer::Add_Component()
 void CPlayer::Key_Input(const _float& fTimeDelta)
 {
 	m_bMoving = false;
-
-	// 공격
-	bool bAtkKey = (GetAsyncKeyState('F') & 0x8000);
-	if (bAtkKey && !m_bAtkKeyPrev)
-	{
-		if (m_iComboStep == 0 || m_fComboTimer > 0.f)
-		{
-			m_iComboStep = (m_iComboStep % 3) + 1;
-			if (m_iComboStep == 1 || m_iComboStep == 2)  // 1,2타 리셋
-				m_fAtkTime = 0.f;
-			m_fComboTimer = m_fComboWindow;
-
-		//	if (m_pAttackEmitter)
-		//	{
-		//		_vec3 vPos, vLook;
-		//		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-		//		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-		//		D3DXVec3Normalize(&vLook, &vLook);
-		//		vPos -= vLook * 1.5f;
-		//		vPos.y += 2.5f;
-		//
-		//		float fRad = D3DXToRadian(m_pTransformCom->m_vAngle.y);					//공격 이펙트 보류
-		//		_vec3 vDir = _vec3(sinf(fRad), 0.f, cosf(fRad));
-		//		OutputDebugStringA(("vDir: " + std::to_string(vDir.x) + " " + std::to_string(vDir.z) + "\n").c_str());
-		//
-		//		CParticleEmitter* pEmitter = CParticleEmitter::Create_Attack(
-		//			m_pGraphicDev, vPos, -vLook, m_pAttackTexture);
-		//		if (pEmitter)
-		//			CParticleMgr::GetInstance()->Add_Emitter(pEmitter);
-		//	}
-		}
-	}
-	m_bAtkKeyPrev = bAtkKey;
 
 	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
@@ -668,6 +645,8 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		}
 	}
 
+
+
 	if (GetAsyncKeyState('R') & 0x8000)
 	{
 		if (!m_bRKeyPrev)
@@ -684,50 +663,130 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 	// 마우스 클릭 이동
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 	{
-		// TNT 줍기
+		_vec3 vPickPos = Picking_OnBlock();
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+		// 1. 박스 오픈
+		for (auto& pBox : CEnvironmentMgr::GetInstance()->Get_Box())
+		{
+			if (!pBox)
+				continue;
+
+			Engine::CTransform* pTrans = dynamic_cast<Engine::CTransform*>
+				(pBox->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+			
+			if (!pTrans)
+				continue;
+			_vec3 vBoxPos;
+			pTrans->Get_Info(INFO_POS, &vBoxPos);
+			_vec3 vPlayerDiff = vBoxPos - vPos;
+			vPlayerDiff.y = 0.f;
+			if (D3DXVec3Length(&vPlayerDiff) >= 2.f)
+				continue;
+			_vec3 vPickDiff = vPickPos - vBoxPos;
+			vPickDiff.y = 0.f;
+			if (D3DXVec3Length(&vPickDiff) >= 2.f)
+				continue;
+			pBox->Open_Box();
+			break;
+		}
+
+		// 2. TNT 줍기
 		if (!m_pHeldTNT)
 		{
-			_vec3 vPickPos = Picking_OnBlock();
-
 			for (auto& pTNT : m_vecTNTs)
 			{
 				if (pTNT->Is_Dead() || pTNT->Is_PickedUp()) continue;
-
 				Engine::CTransform* pTrans = dynamic_cast<Engine::CTransform*>
 					(pTNT->Get_Component(ID_DYNAMIC, L"Com_Transform"));
-				if (!pTrans) continue;
-
+				if (!pTrans)
+					continue;
 				_vec3 vTNTPos;
 				pTrans->Get_Info(INFO_POS, &vTNTPos);
-				_vec3 vDiff = vPickPos - vTNTPos;
-				if (D3DXVec3Length(&vDiff) < 1.5f)
-				{
-					pTNT->PickUp();
-					m_pHeldTNT = pTNT;
-					break;
-				}
+				_vec3 vPlayerDiff = vTNTPos - vPos;
+				vPlayerDiff.y = 0.f;
+				if (D3DXVec3Length(&vPlayerDiff) >= 2.f)
+					continue;
+				_vec3 vPickDiff = vPickPos - vTNTPos;
+				vPickDiff.y = 0.f;
+				if (D3DXVec3Length(&vPickDiff) >= 2.f)
+					continue;
+				pTNT->PickUp();
+				m_pHeldTNT = pTNT;
+				break;
 			}
 		}
-			m_vTargetPos = Picking_OnBlock();
+
+		// 3. 몬스터 피킹하면 이동
+		bool bMonsterPicked = false;
+		for (auto& pair : CMonsterMgr::GetInstance()->Get_MonsterGroups())
+		{
+			for (auto& pMonster : pair.second.vecMonsters)
+			{
+				if (!pMonster->IsActive())
+					continue;
+				CCollider* pCol = pMonster->Get_Collider();
+				if (!pCol)
+					continue;
+				AABB tAABB = pCol->Get_AABB();
+				_vec3 vMonsterCenter = (tAABB.vMin + tAABB.vMax) * 0.5f;
+				_vec3 vPickDiff = vPickPos - vMonsterCenter;
+				vPickDiff.y = 0.f;
+				if (D3DXVec3Length(&vPickDiff) >= 2.f)
+					continue;
+
+				_vec3 vPlayerDiff = vMonsterCenter - vPos;
+				vPlayerDiff.y = 0.f;
+				bool bInRange = D3DXVec3Length(&vPlayerDiff) < 2.f;
+
+				if (bInRange && (m_iComboStep == 0 ||
+					(m_fAtkTime >= m_fAtkDuration && m_fComboTimer > 0.f)))
+				{
+					//바로 공격
+					m_iComboStep = (m_iComboStep % 3) + 1;
+					if (m_iComboStep == 1 || m_iComboStep == 2 || m_iComboStep == 3)
+						m_fAtkTime = 0.f;
+					m_fComboTimer = m_fComboWindow;
+					m_bHasTarget = false;
+				}
+				else
+				{
+					//  이동
+					m_vTargetPos = vMonsterCenter;
+					m_vTargetPos.y = 0.f;
+					m_bHasTarget = true;
+					m_pTargetMonster = pMonster;
+				}
+				bMonsterPicked = true;
+				break;
+			}
+			if (bMonsterPicked)
+				break;
+		}
+
+		// 4. 일반 이동
+		if (!bMonsterPicked)
+		{
+			m_vTargetPos = vPickPos;
 			m_vTargetPos.y = 0.f;
 			m_bHasTarget = true;
+			m_pTargetMonster = nullptr;
+		}
 	}
 
 	if (m_bHasTarget)
 	{
 		_vec3 vPos;
 		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-
 		_vec3 vDir = m_vTargetPos - vPos;
 		vDir.y = 0.f;
-
 		float fDist = D3DXVec3Length(&vDir);
-
 		if (fDist > 0.3f)
 		{
 			D3DXVec3Normalize(&vDir, &vDir);
 			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
-			m_pTransformCom->Move_Pos(&vDir, 5.f, fTimeDelta);
+			m_pTransformCom->Move_Pos(&vDir, m_fMoveSpeed, fTimeDelta);
 			m_bMoving = true;
 		}
 		else
@@ -736,6 +795,8 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			m_bMoving = false;
 		}
 	}
+
+
 
 	// 구르기
 	if (CDInputMgr::GetInstance()->Get_DIKeyState(DIK_SPACE))
@@ -1172,6 +1233,21 @@ void CPlayer::Resolve_BlockCollision()
 					else
 					{
 						m_fVelocityY = 0.f;
+					}
+				}
+
+				// 계단 올라가기
+				if (fabsf(vResolve.y) == 0.f && (fabsf(vResolve.x) > 0.f || fabsf(vResolve.z) > 0.f))
+				{
+					BlockPos tAbove = { tBlockPos.x, tBlockPos.y + 1, tBlockPos.z };
+					BlockPos tAbove2 = { tBlockPos.x, tBlockPos.y + 2, tBlockPos.z };
+					if (!CBlockMgr::GetInstance()->HasBlock(tAbove) &&
+						!CBlockMgr::GetInstance()->HasBlock(tAbove2))
+					{
+						vPos.y += 1.f;
+						m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+						m_pColliderCom->Update_AABB(vPos);
+						tPlayerAABB = m_pColliderCom->Get_AABB();
 					}
 				}
 			}

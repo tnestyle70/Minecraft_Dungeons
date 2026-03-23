@@ -25,8 +25,6 @@ public:
 private:
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTopTex = nullptr;
-    Engine::CTexture* m_pBottomTex = nullptr;
-    Engine::CTexture* m_pSideTex = nullptr;
     CCollider* m_pColliderCom = nullptr;
 
     bool  m_bDead = false;
@@ -40,9 +38,7 @@ private:
     float m_fMaxFuseTime = 3.f;
 
 
-    Engine::CCubeBodyTex* m_pSideCubeCom = nullptr;
     Engine::CCubeBodyTex* m_pTopCubeCom = nullptr;
-    Engine::CCubeBodyTex* m_pBottomCubeCom = nullptr;
 
     CCollider* m_pExplodeColliderCom = nullptr;
     bool m_bExploding = false;

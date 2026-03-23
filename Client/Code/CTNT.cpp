@@ -36,16 +36,6 @@ HRESULT CTNT::Add_Component()
     if (!m_pTopTex) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_TopTex", m_pTopTex });
 
-    m_pBottomTex = dynamic_cast<Engine::CTexture*>
-        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_TNT_Bottom"));
-    if (!m_pBottomTex) return E_FAIL;
-    m_mapComponent[ID_STATIC].insert({ L"Com_BottomTex", m_pBottomTex });
-
-    m_pSideTex = dynamic_cast<Engine::CTexture*>
-        (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_TNT_Side"));
-    if (!m_pSideTex) return E_FAIL;
-    m_mapComponent[ID_STATIC].insert({ L"Com_SideTex", m_pSideTex });
-
     m_pColliderCom = CCollider::Create(m_pGraphicDev,
         _vec3(1.f, 1.f, 1.f), _vec3(0.f, 0.f, 0.f));
     if (!m_pColliderCom) return E_FAIL;
@@ -54,28 +44,19 @@ HRESULT CTNT::Add_Component()
     CUBE tCube;
     ZeroMemory(&tCube, sizeof(CUBE));
     tCube.fWidth = 1.f; tCube.fHeight = 1.f; tCube.fDepth = 1.f;
-    tCube.front = { 0.f, 0.f, 1.f, 1.f };
-    tCube.back = { 0.f, 0.f, 1.f, 1.f };
-    tCube.top = { 0.f, 0.f, 1.f, 1.f };
-    tCube.bottom = { 0.f, 0.f, 1.f, 1.f };
-    tCube.right = { 0.f, 0.f, 1.f, 1.f };
-    tCube.left = { 0.f, 0.f, 1.f, 1.f };
-
-    m_pSideCubeCom = Engine::CCubeBodyTex::Create(m_pGraphicDev, tCube);
-    if (!m_pSideCubeCom) return E_FAIL;
-    m_mapComponent[ID_STATIC].insert({ L"Com_SideCube", m_pSideCubeCom });
+    tCube.front = { 0.25000f, 0.25000f, 0.50000f, 0.50000f };
+    tCube.back = { 0.75000f, 0.25000f, 1.00000f, 0.50000f };
+    tCube.top = { 0.25000f, 0.00000f, 0.50000f, 0.25000f };
+    tCube.bottom = { 0.25000f, 0.50000f, 0.50000f, 0.75000f };
+    tCube.right = { 0.50000f, 0.25000f, 0.75000f, 0.50000f };
+    tCube.left = { 0.00000f, 0.25000f, 0.25000f, 0.50000f };
 
     m_pTopCubeCom = Engine::CCubeBodyTex::Create(m_pGraphicDev, tCube);
     if (!m_pTopCubeCom) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_TopCube", m_pTopCubeCom });
 
-    m_pBottomCubeCom = Engine::CCubeBodyTex::Create(m_pGraphicDev, tCube);
-    if (!m_pBottomCubeCom) return E_FAIL;
-    m_mapComponent[ID_STATIC].insert({ L"Com_BottomCube", m_pBottomCubeCom });
-
     m_pExplodeColliderCom = CCollider::Create(m_pGraphicDev,
-        _vec3(5.f, 5.f, 5.f),
-        _vec3(0.f, 0.f, 0.f));
+        _vec3(5.f, 5.f, 5.f), _vec3(0.f, 0.f, 0.f));
     if (!m_pExplodeColliderCom) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_ExplodeCollider", m_pExplodeColliderCom });
 
@@ -174,8 +155,8 @@ void CTNT::Render_GameObject()
     m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
     // Side 4면
-    m_pSideTex->Set_Texture(0);
-    m_pSideCubeCom->Render_Buffer();
+    m_pTopTex->Set_Texture(0);
+    m_pTopCubeCom->Render_Buffer();
 
   //  // Top
   //  m_pTopTex->Set_Texture(0);

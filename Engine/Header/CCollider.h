@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CComponent.h"
 
 //AABB 구조체 - min x, y, z와 max x, y, z 사이에 있는 값 비교
@@ -38,7 +38,7 @@ public:
 	bool IsColliding_OBB(const OBB& A, const OBB& B);
 	OBB ConvertAABBtoOBB(const AABB& aabb);
 
-	//bool IntersectRay(const _vec3& vRayOrigin, const _vec3& vRayDir);
+	bool IntersectRay(const _vec3& vRayOrigin, const _vec3& vRayDir);
 
 	_vec3 Resolve(const AABB& other) const;
 	//디버그용 렌더링

@@ -5,6 +5,8 @@
 #include "CPlayerArrow.h"
 #include "CTNT.h"
 
+class CMonster;
+
 enum BODYPART
 {
 	PART_HEAD,
@@ -58,6 +60,7 @@ private:
 	float m_fMaxHp = 100.f;
 	float m_fMeleeDmg = 10.f;
 	float m_fBowDmg = 15.f;
+	float m_fMoveSpeed = 10.f;
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];
@@ -65,7 +68,7 @@ private:
 	//공격모션
 	int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
 	float m_fAtkTime = 0.f;    // 현재 공격 경과 시간
-	float m_fAtkDuration = 0.3f;   // 공격 지속 시간
+	float m_fAtkDuration = 0.55f;   // 공격 지속 시간
 	float m_fComboWindow = 0.6f;   // 다음 공격 입력 대기 시간
 	float m_fComboTimer = 0.f;    // 콤보 타이머
 	bool  m_bAtkInput = false;  // 공격 입력 감지
@@ -169,8 +172,8 @@ private:
 	bool  m_bHit = false;
 	float m_fHitTime = 0.f;
 	static constexpr float m_fHitDuration = 0.5f;
-
-
+	//몬스터 공격타겟
+	CMonster* m_pTargetMonster = nullptr;
 
 private: //중력 적용과 충돌시 위치값 보정
 	void Apply_Gravity(const _float& fTimeDelta);
