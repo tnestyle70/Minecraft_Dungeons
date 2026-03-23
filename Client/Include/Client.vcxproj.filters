@@ -180,7 +180,7 @@
 
     <ClCompile Include="..\Code\CTNT.cpp">
       <Filter>02. GameObject</Filter>
-
+	</ClCompile>
     <ClCompile Include="..\Code\CBox.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClCompile>
@@ -398,7 +398,7 @@
 
     <ClInclude Include="..\Header\CTNT.h">
       <Filter>02. GameObject</Filter>
-
+	</ClInclude>
     <ClInclude Include="..\Header\CBox.h">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClInclude>
