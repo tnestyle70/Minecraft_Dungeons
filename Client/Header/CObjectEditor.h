@@ -33,6 +33,7 @@ public:
 public:
 	HRESULT SaveObjectData(const char* pFileName);
 	HRESULT LoadObjectData(const char* pFileName);
+	HRESULT LoadStageData(const char* pFileName);
 
 private:
 	HRESULT			Ready_Environment_Layer(const _tchar* pLayerTag);

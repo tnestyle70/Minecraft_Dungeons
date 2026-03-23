@@ -92,6 +92,32 @@ void CGolemState_Skill::Exit(CRedStoneGolem* pGolem)
     m_bFinished = false;
 }
 
+// ====================== Hit ======================
+void CGolemState_Hit::Enter(CRedStoneGolem* pGolem)
+{
+    m_bFinished = false;
+    pGolem->Reset_Pose();
+    pGolem->Set_AnimTime(0.f);
+
+    pGolem->LookAt_Player();
+}
+
+void CGolemState_Hit::Update(CRedStoneGolem* pGolem, const _float& fTimeDelta)
+{
+    pGolem->Anim_Hit();
+
+    if (pGolem->Get_AnimTime() >= 0.4f)
+    {
+        m_bFinished = true;
+        pGolem->Change_State(GOLEM_STATE_IDLE);
+    }
+}
+
+void CGolemState_Hit::Exit(CRedStoneGolem* pGolem)
+{
+    m_bFinished = false;
+}
+
 // ====================== DEAD ======================
 void CGolemState_Dead::Enter(CRedStoneGolem* pGolem)
 {

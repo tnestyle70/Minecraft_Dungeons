@@ -11,6 +11,7 @@ enum GOLEM_STATE
 	GOLEM_STATE_WALK,
 	GOLEM_STATE_ATTACK,
 	GOLEM_STATE_SKILL,
+	GOLEM_STATE_HIT,
 	GOLEM_STATE_DEAD,
 
 	GOLEM_STATE_END
@@ -34,6 +35,7 @@ public:
 	void Anim_Walk();
 	void Anim_NormalAttack();
 	void Anim_Skill();
+	void Anim_Hit();
 	void Anim_Dead();
 
 	void LookAt_Player();
@@ -44,6 +46,8 @@ public:
 	void Set_AnimTime(_float f) { m_fAnimTime = f; }
 	_float Get_AnimTime() const { return m_fAnimTime; }
 	_bool Check_AttackHit();
+	void Check_Hit();
+	void Take_Damage(_float iDamage);
 
 private:
 	HRESULT	Add_Component();
@@ -80,6 +84,9 @@ private:
 
 	_bool m_bOnGround;
 	_float m_fVelocityY;
+
+	_bool m_bHitCool = false;
+	_float m_fHitCoolTime = 0.f;
 
 	_float m_fMaxHp;
 	_float m_fHp;
