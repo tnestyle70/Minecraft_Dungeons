@@ -19,6 +19,15 @@ void CEnvironmentMgr::Add_Box(CBox* pBox)
 	m_vecBox.push_back(pBox);
 }
 
+void CEnvironmentMgr::Clear_Boxes()
+{
+	for (auto& pBox : m_vecBox)
+	{
+		Safe_Release(pBox);
+	}
+	m_vecBox.clear();
+}
+
 void CEnvironmentMgr::Free()
 {
 	m_vecBox.clear();

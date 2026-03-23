@@ -42,9 +42,9 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	m_pStates[GOLEM_STATE_HIT] = new CGolemState_Hit();
 	m_pStates[GOLEM_STATE_DEAD] = new CGolemState_Dead();
 	
-	m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
+	//m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
 
-	//m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
+	m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
 
 	Set_PartsOffset();
 	Set_DefaultScale();

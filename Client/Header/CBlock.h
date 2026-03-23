@@ -17,6 +17,7 @@ public:
 	virtual			void		Render_GameObject();
 
 	eBlockType GetBlockType() { return m_eType; }
+	_vec3 Get_Pos() { return m_vPos; }
 
 private:
 	HRESULT			Add_Component();

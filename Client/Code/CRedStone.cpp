@@ -223,7 +223,7 @@ HRESULT CRedStone::Ready_StageData(const _tchar* szPath)
 		return E_FAIL;
 	}
 
-	CBlockMgr::GetInstance()->SetRenderMode(eRenderMode::RENDER_BATCH); // 먼저 모드 설정
+	CBlockMgr::GetInstance()->SetRenderMode(eRenderMode::RENDER_QUADTREE); // 먼저 모드 설정
 
 	CBlockMgr::GetInstance()->LoadBlocks(pFile);
 

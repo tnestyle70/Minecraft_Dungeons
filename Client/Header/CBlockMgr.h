@@ -17,6 +17,14 @@ struct BlockData
     int eType;
 };
 
+struct QuadNode //쿼드 트리 노드
+{
+    float fMinX, fMinZ, fMaxX, fMaxZ;
+    vector<CBlock*> vecBlocks;
+    QuadNode* pChild[4] = {};
+    bool bLeaf = false;
+};
+
 class CBlockMgr : public CBase
 {
     DECLARE_SINGLETON(CBlockMgr)
@@ -31,16 +39,28 @@ public:
 public:
     void Render_Editor();
     void Render_Stage();
-    void Rendre_QuadTree();
+    void Render_QuadTree();
+private: //쿼드 트리
+    QuadNode* m_pQuadRoot = nullptr;
+    void Build_Node(QuadNode* pNode, vector<CBlock*>& vecBlocks, int iDepth);
+    void Render_Node(QuadNode* pNode, const D3DXPLANE* pPlanes);
+    void Destroy_Node(QuadNode* pNode);
+    bool IsAABBInFrustum(const D3DXPLANE* pPlanes,
+        float fMinX, float fMinZ, float fMaxX, float fMaxZ);
 public:
     void SetRenderMode(eRenderMode eMode);
     eRenderMode GetRenderMode() { return m_eRenderMode; }
+
     void BuildQuadTree();
+
     const map<BlockPos, CBlock*>& Get_Blocks() { return m_mapBlocks; }
+
     void AddBlock(const _vec3& vPos, eBlockType eType);
     void AddBlock(int x, int y, int z, eBlockType eType);
+
     void RemoveBlock(const _vec3& vPos);
     void RemoveBlockByPos(const BlockPos& pos);
+
     void ClearBlocks();
     HRESULT SaveBlocks(FILE* pFile);
     HRESULT LoadBlocks(FILE* pFile);

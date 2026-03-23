@@ -167,6 +167,12 @@ void CDamageMgr::AddDamage(_vec3 vWorldPos, _int iDamage)
 	m_listDamage.push_back(tDamage);
 }
 
+void CDamageMgr::Clear_Boss()
+{
+	m_pGuardian = nullptr;
+	m_pRedStoneGolem = nullptr;
+}
+
 void CDamageMgr::Clear_Guardian()
 {
 	m_pGuardian = nullptr;

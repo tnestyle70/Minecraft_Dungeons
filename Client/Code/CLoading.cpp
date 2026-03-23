@@ -263,7 +263,6 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/T_EndRobes.png"))))
         return E_FAIL;
 
-
     //TNT
      if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TNT_Top",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/T_TNTCart.png"))))

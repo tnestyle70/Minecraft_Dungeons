@@ -36,6 +36,7 @@ public:
 	void Set_Guardian(CAncientGuardian* pGuardian) { m_pGuardian = pGuardian; }
 	void Set_RedStone(CRedStoneGolem* pGolem) { m_pRedStoneGolem = pGolem; }
 
+	void Clear_Boss();
 	void Clear_Guardian();
 	void Clear_RedStone();
 private:

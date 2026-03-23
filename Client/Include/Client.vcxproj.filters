@@ -165,9 +165,6 @@
     <ClCompile Include="..\Code\CBlockPreset.cpp">
       <Filter>01. Scene\03. Editor\01. Block</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CObjectEditor.cpp">
-      <Filter>01. Scene</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CCursorMgr.cpp">
       <Filter>03. Manager\03. CursorMgr</Filter>
     </ClCompile>
@@ -176,9 +173,6 @@
     </ClCompile>
     <ClCompile Include="..\Code\CGolemStates.cpp">
       <Filter>02. GameObject\08. Boss</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Code\CTNT.cpp">
-      <Filter>02. GameObject</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CBox.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
@@ -216,8 +210,14 @@
     <ClCompile Include="..\Code\CItemPanel.cpp">
       <Filter>02. GameObject\12. UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CObjectEditor.cpp">
+      <Filter>01. Scene\04. ObjectEditor</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\CCMiniMap.cpp">
-      <Filter>02. GameObject</Filter>
+      <Filter>02. GameObject\13. Minimap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CTNT.cpp">
+      <Filter>02. GameObject\14. TNT</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -384,9 +384,6 @@
     <ClInclude Include="..\Header\CBlockPreset.h">
       <Filter>01. Scene\03. Editor\01. Block</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CObjectEditor.h">
-      <Filter>01. Scene</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\CCursorMgr.h">
       <Filter>03. Manager\03. CursorMgr</Filter>
     </ClInclude>
@@ -398,9 +395,6 @@
     </ClInclude>
     <ClInclude Include="..\Header\IGolemState.h">
       <Filter>02. GameObject\08. Boss</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Header\CTNT.h">
-      <Filter>02. GameObject</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CBox.h">
       <Filter>02. GameObject\11. Environment</Filter>
@@ -438,8 +432,14 @@
     <ClInclude Include="..\Header\CItemPanel.h">
       <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CObjectEditor.h">
+      <Filter>01. Scene\04. ObjectEditor</Filter>
+    </ClInclude>
     <ClInclude Include="..\Header\CCMiniMap.h">
-      <Filter>02. GameObject</Filter>
+      <Filter>02. GameObject\13. Minimap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CTNT.h">
+      <Filter>02. GameObject\14. TNT</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -586,6 +586,15 @@
     </Filter>
     <Filter Include="03. Manager\04. EnvironmentMgr">
       <UniqueIdentifier>{f84ffcac-f511-4e51-8c41-dfda4c2db887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\04. ObjectEditor">
+      <UniqueIdentifier>{99d8a19a-a7ff-4a09-92e3-b4acd99c291e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\13. Minimap">
+      <UniqueIdentifier>{3b9baa3b-a170-4fa9-8848-9e81d1eaeb7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02. GameObject\14. TNT">
+      <UniqueIdentifier>{ee906648-4283-4010-8c63-5acab7552df1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -28,6 +28,7 @@
 #include "CTNT.h"
 #include "CDamageMgr.h"
 #include "CCMiniMap.h"
+#include "CEnvironmentMgr.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -106,6 +107,8 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 		CMonsterMgr::GetInstance()->Clear();
 		CParticleMgr::GetInstance()->Clear_Emitters();
 		CInventoryMgr::GetInstance()->Clear_Player();
+		CDamageMgr::GetInstance()->Clear_Boss();
+		CEnvironmentMgr::GetInstance()->Clear_Boxes();
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_CAMP)))
 		{
 			MSG_BOX("Camp Create Failed");

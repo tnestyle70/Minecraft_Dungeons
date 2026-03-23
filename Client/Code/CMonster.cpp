@@ -34,19 +34,19 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
     switch (m_eType)
     {
     case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-        m_iHp = 20;
+        m_iHp = 200;
         m_iAtkDamage = 10;
         break;
     case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-        m_iHp = 20;
+        m_iHp = 200;
         m_iAtkDamage = 0;
         break;
     case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-        m_iHp = 10;
+        m_iHp = 100;
         m_iAtkDamage = 100;
         break;
     case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
-        m_iHp = 20;
+        m_iHp = 200;
         m_iAtkDamage = 10;
     }
 
@@ -217,6 +217,8 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
     {
         m_iHp -= 1;
+
+        Take_Damage(pPlayer->Get_BowDmg());
 
         if (m_iHp <= 0)
             pAnim->Set_State(EMonsterState::DEAD);
@@ -396,7 +398,7 @@ void CMonster::Fire_Arrow()
         m_pTransformCom->Get_World()
     );
     _vec3 vStartPos = { matRArm._41, matRArm._42, matRArm._43 };
-
+    
     _vec3 vPlayerPos;
     pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
 

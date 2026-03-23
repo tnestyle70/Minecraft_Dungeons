@@ -51,7 +51,7 @@ void CBlockMgr::Render()
 	{
 	case RENDER_EDITOR:   Render_Editor();    break;
 	case RENDER_BATCH:    Render_Stage();     break;
-	case RENDER_QUADTREE: Rendre_QuadTree(); break;
+	case RENDER_QUADTREE: Render_QuadTree(); break;
 	default: break;
 	}
 }
@@ -91,8 +91,189 @@ void CBlockMgr::Render_Stage()
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 }
 
-void CBlockMgr::Rendre_QuadTree()
+void CBlockMgr::BuildQuadTree()
 {
+	Destroy_Node(m_pQuadRoot);
+	m_pQuadRoot = nullptr;
+
+	if (m_mapBlocks.empty())
+		return;
+	//현재 배치된 블럭들을 감쌀 가장 작은 사각형을 만드는 과정
+	//X, Y의 min max를 검증하는 것이 핵심
+	float fMinX = FLT_MAX, fMinZ = FLT_MAX;	
+	float fMaxX = -FLT_MAX, fMaxZ = -FLT_MAX;
+
+	vector<CBlock*> vecAll;
+
+	for (auto& pair : m_mapBlocks)
+	{
+		float fX = (float)pair.first.x;
+		float fZ = (float)pair.first.z;
+		fMinX = min(fMinX, fX); fMaxX = max(fMaxX, fX);
+		fMinZ = min(fMinZ, fZ); fMaxZ = max(fMaxZ, fZ);
+		vecAll.push_back(pair.second);
+	}
+
+	m_pQuadRoot = new QuadNode();
+
+	m_pQuadRoot->fMinX = fMinX - 1.f;
+	m_pQuadRoot->fMinZ = fMinZ - 1.f;
+	m_pQuadRoot->fMaxX = fMaxX + 1.f;
+	m_pQuadRoot->fMaxZ = fMaxZ + 1.f;
+
+	Build_Node(m_pQuadRoot, vecAll, 0);
+}
+
+void CBlockMgr::Build_Node(QuadNode* pNode, vector<CBlock*>& vecBlocks, int iDepth)
+{
+	// 블록 8개 이하이거나 최대 깊이 도달 → 리프
+	if (vecBlocks.size() <= 8 || iDepth >= 6)
+	{
+		pNode->bLeaf = true;
+		pNode->vecBlocks = vecBlocks;
+		return;
+	}
+
+	float fMidX = (pNode->fMinX + pNode->fMaxX) * 0.5f;
+	float fMidZ = (pNode->fMinZ + pNode->fMaxZ) * 0.5f;
+
+	// 자식 4개 영역 정의 (XZ 2분할)
+	//  [0] 좌전  [1] 우전
+	//  [2] 좌후  [3] 우후
+	float fChildBounds[4][4] =
+	{
+		{ pNode->fMinX, pNode->fMinZ, fMidX,         fMidZ         },
+		{ fMidX,        pNode->fMinZ, pNode->fMaxX,  fMidZ         },
+		{ pNode->fMinX, fMidZ,        fMidX,         pNode->fMaxZ  },
+		{ fMidX,        fMidZ,        pNode->fMaxX,  pNode->fMaxZ  }
+	};
+
+	vector<CBlock*> vecChild[4];
+
+	for (CBlock* pBlock : vecBlocks)
+	{
+		_vec3 vPos = pBlock->Get_Pos();
+		for (int i = 0; i < 4; ++i)
+		{
+			if (vPos.x >= fChildBounds[i][0] && vPos.x <= fChildBounds[i][2] &&
+				vPos.z >= fChildBounds[i][1] && vPos.z <= fChildBounds[i][3])
+			{
+				vecChild[i].push_back(pBlock);
+				break;
+			}
+		}
+	}
+
+	for (int i = 0; i < 4; ++i)
+	{
+		if (vecChild[i].empty())
+			continue;
+
+		pNode->pChild[i] = new QuadNode();
+		pNode->pChild[i]->fMinX = fChildBounds[i][0];
+		pNode->pChild[i]->fMinZ = fChildBounds[i][1];
+		pNode->pChild[i]->fMaxX = fChildBounds[i][2];
+		pNode->pChild[i]->fMaxZ = fChildBounds[i][3];
+
+		Build_Node(pNode->pChild[i], vecChild[i], iDepth + 1);
+	}
+}
+
+void CBlockMgr::Render_QuadTree()
+{
+	if (!m_pQuadRoot)
+		return;
+
+	// VP 행렬에서 절두체 6면 추출
+	_matrix matView, matProj, matVP;
+	m_pGraphicDev->GetTransform(D3DTS_VIEW, &matView);
+	m_pGraphicDev->GetTransform(D3DTS_PROJECTION, &matProj);
+	D3DXMatrixMultiply(&matVP, &matView, &matProj);
+
+	D3DXPLANE planes[6];
+	// Left
+	planes[0] = D3DXPLANE(matVP._14 + matVP._11, matVP._24 + matVP._21,
+		matVP._34 + matVP._31, matVP._44 + matVP._41);
+	// Right
+	planes[1] = D3DXPLANE(matVP._14 - matVP._11, matVP._24 - matVP._21,
+		matVP._34 - matVP._31, matVP._44 - matVP._41);
+	// Bottom
+	planes[2] = D3DXPLANE(matVP._14 + matVP._12, matVP._24 + matVP._22,
+		matVP._34 + matVP._32, matVP._44 + matVP._42);
+	// Top
+	planes[3] = D3DXPLANE(matVP._14 - matVP._12, matVP._24 - matVP._22,
+		matVP._34 - matVP._32, matVP._44 - matVP._42);
+	// Near
+	planes[4] = D3DXPLANE(matVP._13, matVP._23, matVP._33, matVP._43);
+	// Far
+	planes[5] = D3DXPLANE(matVP._14 - matVP._13, matVP._24 - matVP._23,
+		matVP._34 - matVP._33, matVP._44 - matVP._43);
+
+	for (int i = 0; i < 6; ++i)
+		D3DXPlaneNormalize(&planes[i], &planes[i]);
+
+	Render_Node(m_pQuadRoot, planes);
+}
+
+
+void CBlockMgr::Render_Node(QuadNode * pNode, const D3DXPLANE * pPlanes)
+{
+	if (!IsAABBInFrustum(pPlanes, pNode->fMinX, pNode->fMinZ,
+		pNode->fMaxX, pNode->fMaxZ))
+		return;
+
+	if (pNode->bLeaf)
+	{
+		for (CBlock* pBlock : pNode->vecBlocks)
+			pBlock->Render_GameObject();
+		return;
+	}
+
+	for (int i = 0; i < 4; ++i)
+		if (pNode->pChild[i])
+			Render_Node(pNode->pChild[i], pPlanes);
+}
+
+void CBlockMgr::Destroy_Node(QuadNode * pNode)
+{
+	if (!pNode)
+		return;
+	for (int i = 0; i < 4; ++i)
+		Destroy_Node(pNode->pChild[i]);
+	delete pNode;
+}
+
+bool CBlockMgr::IsAABBInFrustum(const D3DXPLANE* pPlanes, 
+	float fMinX, float fMinZ, float fMaxX, float fMaxZ)
+{
+	const float MARGIN = 20.f;
+
+	D3DXVECTOR3 corners[8] =
+	{
+		{fMinX - MARGIN, -100.f, fMinZ - MARGIN},
+		{fMaxX + MARGIN, -100.f, fMinZ - MARGIN},
+		{fMinX - MARGIN,  100.f, fMinZ - MARGIN},
+		{fMaxX + MARGIN,  100.f, fMinZ - MARGIN},
+		{fMinX - MARGIN, -100.f, fMaxZ + MARGIN},
+		{fMaxX + MARGIN, -100.f, fMaxZ + MARGIN},
+		{fMinX - MARGIN,  100.f, fMaxZ + MARGIN},
+		{fMaxX + MARGIN,  100.f, fMaxZ + MARGIN}
+	};
+
+	for (int p = 0; p < 6; ++p)
+	{
+		bool bAllOut = true;
+		for (int c = 0; c < 8; ++c)
+		{
+			if (D3DXPlaneDotCoord(&pPlanes[p], &corners[c]) >= 0.f)
+			{
+				bAllOut = false;
+				break;
+			}
+		}
+		if (bAllOut) return false;
+	}
+	return true;
 }
 
 void CBlockMgr::SetRenderMode(eRenderMode eMode)
@@ -103,10 +284,6 @@ void CBlockMgr::SetRenderMode(eRenderMode eMode)
 		RebuildBatchMesh();
 	else if (eMode == RENDER_QUADTREE)
 		BuildQuadTree();
-}
-
-void CBlockMgr::BuildQuadTree()
-{
 }
 
 void CBlockMgr::RebuildBatchMesh()
@@ -463,6 +640,9 @@ vector<BlockData> CBlockMgr::GetBlocksInRange(BlockPos pos1, BlockPos pos2)
 
 void CBlockMgr::Free()
 {
+	Destroy_Node(m_pQuadRoot);
+	m_pQuadRoot = nullptr;
+
 	ClearBlocks();
 	Safe_Release(m_pBatchBuffer);
 	Safe_Release(m_pTexture);

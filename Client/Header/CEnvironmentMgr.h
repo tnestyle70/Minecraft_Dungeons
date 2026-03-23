@@ -15,6 +15,8 @@ public:
 	void Add_Box(CBox* pBox);
 	vector<CBox*> Get_Box() { return m_vecBox; }
 
+	void Clear_Boxes();
+
 private:
 	LPDIRECT3DDEVICE9 m_pGraphicDev;
 
