@@ -25,7 +25,8 @@
 #include "CLamp.h"
 #include "CInventoryMgr.h"
 #include "CInventorySlot.h"
-#include "CTNT.h"
+#include "CTNT.h" 
+#include "CCMiniMap.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -49,7 +50,8 @@ HRESULT CSquidCoast::Ready_Scene()
 
 	if (FAILED(Ready_UI_Layer(L"UI_Layer")))
 		return E_FAIL;
-
+	 
+	CCMiniMap::GetInstance()->Ready_MiniMap(m_pGraphicDev);
 	Ready_StageData(L"../Bin/Data/Stage1.dat");
 
 	return S_OK;
@@ -74,7 +76,8 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 
 	CMonsterMgr::GetInstance()->Update(fTimeDelta);
 
-	CParticleMgr::GetInstance()->Update(fTimeDelta);
+	CParticleMgr::GetInstance()->Update(fTimeDelta); 
+	CCMiniMap::GetInstance()->Update(fTimeDelta);
 
 	//이펙트 테스트
 	if (GetAsyncKeyState('1') & 0x8000)
@@ -139,13 +142,15 @@ void CSquidCoast::Render_Scene()
 {
 	if (CInventoryMgr::GetInstance()->IsActive())
 	{
-		CInventoryMgr::GetInstance()->Render();
+		CInventoryMgr::GetInstance()->Render(); 
+
 		return;
 	}
 
 	CBlockMgr::GetInstance()->Render();
 
-	CParticleMgr::GetInstance()->Render();
+	CParticleMgr::GetInstance()->Render(); 
+	CCMiniMap::GetInstance()->Render();
 }
 
 void CSquidCoast::Render_UI()
@@ -215,7 +220,7 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	//Player
 	pGameObject = CPlayer::Create(m_pGraphicDev);
-	
+
 	if (!pGameObject)
 		return E_FAIL;
 
@@ -234,51 +239,52 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	//HUD
 	pGameObject = CHUD::Create(m_pGraphicDev);
 
-	if (nullptr == pGameObject)
-		return E_FAIL;
+		if (nullptr == pGameObject)
+			return E_FAIL;
 
-	if (FAILED(pLayer->Add_GameObject(L"HUD", pGameObject)))
-		return E_FAIL;
+		if (FAILED(pLayer->Add_GameObject(L"HUD", pGameObject)))
+			return E_FAIL;
 
-	CHUD* pHUD = dynamic_cast<CHUD*>(pGameObject);
-	pHUD->Set_Player(pPlayer);
+		CHUD* pHUD = dynamic_cast<CHUD*>(pGameObject);
+		pHUD->Set_Player(pPlayer);
 
-	m_mapLayer.insert({ pLayerTag, pLayer });
+		m_mapLayer.insert({ pLayerTag, pLayer });
 
-	//TriggerBoxMgr
-	CCollider* pCollider = dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
-	if (!pCollider)
-	{
-		MSG_BOX("Player Collider Set Failed");
+		//TriggerBoxMgr
+		CCollider* pCollider = dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+		if (!pCollider)
+		{
+			MSG_BOX("Player Collider Set Failed");
+		}
+		CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
+		CMonsterMgr::GetInstance()->SetPlayer(pPlayer);
+
+		//고정 카메라 추가
+		if (m_pDynamicCamera)
+			m_pDynamicCamera->SetFollowTarget(
+				dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
+
+		//Object
+		pGameObject = CBox::Create(m_pGraphicDev);
+
+		if (!pGameObject)
+			return E_FAIL;
+
+		if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
+			return E_FAIL;
+
+		pGameObject = CLamp::Create(m_pGraphicDev);
+
+		if (!pGameObject)
+			return E_FAIL;
+
+		if (FAILED(pLayer->Add_GameObject(L"Lamp", pGameObject)))
+			return E_FAIL;
+
+		m_mapLayer.insert({ pLayerTag, pLayer });
+
+		return S_OK;
 	}
-	CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
-	CMonsterMgr::GetInstance()->SetPlayer(pPlayer);
-
-	//고정 카메라 추가
-	if (m_pDynamicCamera)
-		m_pDynamicCamera->SetFollowTarget(
-			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
-
-	//Object
-	pGameObject = CBox::Create(m_pGraphicDev);
-
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
-		return E_FAIL;
-
-	pGameObject = CLamp::Create(m_pGraphicDev);
-
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Lamp", pGameObject)))
-		return E_FAIL;
-
-	m_mapLayer.insert({ pLayerTag, pLayer });
-
-	return S_OK;
 }
 
 HRESULT CSquidCoast::Ready_UI_Layer(const _tchar* pLayerTag)
@@ -393,7 +399,8 @@ void CSquidCoast::Free()
 	CIronBarMgr::GetInstance()->Clear();
 	CMonsterMgr::GetInstance()->Clear();
 	CParticleMgr::GetInstance()->Clear_Emitters();
-	CBlockMgr::GetInstance()->ClearBlocks();
+	CBlockMgr::GetInstance()->ClearBlocks(); 
+	CCMiniMap::GetInstance()->DestroyInstance();
 
 	CMonsterMgr::GetInstance()->Clear();
 	CTriggerBoxMgr::GetInstance()->Clear();

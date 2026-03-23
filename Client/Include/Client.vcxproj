@@ -162,6 +162,7 @@
     <ClInclude Include="..\Header\CBox.h" />
     <ClInclude Include="..\Header\CBoxPart.h" />
     <ClInclude Include="..\Header\CCamp.h" />
+    <ClInclude Include="..\Header\CCMiniMap.h" />
     <ClInclude Include="..\Header\CCursorMgr.h" />
     <ClInclude Include="..\Header\CDamageMgr.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="..\Code\CBox.cpp" />
     <ClCompile Include="..\Code\CBoxPart.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
+    <ClCompile Include="..\Code\CCMiniMap.cpp" />
     <ClCompile Include="..\Code\CCursorMgr.cpp" />
     <ClCompile Include="..\Code\CDamageMgr.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />

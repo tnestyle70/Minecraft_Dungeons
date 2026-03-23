@@ -79,23 +79,7 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     switch (m_eState)
     {
     case EPufferFishState::IDLE:
-        if (fDist > 2.f)
-        {
-            D3DXVec3Normalize(&vDir, &vDir);
-            float fTargetAngleY = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
-            float fCurAngleY = m_pTransformCom->m_vAngle.y;
-            float fDiffY = fTargetAngleY - fCurAngleY;
-            while (fDiffY > 180.f) fDiffY -= 360.f;
-            while (fDiffY < -180.f) fDiffY += 360.f;
-            float fMaxRot = 120.f * fTimeDelta;
-            if (fabsf(fDiffY) < fMaxRot)
-                m_pTransformCom->m_vAngle.y = fTargetAngleY;
-            else
-                m_pTransformCom->m_vAngle.y += (fDiffY > 0.f ? fMaxRot : -fMaxRot);
-            vMyPos.x += vDir.x * 3.f * fTimeDelta;
-            vMyPos.z += vDir.z * 3.f * fTimeDelta;
-        }
-
+      
         m_fHoverTime += fTimeDelta;
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 20.f;
         {

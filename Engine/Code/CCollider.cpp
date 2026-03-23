@@ -189,7 +189,8 @@ OBB CCollider::ConvertAABBtoOBB(const AABB& aabb)
 	obb.vHalfSize = (aabb.vMax - aabb.vMin) * 0.5f;
 
 	return obb;
-}
+} 
+
 
 bool CCollider::IntersectRay(const _vec3& vRayOrigin, const _vec3& vRayDir)
 {
