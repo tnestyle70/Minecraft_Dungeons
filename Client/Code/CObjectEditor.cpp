@@ -22,12 +22,6 @@ HRESULT CObjectEditor::Ready_Scene()
     if (FAILED(Ready_Environment_Layer(L"Environment_Layer")))
         return E_FAIL;
 
-    //if (FAILED(CBlockMgr::GetInstance()->Ready_BlockMgr(m_pGraphicDev)))
-    //{
-    //    MSG_BOX("BlockMgr Init Failed");
-    //    return E_FAIL;
-    //}
-
     //FILE* pMap = nullptr;
     //fopen_s(&pMap, "../Bin/Data/Stage1.dat", "rb");
     //if (pMap)
@@ -327,17 +321,23 @@ void CObjectEditor::Render_Inspector()
 void CObjectEditor::Render_SaveLoad()
 {
     ImGui::SetNextWindowPos(ImVec2(10, 320), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(200, 100), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(200, 120), ImGuiCond_Once);
 
-    ImGui::Begin("Save / Load");
+    ImGui::Begin("Stage Save / Load");
 
-    static char fileName[128] = "../Bin/Data/ObjectData.dat";
+    // 스테이지 선택용 Combo Box
+    static int stageIndex = 0;
+    const char* stages[] = { "Stage1", "Stage2", "Stage3" };
+    ImGui::Combo("Stage", &stageIndex, stages, IM_ARRAYSIZE(stages));
 
-    ImGui::InputText("File Name", fileName, IM_ARRAYSIZE(fileName));
+    // 선택된 스테이지에 따라 파일 이름 결정
+    std::string fileName = "../Bin/Data/";
+    fileName += stages[stageIndex];
+    fileName += "Object.dat";
 
     if (ImGui::Button("Save"))
     {
-        if (FAILED(SaveObjectData(fileName)))
+        if (FAILED(SaveObjectData(fileName.c_str())))
         {
             MSG_BOX("Failed to Save Object Data!");
         }
@@ -345,7 +345,7 @@ void CObjectEditor::Render_SaveLoad()
 
     if (ImGui::Button("Load"))
     {
-        if (FAILED(LoadObjectData(fileName)))
+        if (FAILED(LoadObjectData(fileName.c_str())))
         {
             MSG_BOX("Failed to Load Object Data!");
         }

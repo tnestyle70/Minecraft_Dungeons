@@ -159,7 +159,7 @@ void CBox::Set_PartsParent()
 
 void CBox::Box_Animation()
 {
-	const _float fCycleSpeed = 100.f;
+	const _float fCycleSpeed = 200.f;
 	const _float fAngle = m_fAnimTime * fCycleSpeed;
 
 	if (fAngle >= 70.f)
