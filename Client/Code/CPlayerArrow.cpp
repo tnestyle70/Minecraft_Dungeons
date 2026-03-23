@@ -1,6 +1,9 @@
 ﻿#include "pch.h"
 #include "CPlayerArrow.h"
 #include "CRenderer.h"
+#include "CBlockMgr.h"
+#include "CParticleMgr.h"
+#include "CParticleEmitter.h"
 
 CPlayerArrow::CPlayerArrow(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -64,6 +67,14 @@ HRESULT CPlayerArrow::Add_Component()
 
     m_pTransformCom->m_vScale = { 0.3f, 0.1f, 0.3f };
 
+    // 폭발 콜라이더
+    m_pExplodeColliderCom = CCollider::Create(m_pGraphicDev,
+        _vec3(6.f, 6.f, 6.f),
+        _vec3(0.f, 0.f, 0.f));
+    if (nullptr == m_pExplodeColliderCom)
+        return E_FAIL;
+    m_mapComponent[ID_STATIC].insert({ L"Com_ExplodeCollider", m_pExplodeColliderCom });
+
     return S_OK;
 }
 
@@ -84,6 +95,28 @@ _int CPlayerArrow::Update_GameObject(const _float& fTimeDelta)
     vPos += m_vDir * m_fSpeed * fTimeDelta;
     m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
     m_pColliderCom->Update_AABB(vPos);
+
+    if (m_bExploding)
+    {
+        m_fExplodeTimer -= fTimeDelta;
+        if (m_fExplodeTimer <= 0.f)
+            m_bExploding = false;
+    }
+
+
+    BlockPos tBlockPos = { (int)vPos.x, (int)vPos.y, (int)vPos.z };
+    if (CBlockMgr::GetInstance()->HasBlock(tBlockPos))
+    {
+        if (m_bFirework)
+        {
+            CParticleMgr::GetInstance()->Add_Emitter(
+                CParticleEmitter::Create(m_pGraphicDev, PARTICLE_FIREWORK, vPos, nullptr));
+            m_bExploding = true; 
+            m_fExplodeTimer = 0.3f;     //폭발 콜라이더 유지
+            m_pExplodeColliderCom->Update_AABB(vPos);
+        }
+        m_bDead = true;
+    }
 
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
 
@@ -145,6 +178,16 @@ CPlayerArrow* CPlayerArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev,
     pArrow->m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 
     return pArrow;
+}
+
+void CPlayerArrow::Trigger_Explode()
+{
+    _vec3 vPos;
+    m_pTransformCom->Get_Info(INFO_POS, &vPos);
+    m_pExplodeColliderCom->Update_AABB(vPos);
+    m_bExploding = true;
+    m_fExplodeTimer = 0.3f;
+    m_bDead = true;
 }
 
 void CPlayerArrow::Free()

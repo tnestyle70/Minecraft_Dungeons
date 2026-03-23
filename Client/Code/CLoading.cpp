@@ -251,6 +251,21 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/T_EndRobes.png"))))
         return E_FAIL;
 
+
+    //TNT
+     
+     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TNT_Top",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/tnt_top.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TNT_Bottom",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/tnt_bottom.png"))))
+        return E_FAIL;
+
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_TNT_Side",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/tnt_side.png"))))
+        return E_FAIL;
+
     // 닭 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ChickenTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/mob/chicken.png"))))

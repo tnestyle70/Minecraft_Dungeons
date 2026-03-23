@@ -32,6 +32,7 @@ public:
 
 private:
     bool m_bFinished = false;
+    bool m_bHit = false;
 };
 
 // -----------------------------------------------

@@ -169,6 +169,7 @@
     <ClInclude Include="..\Header\CDynamicCamera.h" />
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
+    <ClInclude Include="..\Header\CEnvironmentMgr.h" />
     <ClInclude Include="..\Header\CEquipSlot.h" />
     <ClInclude Include="..\Header\CGolemStates.h" />
     <ClInclude Include="..\Header\CHUD.h" />
@@ -205,6 +206,7 @@
     <ClInclude Include="..\Header\CStage.h" />
     <ClInclude Include="..\Header\CTabButton.h" />
     <ClInclude Include="..\Header\CTerrain.h" />
+    <ClInclude Include="..\Header\CTNT.h" />
     <ClInclude Include="..\Header\CTriggerBox.h" />
     <ClInclude Include="..\Header\CTriggerBoxMgr.h" />
     <ClInclude Include="..\Header\CUI.h" />
@@ -245,6 +247,7 @@
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />
+    <ClCompile Include="..\Code\CEnvironmentMgr.cpp" />
     <ClCompile Include="..\Code\CEquipSlot.cpp" />
     <ClCompile Include="..\Code\CGolemStates.cpp" />
     <ClCompile Include="..\Code\CHUD.cpp" />
@@ -278,6 +281,7 @@
     <ClCompile Include="..\Code\CStage.cpp" />
     <ClCompile Include="..\Code\CTabButton.cpp" />
     <ClCompile Include="..\Code\CTerrain.cpp" />
+    <ClCompile Include="..\Code\CTNT.cpp" />
     <ClCompile Include="..\Code\CTriggerBox.cpp" />
     <ClCompile Include="..\Code\CTriggerBoxMgr.cpp" />
     <ClCompile Include="..\Code\CUI.cpp" />

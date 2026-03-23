@@ -164,6 +164,14 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	for (auto& pArrow : m_vecArrows)
 		pArrow->Update_GameObject(fTimeDelta);
 
+	if (m_pHeldTNT)
+	{
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		vPos.y += 3.f;
+		m_pHeldTNT->Get_Transform()->Set_Pos(vPos.x, vPos.y, vPos.z);
+	}
+
 	m_vecArrows.erase(
 		remove_if(m_vecArrows.begin(), m_vecArrows.end(),
 			[](CPlayerArrow* p) {
@@ -171,6 +179,11 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 				return false;
 			}),
 		m_vecArrows.end());
+
+	m_vecTNTs.erase(
+		remove_if(m_vecTNTs.begin(), m_vecTNTs.end(),
+			[](CTNT* p) { return p->Is_Dead(); }),
+		m_vecTNTs.end());
 
 	Apply_Gravity(fTimeDelta);
 	Roll_Update(fTimeDelta);
@@ -265,9 +278,11 @@ void CPlayer::Render_GameObject()
 	//아머 렌더링
 	Render_Part(PART_HEAD, 0.f, m_bCharging ? D3DXToRadian(90.f) : 0.f, 0.f, matRootWorld);
 	Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld);
-	Render_Part(PART_LARM, m_bCharging ? fLArmX : fSwing, m_bCharging ? fLArmY : 0.f, 0.f, matRArmRoot);
-	Render_Part(PART_RARM, m_bCharging ? fRArmX : (m_iComboStep > 0 ? fAtkX : -fSwing),
-		m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f), 0.f, matRootWorld);
+	Render_Part(PART_LARM, m_pHeldTNT ? D3DXToRadian(-150.f) : (m_bCharging ? fLArmX : fSwing),
+		m_pHeldTNT ? 0.f : (m_bCharging ? fLArmY : 0.f), 0.f, matRArmRoot);
+
+	Render_Part(PART_RARM, m_pHeldTNT ? D3DXToRadian(-150.f) : (m_bCharging ? fRArmX : (m_iComboStep > 0 ? fAtkX : -fSwing)),
+		m_pHeldTNT ? 0.f : (m_bCharging ? fRArmY : (m_iComboStep > 0 ? fAtkY : 0.f)), 0.f, matRootWorld);
 	Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld);
 	Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld);
 
@@ -595,51 +610,107 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 	}
 	m_bAtkKeyPrev = bAtkKey;
 
-	// 화살
+	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
-	if (bRClick)
-	{
-		m_bCharging = true;
-		m_fCharge += fTimeDelta;
-		if (m_fCharge > m_fMaxCharge)
-			m_fCharge = m_fMaxCharge;
 
-		// 클릭한 곳 바라보기
-		_vec3 vTarget = Picking_OnBlock();
-		_vec3 vPos;
-		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-		_vec3 vDir = vTarget - vPos;
-		vDir.y = 0.f;
-		if (D3DXVec3Length(&vDir) > 0.1f)
+	if (m_pHeldTNT)
+	{
+		if (bRClick)
 		{
-			D3DXVec3Normalize(&vDir, &vDir);
-			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+			_vec3 vPos, vLook;
+			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+			D3DXVec3Normalize(&vLook, &vLook);
+			vPos.y += 3.f;
+			m_pHeldTNT->Throw(vPos, -vLook, 10.f);
+			m_pHeldTNT = nullptr;
 		}
 	}
-	else if (m_bCharging)
+	else
 	{
-		_vec3 vPos, vLook;
-		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-		D3DXVec3Normalize(&vLook, &vLook);
-		vLook = -vLook;
-		vPos.y += 1.0f;
+		if (bRClick)
+		{
+			m_bCharging = true;
+			m_fCharge += fTimeDelta;
+			if (m_fCharge > m_fMaxCharge)
+				m_fCharge = m_fMaxCharge;
 
-		float fCharge = m_fCharge / m_fMaxCharge;
-		CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, vLook, fCharge);
-		if (pArrow)
-			m_vecArrows.push_back(pArrow);
+			_vec3 vTarget = Picking_OnBlock();
+			_vec3 vPos;
+			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			_vec3 vDir = vTarget - vPos;
+			vDir.y = 0.f;
+			if (D3DXVec3Length(&vDir) > 0.1f)
+			{
+				D3DXVec3Normalize(&vDir, &vDir);
+				m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+			}
+		}
+		else if (m_bCharging)
+		{
+			_vec3 vPos, vLook;
+			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+			D3DXVec3Normalize(&vLook, &vLook);
+			vLook = -vLook;
+			vPos.y += 1.0f;
 
-		m_fCharge = 0.f;
-		m_bCharging = false;
+			float fCharge = m_fCharge / m_fMaxCharge;
+			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, vLook, fCharge);
+			if (pArrow)
+			{
+				pArrow->Set_Firework(m_bFireworkArrow);
+				m_vecArrows.push_back(pArrow);
+			}
+			m_fCharge = 0.f;
+			m_bCharging = false;
+			m_bFireworkArrow = false;
+		}
+	}
+
+	if (GetAsyncKeyState('R') & 0x8000)
+	{
+		if (!m_bRKeyPrev)
+		{
+			m_bFireworkArrow = !m_bFireworkArrow;
+			m_bRKeyPrev = true;
+		}
+	}
+	else
+	{
+		m_bRKeyPrev = false;
 	}
 
 	// 마우스 클릭 이동
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 	{
-		m_vTargetPos = Picking_OnBlock();
-		m_vTargetPos.y = 0.f;
-		m_bHasTarget = true;
+		// TNT 줍기
+		if (!m_pHeldTNT)
+		{
+			_vec3 vPickPos = Picking_OnBlock();
+
+			for (auto& pTNT : m_vecTNTs)
+			{
+				if (pTNT->Is_Dead() || pTNT->Is_PickedUp()) continue;
+
+				Engine::CTransform* pTrans = dynamic_cast<Engine::CTransform*>
+					(pTNT->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+				if (!pTrans) continue;
+
+				_vec3 vTNTPos;
+				pTrans->Get_Info(INFO_POS, &vTNTPos);
+				_vec3 vDiff = vPickPos - vTNTPos;
+				if (D3DXVec3Length(&vDiff) < 1.5f)
+				{
+					pTNT->PickUp();
+					m_pHeldTNT = pTNT;
+					break;
+				}
+			}
+		}
+			m_vTargetPos = Picking_OnBlock();
+			m_vTargetPos.y = 0.f;
+			m_bHasTarget = true;
 	}
 
 	if (m_bHasTarget)
