@@ -25,6 +25,7 @@
 #include "CLamp.h"
 #include "CInventoryMgr.h"
 #include "CInventorySlot.h"
+#include "CTNT.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -223,6 +224,12 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
 
+	//TNT
+	CTNT* pTNT = CTNT::Create(m_pGraphicDev, _vec3(5.f, 1.5f, 3.f));
+	if (pTNT)
+	{
+		pLayer->Add_GameObject(L"TNT", pTNT);
+		pPlayer->Add_TNT(pTNT);
 	//HUD
 	pGameObject = CHUD::Create(m_pGraphicDev);
 

@@ -9,6 +9,8 @@
 #include "CPlayer.h"
 #include "CMonsterMgr.h"
 #include "CDamageMgr.h"
+#include "CPlayerArrow.h"
+#include "CTNT.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -164,6 +166,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
+
     // 크리퍼 폭발 처리
     if (m_eType == EMonsterType::CREEPER && !m_bExploded)
     {
@@ -241,6 +244,86 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     //    else
     //        pAnim->Set_State(EMonsterState::HIT);
     //}
+
+    // 기본화살/폭죽화살 충돌
+    if (pPlayer && pAnim
+        && pAnim->Get_State() != EMonsterState::HIT
+        && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        for (auto& pArrow : pPlayer->Get_Arrows())
+        {
+            if (pArrow->Is_Dead() && !pArrow->Is_Exploding()) continue;
+            if (pArrow->Is_Dead()) continue;
+
+            CCollider* pArrowCollider = dynamic_cast<CCollider*>(
+                pArrow->Get_Component(ID_STATIC, L"Com_Collider"));
+            if (!pArrowCollider) continue;
+
+            if (m_pColliderCom->IsColliding(pArrowCollider->Get_AABB()))
+            {
+                if (pArrow->Is_Firework())
+                {
+                    _vec3 vArrowPos;
+                    AABB tAABB = pArrowCollider->Get_AABB();
+                    vArrowPos = (tAABB.vMin + tAABB.vMax) * 0.5f;
+                    CParticleMgr::GetInstance()->Add_Emitter(
+                        CParticleEmitter::Create(m_pGraphicDev, PARTICLE_FIREWORK, vArrowPos, nullptr));
+                    pArrow->Trigger_Explode();
+                }
+                else
+                {
+                    m_iHp -= 10;
+                    if (m_iHp <= 0)
+                        pAnim->Set_State(EMonsterState::DEAD);
+                    else
+                        pAnim->Set_State(EMonsterState::HIT);
+                    pArrow->Set_Dead();
+                }
+                break;
+            }
+        }
+    }
+
+    //폭발 콜라이더 충돌
+    if (pPlayer && pAnim
+        && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        for (auto& pArrow : pPlayer->Get_Arrows())
+        {
+            if (!pArrow->Is_Exploding()) continue;
+
+            CCollider* pExplodeCollider = pArrow->Get_ExplodeCollider();
+            if (!pExplodeCollider) continue;
+
+            if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
+            {
+                m_iHp -= 30;
+                if (m_iHp <= 0)
+                    pAnim->Set_State(EMonsterState::DEAD);
+                else
+                    pAnim->Set_State(EMonsterState::HIT);
+            }
+        }
+    }
+
+    // TNT 폭발 충돌
+    if (pPlayer && pAnim && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        for (auto& pTNT : pPlayer->Get_TNTs())
+        {
+            if (!pTNT->Is_Exploding()) continue;
+            CCollider* pExplodeCollider = pTNT->Get_ExplodeCollider();
+            if (!pExplodeCollider) continue;
+            if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
+            {
+                m_iHp -= 50;
+                if (m_iHp <= 0)
+                    pAnim->Set_State(EMonsterState::DEAD);
+                else
+                    pAnim->Set_State(EMonsterState::HIT);
+            }
+        }
+    }
 
     m_pBodyCom->Update_Body(fTimeDelta, m_bIsMoving, false);
 

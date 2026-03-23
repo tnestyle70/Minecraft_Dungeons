@@ -177,6 +177,10 @@
     <ClCompile Include="..\Code\CGolemStates.cpp">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClCompile>
+
+    <ClCompile Include="..\Code\CTNT.cpp">
+      <Filter>02. GameObject</Filter>
+
     <ClCompile Include="..\Code\CBox.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClCompile>
@@ -206,6 +210,7 @@
     </ClCompile>
     <ClCompile Include="..\Code\CLampPart.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
+
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -387,6 +392,10 @@
     <ClInclude Include="..\Header\IGolemState.h">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClInclude>
+
+    <ClInclude Include="..\Header\CTNT.h">
+      <Filter>02. GameObject</Filter>
+
     <ClInclude Include="..\Header\CBox.h">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClInclude>
@@ -416,6 +425,7 @@
     </ClInclude>
     <ClInclude Include="..\Header\CLampPart.h">
       <Filter>02. GameObject\11. Environment</Filter>
+
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
