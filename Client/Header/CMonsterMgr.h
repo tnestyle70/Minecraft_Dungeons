@@ -37,6 +37,9 @@ public:
 	void SetPlayer(CPlayer* pPlayer) { m_pPlayer = pPlayer; }
 	CPlayer* Get_Player() const { return m_pPlayer; }
 
+	//외부에서 몬스터 목록 받아가기
+	const map<int, SpawnGroup>& Get_MonsterGroups() const { return m_mapMonsterGroups; }
+
 private:
 	CPlayer* m_pPlayer = nullptr;
 

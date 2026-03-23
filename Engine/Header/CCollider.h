@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CComponent.h"
 
 //AABB 구조체 - min x, y, z와 max x, y, z 사이에 있는 값 비교

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CBoxPart.h"
@@ -18,7 +18,6 @@ public:
 
 public:
 	void Open_Box();
-
 private:
 	HRESULT	Add_Component();
 	void Set_PartsOffset();

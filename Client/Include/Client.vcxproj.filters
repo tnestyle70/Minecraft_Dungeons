@@ -216,6 +216,9 @@
     <ClCompile Include="..\Code\CItemPanel.cpp">
       <Filter>02. GameObject\12. UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CCMiniMap.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -434,6 +437,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CItemPanel.h">
       <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCMiniMap.h">
+      <Filter>02. GameObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

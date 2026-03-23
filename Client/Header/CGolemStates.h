@@ -50,6 +50,20 @@ private:
 };
 
 // -----------------------------------------------
+class CGolemState_Hit : public IGolemState
+{
+public:
+    void Enter(CRedStoneGolem* pGolem) override;
+    void Update(CRedStoneGolem* pGolem, const _float& fTimeDelta) override;
+    void Exit(CRedStoneGolem* pGolem) override;
+
+    bool Can_Transition() const override { return true; }
+
+private:
+    bool m_bFinished = false;
+};
+
+// -----------------------------------------------
 class CGolemState_Dead : public IGolemState
 {
 public:
