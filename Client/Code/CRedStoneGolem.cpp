@@ -4,6 +4,7 @@
 #include "CDInputMgr.h"
 #include "CBlockMgr.h"
 #include "CManagement.h"
+#include "CMonsterMgr.h"
 
 CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -15,8 +16,8 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_fAnimTime(0.f)
 	, m_bOnGround(false)
 	, m_fVelocityY(0.f)
-	, m_fMaxHp(100.f)
-	, m_fHp(100.f)
+	, m_fMaxHp(1000.f)
+	, m_fHp(1000.f)
 	, m_fAtk(10.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
@@ -35,6 +36,7 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	m_pStates[GOLEM_STATE_WALK] = new CGolemState_Walk();
 	m_pStates[GOLEM_STATE_ATTACK] = new CGolemState_Attack();
 	m_pStates[GOLEM_STATE_SKILL] = new CGolemState_Skill();
+	m_pStates[GOLEM_STATE_HIT] = new CGolemState_Hit();
 	m_pStates[GOLEM_STATE_DEAD] = new CGolemState_Dead();
 
 	m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
@@ -55,6 +57,18 @@ _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
 	m_fAnimTime += fTimeDelta;
+
+	if (m_bHitCool)
+	{
+		m_fHitCoolTime += fTimeDelta;
+
+		if (m_fHitCoolTime >= 0.3f)
+		{
+			m_bHitCool = false;
+		}
+	}
+
+	Check_Hit();
 
 	// 상태가 알아서 거리 체크, 애니메이션, 이동을 처리
 	if (m_pCurState)
@@ -538,6 +552,59 @@ void CRedStoneGolem::Anim_Skill()
 		Change_State(GOLEM_STATE_IDLE);
 }
 
+void CRedStoneGolem::Anim_Hit()
+{
+	const _float t = m_fAnimTime;
+
+	// 0 ~ 0.15 : 뒤로 젖힘
+	if (t < 0.15f)
+	{
+		float p = t / 0.15f;
+		float ep = 1.f - (1.f - p) * (1.f - p); // ease-out
+
+		// 몸 뒤로 젖힘
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, -15.f * ep);
+
+		// 머리 더 크게 반응
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_X, -20.f * ep);
+
+		// 어깨 살짝 뒤로
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -10.f * ep);
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -10.f * ep);
+
+		// 팔 자연스럽게 따라감
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+		m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * ep);
+	}
+	// 0.15 ~ 0.4 : 원위치 복귀
+	else if (t < 0.4f)
+	{
+		float p = (t - 0.15f) / 0.25f;
+		float ep = p * p; // ease-in
+
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, -15.f * (1.f - ep));
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_X, -20.f * (1.f - ep));
+
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -10.f * (1.f - ep));
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, -10.f * (1.f - ep));
+
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * (1.f - ep));
+		m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, -5.f * (1.f - ep));
+	}
+	else
+	{
+		// 완전히 복귀
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[GOLEM_RSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+		m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, 0.f);
+
+		Change_State(GOLEM_STATE_IDLE);
+	}
+}
+
 void CRedStoneGolem::Anim_Dead()
 {
 	// todo
@@ -696,6 +763,45 @@ _bool CRedStoneGolem::Check_AttackHit()
 	tMyOBB = m_pAtkColliderCom->Get_OBB();
 
 	return m_pAtkColliderCom->IsColliding_OBB(tMyOBB, tPlayerOBB);
+}
+
+void CRedStoneGolem::Check_Hit()
+{
+	if (m_bHitCool)
+		return;
+
+	CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+
+	if (!pPlayer || !pPlayer->Get_AtkColliderActive())
+		return;
+
+	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(
+		CManagement::GetInstance()->Get_Component(
+			ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider"));
+
+	AABB tPlayerAABB = pPlayerCollider->Get_AABB();
+
+	if (m_pColliderCom->IsColliding(tPlayerAABB))
+	{
+		Take_Damage(pPlayer->Get_MeleeDmg());
+
+		m_bHitCool = true;
+		m_fHitCoolTime = 0.f;
+	}
+}
+
+void CRedStoneGolem::Take_Damage(_float fDamage)
+{
+	m_fHp -= fDamage;
+
+	if (m_fHp <= 0.f)
+	{
+		Change_State(GOLEM_STATE_DEAD);
+	}
+	else
+	{
+		Change_State(GOLEM_STATE_HIT);
+	}
 }
 
 CRedStoneGolem* CRedStoneGolem::Create(LPDIRECT3DDEVICE9 pGraphicDev)
