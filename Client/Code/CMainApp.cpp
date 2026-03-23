@@ -16,6 +16,7 @@
 #include "CInventoryMgr.h"
 #include "CCursorMgr.h"
 #include "CDamageMgr.h"
+#include "CEnvironmentMgr.h"
 
 CMainApp::CMainApp()
     : m_pDeviceClass(nullptr), m_pGraphicDev(nullptr)
@@ -236,6 +237,7 @@ void CMainApp::Free()
     CInventoryMgr::GetInstance()->DestroyInstance();
     CCursorMgr::GetInstance()->DestroyInstance();
     CDamageMgr::GetInstance()->DestroyInstance();
+    CEnvironmentMgr::GetInstance()->DestroyInstance();
 
     // 5. 엔진 서비스 매니저들
     CSoundMgr::GetInstance()->DestroyInstance();

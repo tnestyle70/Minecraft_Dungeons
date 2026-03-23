@@ -3,6 +3,7 @@
 #include "CBox.h"
 #include "CLamp.h"
 #include "CDynamicCamera.h"
+#include "CBlockMgr.h"
 
 CObjectEditor::CObjectEditor(LPDIRECT3DDEVICE9 pGraphicDev)
     : CScene(pGraphicDev)
@@ -20,6 +21,14 @@ HRESULT CObjectEditor::Ready_Scene()
 
     if (FAILED(Ready_Environment_Layer(L"Environment_Layer")))
         return E_FAIL;
+
+    //FILE* pMap = nullptr;
+    //fopen_s(&pMap, "../Bin/Data/Stage1.dat", "rb");
+    //if (pMap)
+    //{
+    //    CBlockMgr::GetInstance()->LoadBlocks(pMap); 
+    //    fclose(pMap);
+    //}
 
     return S_OK;
 }
@@ -153,8 +162,104 @@ void CObjectEditor::Render_UI()
     ImGui::End();
 
     Render_CreateUI();
-
     Render_Inspector();
+    Render_SaveLoad();
+}
+
+HRESULT CObjectEditor::SaveObjectData(const char* pFileName)
+{
+    FILE* pFile = nullptr;
+    if (fopen_s(&pFile, pFileName, "wb") != 0)
+        return E_FAIL;
+
+    int iCount = static_cast<int>(m_mapEditObject.size());
+    fwrite(&iCount, sizeof(int), 1, pFile);
+
+    for (auto& pair : m_mapEditObject)
+    {
+        CGameObject* pObj = pair.second;
+        if (!pObj) continue;
+
+        CTransform* pTrans = dynamic_cast<CTransform*>(pObj->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+        if (!pTrans) continue;
+
+        _vec3 vPos, vRot;
+        pTrans->Get_Info(INFO_POS, &vPos);
+        vRot = pTrans->Get_Rotation();
+
+        OBJECT_DATA data;
+        // 타입 추출
+        if (dynamic_cast<CBox*>(pObj)) data.eType = OBJECT_BOX;
+        else if (dynamic_cast<CLamp*>(pObj)) data.eType = OBJECT_LAMP;
+        else data.eType = OBJECT_END;
+
+        data.vPos[0] = vPos.x;
+        data.vPos[1] = vPos.y;
+        data.vPos[2] = vPos.z;
+
+        data.vRot[0] = vRot.x;
+        data.vRot[1] = vRot.y;
+        data.vRot[2] = vRot.z;
+
+        fwrite(&data, sizeof(OBJECT_DATA), 1, pFile);
+    }
+
+    fclose(pFile);
+    return S_OK;
+}
+
+HRESULT CObjectEditor::LoadObjectData(const char* pFileName)
+{
+    FILE* pFile = nullptr;
+    if (fopen_s(&pFile, pFileName, "rb") != 0)
+        return E_FAIL;
+
+    // 기존 오브젝트 제거
+    for (auto& pair : m_mapEditObject)
+        Safe_Release(pair.second);
+    m_mapEditObject.clear();
+    m_pSelectedObject = nullptr;
+
+    int iCount = 0;
+    fread(&iCount, sizeof(int), 1, pFile);
+
+    for (int i = 0; i < iCount; ++i)
+    {
+        OBJECT_DATA data;
+        fread(&data, sizeof(OBJECT_DATA), 1, pFile);
+
+        CGameObject* pObj = nullptr;
+        switch (data.eType)
+        {
+        case OBJECT_BOX:
+            pObj = CBox::Create(m_pGraphicDev);
+            break;
+        case OBJECT_LAMP:
+            pObj = CLamp::Create(m_pGraphicDev);
+            break;
+        default:
+            continue;
+        }
+
+        if (!pObj) continue;
+
+        CTransform* pTrans = dynamic_cast<CTransform*>(pObj->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+        if (pTrans)
+        {
+            pTrans->Set_Pos(data.vPos[0], data.vPos[1], data.vPos[2]);
+            pTrans->Set_Rotation(ROT_X, data.vRot[0]);
+            pTrans->Set_Rotation(ROT_Y, data.vRot[1]);
+            pTrans->Set_Rotation(ROT_Z, data.vRot[2]);
+        }
+
+        // 키 생성
+        static int iID = 0;
+        wstring key = L"Obj_" + to_wstring(iID++);
+        m_mapEditObject.insert({ key, pObj });
+    }
+
+    fclose(pFile);
+    return S_OK;
 }
 
 void CObjectEditor::Render_CreateUI()
@@ -208,6 +313,42 @@ void CObjectEditor::Render_Inspector()
     if (ImGui::DragFloat3("Position", pos, 0.1f))
     {
         pTrans->Set_Pos(pos[0], pos[1], pos[2]);
+    }
+
+    ImGui::End();
+}
+
+void CObjectEditor::Render_SaveLoad()
+{
+    ImGui::SetNextWindowPos(ImVec2(10, 320), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(200, 120), ImGuiCond_Once);
+
+    ImGui::Begin("Stage Save / Load");
+
+    // 스테이지 선택용 Combo Box
+    static int stageIndex = 0;
+    const char* stages[] = { "Stage1", "Stage2", "Stage3" };
+    ImGui::Combo("Stage", &stageIndex, stages, IM_ARRAYSIZE(stages));
+
+    // 선택된 스테이지에 따라 파일 이름 결정
+    std::string fileName = "../Bin/Data/";
+    fileName += stages[stageIndex];
+    fileName += "Object.dat";
+
+    if (ImGui::Button("Save"))
+    {
+        if (FAILED(SaveObjectData(fileName.c_str())))
+        {
+            MSG_BOX("Failed to Save Object Data!");
+        }
+    }
+
+    if (ImGui::Button("Load"))
+    {
+        if (FAILED(LoadObjectData(fileName.c_str())))
+        {
+            MSG_BOX("Failed to Load Object Data!");
+        }
     }
 
     ImGui::End();

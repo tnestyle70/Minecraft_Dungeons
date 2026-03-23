@@ -43,6 +43,7 @@ public:
 
 	void Set_AnimTime(_float f) { m_fAnimTime = f; }
 	_float Get_AnimTime() const { return m_fAnimTime; }
+	_bool Check_AttackHit();
 
 private:
 	HRESULT	Add_Component();
@@ -58,7 +59,7 @@ private:
 private:
 	void Apply_Gravity(const _float& fTimeDelta);
 	void Resolve_BlockCollision();
-	
+
 private:
 	static constexpr _float m_fWorldScale = 4.f;
 	static constexpr _float m_fGravity = -20.f;

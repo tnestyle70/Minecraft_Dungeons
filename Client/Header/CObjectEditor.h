@@ -2,6 +2,21 @@
 #include "CScene.h"
 #include "CProtoMgr.h"
 
+enum OBJECT_TYPE
+{
+	OBJECT_BOX,
+	OBJECT_LAMP,
+
+	OBJECT_END
+};
+
+struct OBJECT_DATA
+{
+	OBJECT_TYPE eType;
+	_vec3 vPos;
+	_vec3 vRot;
+};
+
 class CObjectEditor : public CScene
 {
 protected:
@@ -15,6 +30,10 @@ public:
 	virtual			void		Render_Scene();
 	virtual void Render_UI() override;
 
+public:
+	HRESULT SaveObjectData(const char* pFileName);
+	HRESULT LoadObjectData(const char* pFileName);
+
 private:
 	HRESULT			Ready_Environment_Layer(const _tchar* pLayerTag);
 	HRESULT			Ready_Prototype();
@@ -22,6 +41,7 @@ private:
 private:
 	void Render_CreateUI();
 	void Render_Inspector();
+	void Render_SaveLoad();
 	void Create_Object(const wstring& type);
 	void Start_CreateMode(const wstring& type);
 

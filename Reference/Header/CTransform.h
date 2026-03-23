@@ -27,6 +27,8 @@ public:
 		*(((_float*)&m_vAngle) + eType) = fAngle;
 	}
 
+	_vec3 Get_Rotation() { return m_vAngle; }
+
 	_matrix* Get_World() { return &m_matWorld; }
 
 	void Set_World(_matrix* matWorld) { m_matWorld = *matWorld; }

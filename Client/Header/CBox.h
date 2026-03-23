@@ -16,6 +16,9 @@ public:
 	virtual	void LateUpdate_GameObject(const _float& fTimeDelta);
 	virtual	void Render_GameObject();
 
+public:
+	void Open_Box();
+
 private:
 	HRESULT	Add_Component();
 	void Set_PartsOffset();
@@ -35,6 +38,7 @@ private:
 	CCollider* m_pColliderCom;
 
 	_bool m_bIsOpen;
+	_bool m_bIsOpening;
 	_float m_fAnimTime;
 
 public:

@@ -212,6 +212,9 @@
       <Filter>02. GameObject\11. Environment</Filter>
 
     </ClCompile>
+    <ClCompile Include="..\Code\CEnvironmentMgr.cpp">
+      <Filter>03. Manager\04. EnvironmentMgr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -427,6 +430,9 @@
       <Filter>02. GameObject\11. Environment</Filter>
 
     </ClInclude>
+    <ClInclude Include="..\Header\CEnvironmentMgr.h">
+      <Filter>03. Manager\04. EnvironmentMgr</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
@@ -569,6 +575,9 @@
     </Filter>
     <Filter Include="02. GameObject\12. UI">
       <UniqueIdentifier>{a081e8df-c5e2-4006-9466-fdad977d68b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03. Manager\04. EnvironmentMgr">
+      <UniqueIdentifier>{f84ffcac-f511-4e51-8c41-dfda4c2db887}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

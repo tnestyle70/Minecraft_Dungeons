@@ -15,9 +15,9 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_fAnimTime(0.f)
 	, m_bOnGround(false)
 	, m_fVelocityY(0.f)
-	, m_fMaxHp(5000.f)
-	, m_fHp(5000.f)
-	, m_fAtk(100.f)
+	, m_fMaxHp(100.f)
+	, m_fHp(100.f)
+	, m_fAtk(10.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -65,8 +65,12 @@ _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
-	m_pColliderCom->Update_OBB(*m_pTransformCom->Get_World());
+
+	m_pColliderCom->Update_AABB(vPos);
 	m_pAtkColliderCom->Update_OBB(*m_pTransformCom->Get_World());
+
+	//m_pColliderCom->Update_OBB(*m_pTransformCom->Get_World());
+	//m_pAtkColliderCom->Update_OBB(*m_pTransformCom->Get_World());
 
 	Apply_Gravity(fTimeDelta);
 	Resolve_BlockCollision();
@@ -100,8 +104,11 @@ void CRedStoneGolem::Render_GameObject()
 		m_pParts[i]->Render_GameObject();
 	}
 
-	m_pColliderCom->Render_OBB();
+	m_pColliderCom->Render_Collider();
 	m_pAtkColliderCom->Render_OBB();
+
+	//m_pColliderCom->Render_OBB();
+	//m_pAtkColliderCom->Render_OBB();
 
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
@@ -670,6 +677,25 @@ void CRedStoneGolem::Resolve_BlockCollision()
 			}
 		}
 	}
+}
+
+_bool CRedStoneGolem::Check_AttackHit()
+{
+	CCollider* pPlayerCollider = nullptr;
+	AABB tPlayerAABB;
+	OBB tPlayerOBB, tMyOBB;
+	
+	pPlayerCollider = dynamic_cast<CCollider*>(CManagement::GetInstance()->Get_Component(ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_Collider"));
+
+	if (!pPlayerCollider)
+		return false;
+
+	tPlayerAABB = pPlayerCollider->Get_AABB();
+	tPlayerOBB = pPlayerCollider->ConvertAABBtoOBB(tPlayerAABB);
+
+	tMyOBB = m_pAtkColliderCom->Get_OBB();
+
+	return m_pAtkColliderCom->IsColliding_OBB(tMyOBB, tPlayerOBB);
 }
 
 CRedStoneGolem* CRedStoneGolem::Create(LPDIRECT3DDEVICE9 pGraphicDev)
