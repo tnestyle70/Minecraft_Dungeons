@@ -60,16 +60,18 @@ void CInventorySlot::Render_GameObject()
 	
 	m_pBufferCom->Render_Buffer();
 	
-	//아이템 렌더링
-	if (!m_bEmpty && m_pItemTexture)
-	{
-		BeginItemRender();
-		m_pItemTexture->Set_Texture(0);
-		m_pBufferCom->Render_Buffer();
-		EndItemRender();
-	}
-	
 	EndUIRender();
+
+	//2. 아이템 렌더링
+	BeginItemRender();
+
+	matWorld = Calc_WorldMatrix(m_fItemX, m_fItemY, m_fItemW, m_fItemH);
+	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
+
+	m_pItemTexture->Set_Texture(0);
+	m_pBufferCom->Render_Buffer();
+
+	EndItemRender();
 }
 
 void CInventorySlot::Set_SlotInfo(float fX, float fY, float fW, float fH,
@@ -78,12 +80,12 @@ void CInventorySlot::Set_SlotInfo(float fX, float fY, float fW, float fH,
 	m_fX = fX; m_fY = fY; m_fW = fW; m_fH = fH;
 }
 
-void CInventorySlot::Set_ItemInfo(float fX, float fY, float fW, float fH)
+void CInventorySlot::Set_ItemInfo(float fX, float fY, float fW, float fH, bool bEmpty)
 {
 	//아이템 위치 크기 설정
 	m_fItemX = fX; m_fItemY = fY; m_fItemW = fW; m_fItemH = fH;
 
-	m_bEmpty = false;
+	m_bEmpty = bEmpty;
 }
 
 void CInventorySlot::Hover()

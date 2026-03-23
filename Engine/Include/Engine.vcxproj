@@ -214,7 +214,9 @@ call Copy.bat</Command>
     <ClCompile Include="..\Code\CCubeBodyTex.cpp" />
     <ClCompile Include="..\Code\CCubeTex.cpp" />
     <ClCompile Include="..\Code\CDInputMgr.cpp" />
-    <ClCompile Include="..\Code\CFont.cpp" />
+    <ClCompile Include="..\Code\CFont.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/utf-8 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="..\Code\CFontMgr.cpp" />
     <ClCompile Include="..\Code\CFrame.cpp" />
     <ClCompile Include="..\Code\CFrameMgr.cpp" />

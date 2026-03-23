@@ -15,12 +15,15 @@ void CParticleMgr::Add_Emitter(CParticleEmitter* pEmitter)
 {
     if (!pEmitter)
         return;
-
+    pEmitter->AddRef();
     m_EmitterList.push_back(pEmitter);
 }
 
 void CParticleMgr::Update(const _float& fTimeDelta)
 {
+    if (m_EmitterList.empty())
+        return;
+
     auto iter = m_EmitterList.begin();
 
     while (iter != m_EmitterList.end())
@@ -41,6 +44,9 @@ void CParticleMgr::Update(const _float& fTimeDelta)
 
 void CParticleMgr::Render()
 {
+    if (m_EmitterList.empty())
+        return;
+
     for (auto* pEmitter : m_EmitterList)
         pEmitter->Render_GameObject();
 }

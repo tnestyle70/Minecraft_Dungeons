@@ -19,7 +19,7 @@ protected:
 	//UI 공통 렌더 -> Transform, View, Projection
 	virtual void BeginUIRender();
 	virtual void EndUIRender();
-
+	
 	void Set_Info(float fX, float fY, 
 		float fW, float fH);
 
@@ -30,7 +30,7 @@ protected:
 	
 	bool IsHovered() const { return m_bHovered; }
 	bool IsClicked() const { return m_bClicked; }
-
+	
 protected:
 	//스크린 좌표, 크기
 	float m_fX = 0.f, m_fY = 0.f;
@@ -39,6 +39,8 @@ protected:
 	bool m_bHovered = false;
 	bool m_bClicked = false;
 	bool m_bLeaved = false;
+
+	bool m_bPrevLBtn = false;
 
 	//UI 복원용 matrix
 	_matrix m_matOriginView, m_matOriginProj;

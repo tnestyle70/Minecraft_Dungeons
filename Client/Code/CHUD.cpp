@@ -47,6 +47,8 @@ void CHUD::LateUpdate_GameObject(const _float& fTimeDelta)
 
 void CHUD::Render_GameObject()
 {
+	if (!m_pPlayer)
+		return;
 	//플레이어 체력 연동
 	if (m_pPlayer)
 	{
@@ -72,7 +74,7 @@ void CHUD::Render_GameObject()
 		//상단을 고정하기 위해서 Y를 fEmptyH * 0.5를 기준으로 잡는다?
 		float fNDCX = (m_fX + m_fW * 0.5f) / (WINCX * 0.5f) - 1.f;
 		float fNDCY = 1.f - (m_fY + fEmptyH * 0.5f) / (WINCY * 0.5f);
-
+		
 		_matrix matWorld;
 		D3DXMatrixTransformation2D(&matWorld,
 			nullptr, 0.f,
@@ -80,7 +82,6 @@ void CHUD::Render_GameObject()
 			nullptr, 0.f,
 			&_vec2(fNDCX, fNDCY));
 		m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
-
 		//UV도 DamageRatio만큼만 샘플링
 		_matrix matTexture;
 		D3DXMatrixScaling(&matTexture, 1.f, fDamageRatio, 1.f);
@@ -89,10 +90,11 @@ void CHUD::Render_GameObject()
 		//텍스쳐만 교체하고, Buffer는 그대로 써도 무관
 		m_pEmptyHeart->Set_Texture(0);
 		m_pBufferCom->Render_Buffer();
-		//UV Transform 복구
-		m_pGraphicDev->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
 	}
 
+	//UV Transform 복구
+	m_pGraphicDev->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+	
 	Render_EndUI();
 }
 

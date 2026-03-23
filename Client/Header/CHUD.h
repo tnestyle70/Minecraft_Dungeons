@@ -20,12 +20,14 @@ public:
 	virtual			void		Render_GameObject();
 
 public:
-	void Set_Player(CPlayer* pPlayer) { m_pPlayer = pPlayer; };
+	void Set_Player(CPlayer* pPlayer) { m_pPlayer = pPlayer; }
+	void Clear_Player() { m_pPlayer = nullptr; }
 
 private:
 	HRESULT			Add_Component();
 	void Render_BeginUI();
 	void Render_EndUI();
+
 private:
 	Engine::CRcTex* m_pBufferCom = nullptr;
 	Engine::CTexture* m_pTextureCom = nullptr;
@@ -33,7 +35,7 @@ private:
 	CTexture* m_pEmptyHeart = nullptr;
 
 	CPlayer* m_pPlayer = nullptr;
-
+	
 	//Empty Heart 위치, 사이즈
 	float m_fX, m_fY = 0.f;
 	float m_fW, m_fH = 0.f;

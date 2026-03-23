@@ -16,6 +16,7 @@
 #include "StageData.h" 
 #include "CAncientGuardian.h"
 #include "CHUD.h"
+#include "CInventoryMgr.h"
 
 CCamp::CCamp(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -47,6 +48,13 @@ HRESULT CCamp::Ready_Scene()
 
 _int CCamp::Update_Scene(const _float& fTimeDelta)
 {
+	//인벤토리 먼저 업데이트
+	CInventoryMgr::GetInstance()->Update(fTimeDelta);
+
+	//Inventory 활성화되었을 경우 게임 업데이트 중지
+	if (CInventoryMgr::GetInstance()->IsActive())
+		return 0;
+
 	_int iExit = CScene::Update_Scene(fTimeDelta);
 
 	CBlockMgr::GetInstance()->Update(fTimeDelta);
@@ -65,6 +73,8 @@ _int CCamp::Update_Scene(const _float& fTimeDelta)
 		CTriggerBoxMgr::GetInstance()->Clear();
 		CIronBarMgr::GetInstance()->Clear();
 		CMonsterMgr::GetInstance()->Clear();
+		CParticleMgr::GetInstance()->Clear_Emitters();
+		CInventoryMgr::GetInstance()->Clear_Player();
 		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_REDSTONE)))
 		{
 			MSG_BOX("RedStone Create Failed");
@@ -81,6 +91,12 @@ _int CCamp::Update_Scene(const _float& fTimeDelta)
 
 void CCamp::LateUpdate_Scene(const _float& fTimeDelta)
 {
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->LateUpdate(fTimeDelta);
+		return;
+	}
+
 	CScene::LateUpdate_Scene(fTimeDelta);
 
 	CTriggerBoxMgr::GetInstance()->LateUpdate(fTimeDelta);
@@ -92,11 +108,23 @@ void CCamp::LateUpdate_Scene(const _float& fTimeDelta)
 
 void CCamp::Render_Scene()
 {
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->Render();
+		return;
+	}
+
 	CBlockMgr::GetInstance()->Render();
 }
 
 void CCamp::Render_UI()
-{}
+{
+	if (CInventoryMgr::GetInstance()->IsActive())
+	{
+		CInventoryMgr::GetInstance()->Render();
+		return;
+	}
+}
 
 HRESULT CCamp::Ready_Environment_Layer(const _tchar* pLayerTag)
 {
@@ -118,6 +146,7 @@ HRESULT CCamp::Ready_Environment_Layer(const _tchar* pLayerTag)
 	CDynamicCamera* pDynamicCam = dynamic_cast<CDynamicCamera*>(pGameObject);
 	if (!pDynamicCam)
 		return E_FAIL;
+
 	pDynamicCam->SetActionCam();
 
 	if (!pGameObject)
@@ -152,8 +181,30 @@ HRESULT CCamp::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
 		return E_FAIL;
 
-	//TriggerBoxMgr
 	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
+
+	//HUD
+	pGameObject = CHUD::Create(m_pGraphicDev);
+
+	if (nullptr == pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"HUD", pGameObject)))
+		return E_FAIL;
+
+	CHUD* pHUD = dynamic_cast<CHUD*>(pGameObject);
+
+	pHUD->Set_Player(pPlayer);
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
+	//Inventory 세팅
+	if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))
+		return E_FAIL;
+
+	CInventoryMgr::GetInstance()->Set_Player(pPlayer);
+
+	//TriggerBoxMgr
 	CCollider* pCollider = dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
 	if (!pCollider)
 	{
@@ -166,7 +217,6 @@ HRESULT CCamp::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	if (m_pDynamicCamera)
 		m_pDynamicCamera->SetFollowTarget(
 			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
-
 
 
 	m_mapLayer.insert({ pLayerTag, pLayer });

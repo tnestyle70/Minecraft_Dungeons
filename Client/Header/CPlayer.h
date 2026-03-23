@@ -4,6 +4,7 @@
 #include "CPlayerBody.h"
 #include "CPlayerArrow.h"
 #include "CTNT.h"
+#include "CEquipSlot.h"
 
 class CMonster;
 
@@ -83,11 +84,11 @@ private:
 	//폭죽화살 변수
 	bool m_bFireworkArrow = false;
 	bool m_bRKeyPrev = false;
-
+	
 	//TNT
 	CTNT* m_pHeldTNT = nullptr;
 	vector<CTNT*> m_vecTNTs;
-
+	
 	//활 발사 모션
 	Engine::CTexture* m_pBowTexture[4] = {};  // 0=standby, 1~3=pulling
 	Engine::CRcTex* m_pBowBufferCom = nullptr;
@@ -119,6 +120,11 @@ public:
 
 	void Add_TNT(CTNT* pTNT) { m_vecTNTs.push_back(pTNT); }
 	const vector<CTNT*>& Get_TNTs() const { return m_vecTNTs; }
+	
+	CTransform* Get_Transform() { return m_pTransformCom; }
+
+	void Equip(eEquipType eType);
+	void UnEquip(eEquipType eType);
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
 	CPlayerBody* m_pArmorBufferCom[PART_END] = {};
@@ -166,6 +172,9 @@ private:
 	//=======FootPrint Effect Variable=======
 	Engine::CParticleEmitter* m_pFootStepEmitter = nullptr;
 	Engine::CParticleEmitter* m_pAttackEmitter = nullptr;
+
+	bool m_bSwordEquipped = true;
+	bool m_bBowEquipped = false;
 
 private:
 	//피격

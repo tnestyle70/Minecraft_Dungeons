@@ -25,11 +25,13 @@ _int CUIInterface::Update_GameObject(const _float& fTimeDelta)
 	if (bInRect && !m_bHovered) { m_bHovered = true;  Hover(); }
 	if (!bInRect && m_bHovered) { m_bHovered = false; Leave(); }
 
-	if (bLBtn && bInRect)
+	if (bLBtn && bInRect && !m_bPrevLBtn)
 	{
 		m_bClicked = true;
 		Clicked();
 	}
+	//이전 프레임 상태 저장
+	m_bPrevLBtn = bLBtn;
 
 	return iExit;
 }

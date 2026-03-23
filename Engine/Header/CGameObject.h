@@ -26,7 +26,7 @@ public:
 
 	void Compute_ViewZ(const _vec3* pPos);
 protected:
-	map<const _tchar*, CComponent*>			m_mapComponent[ID_END];
+	multimap<const _tchar*, CComponent*>			m_mapComponent[ID_END];
 	LPDIRECT3DDEVICE9						m_pGraphicDev;
 	_float m_fViewZ;
 private:

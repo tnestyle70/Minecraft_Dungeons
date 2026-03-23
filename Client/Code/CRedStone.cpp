@@ -94,7 +94,8 @@ void CRedStone::Render_Scene()
 }
 
 void CRedStone::Render_UI()
-{}
+{
+}
 
 HRESULT CRedStone::Ready_Environment_Layer(const _tchar* pLayerTag)
 {

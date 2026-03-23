@@ -93,6 +93,10 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RobeTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Robe.png"))))
         return E_FAIL;
+    //Upgrade Lock
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_UpgradeTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/asset_mapnode_locked_top_hover.png"))))
+        return E_FAIL;
 
     // RedStoneGolem
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))
@@ -211,6 +215,14 @@ _uint CLoading::Loading_SquidCoast()
     //=======UI=========//
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HUDTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/hotbar.png"))))
+        return E_FAIL;
+    //Boss Health Bar
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BossHealthBarTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Boss_HealthBar.png"))))
+        return E_FAIL;
+    //Boss Health Bar Empty
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EmptyBossHealthBarTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Boss_HealthBar_Empty.png"))))
         return E_FAIL;
 
     //UI - 하트 

@@ -10,7 +10,7 @@
 CEditor::CEditor(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev), m_bEditorMode(false)
 {
-	m_pGraphicDev->AddRef();
+	//m_pGraphicDev->AddRef();
 	ZeroMemory(&m_tEditDesc, sizeof(ParticleDesc));
 	m_tEditDesc.iMaxParticles = 10;
 	m_tEditDesc.fMaxSize = 8.f;
