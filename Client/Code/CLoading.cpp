@@ -81,14 +81,19 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SmallUniqueSlotHoverTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/small_unique_slot.png"))))
         return E_FAIL;
-    //Pickaxe
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PickAxeTexture",
-        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Pickaxe_Texture.png"))))
-        return E_FAIL;
     //Bow
-    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowTexture",
-        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Bow_Texture.png"))))
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowLoadedBowTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Arrow_Loaded_Crossbow.png"))))
         return E_FAIL;
+    //Sword
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_IronSwordTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Iron_Sword.png"))))
+        return E_FAIL;
+    //Player Rob
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RobeTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Robe.png"))))
+        return E_FAIL;
+
     // RedStoneGolem
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))
         return E_FAIL;

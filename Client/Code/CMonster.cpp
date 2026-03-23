@@ -198,6 +198,10 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
 
     CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
 
+    //====Editor용======//
+    if (!pPlayer)
+        return 0;
+
     bool bCurColliding = pPlayer->Get_AtkColliderActive() &&
         m_pColliderCom->IsColliding(pAtkCollider->Get_AABB());
 

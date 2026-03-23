@@ -23,11 +23,18 @@ HRESULT CInventoryMgr::Ready_InventoryMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 		{
 			for (int col = 0; col < 3; ++col)
 			{
-				CInventorySlot* pSlot = CInventorySlot::Create(m_pGraphicDev);
+				CInventorySlot* pSlot = CInventorySlot::Create(m_pGraphicDev, 
+					(eInventoryTab)tab);
 				pSlot->Set_SlotInfo(
 					500.f + col * 110.f,
 					200.f + row * 110.f,
-					100.f, 100.f);
+					100.f, 100.f,
+					(eInventoryTab)tab);
+				//Item Empty값 설정
+				if (row == 0 && col == 0)
+					pSlot->Set_ItemInfo(500.f + col * 110.f,
+						200.f + row * 110.f,
+						60.f, 60.f);
 				m_vecSlots[tab].push_back(pSlot);
 			}
 		}

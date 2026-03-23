@@ -21,9 +21,10 @@ struct ItemData
 {
 	eItemType eType = eItemType::ITEM_END;
 	eInventoryTab eTab = eInventoryTab::INVENTORY_END;
-	const _tchar* pTexTag = nullptr; //Proto_TextureName
+	CRcTex* m_pBufferCom = nullptr;
+	CTexture* m_pItemTexture = nullptr;
 	const _tchar* pName = nullptr; //Item Name
-	const _tchar* pDesc = nullptr;
+	const _tchar* pDesc = nullptr; // Item Description
 	_int iAtk = 0;
 	_int iDefense = 0;
 };
@@ -43,7 +44,7 @@ private:
 	virtual ~CInventorySlot();
 	
 public:
-	virtual			HRESULT		Ready_GameObject();
+	virtual			HRESULT		Ready_GameObject(eInventoryTab eTab);
 	virtual			_int		Update_GameObject(const _float& fTimeDelta);
 	virtual			void		LateUpdate_GameObject(const _float& fTimeDelta);
 	virtual			void		Render_GameObject();
@@ -52,10 +53,21 @@ public:
 	void Set_SlotState(eSlotState eState) { m_eState = eState; }
 	eSlotState Get_SlotState() { return m_eState; }
 
-	void Set_SlotInfo(float fX, float fY, float fW, float fH)
-	{
-		m_fX = fX; m_fY = fY; m_fW = fW; m_fH = fH;
-	}
+	void Set_SlotInfo(float fX, float fY, float fW, float fH, eInventoryTab eType);
+
+	void Set_ItemInfo(float fX, float fY, float fW, float fH);
+	void Clear_Item() { m_tItemData = {}; m_bEmpty = true; }
+	const ItemData& Get_ItemData() const { return m_tItemData; }
+	bool Is_Empty()        const { return m_bEmpty; }
+
+	// 더블클릭 감지
+	bool Is_DoubleClicked() const { return m_bDoubleClicked; }
+	void Consume_DoubleClick() { m_bDoubleClicked = false; }
+
+private:
+	DWORD  m_dwLastClickTime = 0;
+	bool   m_bDoubleClicked = false;
+	static constexpr DWORD DOUBLE_CLICK_MS = 300;
 
 protected:
 	virtual void Hover() override; //호버 
@@ -67,13 +79,21 @@ protected:
 
 private:
 	HRESULT Add_Component();
+
+	_matrix Calc_WorldMatrix(float fX, float fY, float fW, float fH);
+
+	void BeginItemRender();
+	void EndItemRender();
 public:
-	static CInventorySlot* Create(LPDIRECT3DDEVICE9 pGraphicDev);
+	static CInventorySlot* Create(LPDIRECT3DDEVICE9 pGraphicDev, eInventoryTab eTab);
 private:
 	CRcTex* m_pBufferCom = nullptr;
 	CTexture* m_pFrameTexture = nullptr;
 	CTexture* m_pHoverTexture = nullptr;
 	CTexture* m_pClickedTexture = nullptr;
+	
+	CTexture* m_pItemTexture = nullptr;
+	eInventoryTab m_eInventoryTab = eInventoryTab::INVENTORY_END;
 
 	//Slot State
 	eSlotState m_eState = eSlotState::DEFAULT;
@@ -82,6 +102,7 @@ private:
 	ItemData m_tItemData;
 	bool m_bEmpty = true;
 
+	float m_fItemX, m_fItemY, m_fItemW, m_fItemH;
 private:
 	virtual void Free();
 };

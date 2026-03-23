@@ -60,6 +60,7 @@ HRESULT CEditor::Ready_Scene()
 	D3DXCreateTextureFromFile(m_pGraphicDev,
 		L"../Bin/Resource/Texture/Effect/FootPrint_Small.png",
 		&m_pPreviewTexture);
+	
 
 	return S_OK;
 }
@@ -142,7 +143,7 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	CGameObject* pGameObject = nullptr;
-
+	//카메라
 	_vec3 vEye{ 0.f, 10.f, -10.f };
 	_vec3 vAt{ 0.f, 0.f, 0.f };
 	_vec3 vUp{ 0.f, 1.f, 0.f };
@@ -153,7 +154,7 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 
 	if (FAILED(pLayer->Add_GameObject(L"DynamicCamera", pGameObject)))
 		return E_FAIL;
-
+	//드래곤
 	m_pDragon = CDragon::Create(m_pGraphicDev);
 	if (!m_pDragon)
 	{
@@ -164,6 +165,17 @@ HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
 	m_pDragon->Set_MoveTarget(_vec3(0.f, 20.f, 0.f));
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
+
+	//플레이어
+	//m_pPlayer = CPlayer::Create(m_pGraphicDev);
+	//if (!m_pPlayer)
+	//{
+	//	MSG_BOX("Player Create Failed");
+	//	return E_FAIL;
+	//}
+	//pLayer->Add_GameObject(L"Player", m_pPlayer);
+
+	//m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
 }

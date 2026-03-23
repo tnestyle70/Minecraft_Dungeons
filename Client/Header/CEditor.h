@@ -11,6 +11,8 @@
 #include "CDragon.h"
 #include <deque> 
 #include "CBlockMgr.h"
+#include "CPlayer.h"
+
 
 enum eStageType
 {
@@ -109,6 +111,7 @@ public:
 private:
     eStageType m_eCurrentStage = STAGE_SQUIDCOAST;
     CDragon* m_pDragon = nullptr;
+    CPlayer* m_pPlayer = nullptr;
     bool m_bPresetMode = false;
     int  m_eSelectedBlockPreset = 0;
     ParticleDesc m_tEditDesc;
