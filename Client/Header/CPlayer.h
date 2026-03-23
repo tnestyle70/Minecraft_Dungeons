@@ -3,6 +3,7 @@
 #include "CProtoMgr.h"
 #include "CPlayerBody.h"
 #include "CPlayerArrow.h"
+#include "CTNT.h"
 
 enum BODYPART
 {
@@ -47,6 +48,8 @@ private:
 	void			Render_Sword(float fAtkX, float fAtkY, float fSwing);
 	void			Render_Bow();
 
+public:
+	const vector<CPlayerArrow*>& Get_Arrows() const { return m_vecArrows; }
 
 private:
 	//플레이어 정보
@@ -58,6 +61,7 @@ private:
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];
+
 	//공격모션
 	int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
 	float m_fAtkTime = 0.f;    // 현재 공격 경과 시간
@@ -73,6 +77,13 @@ private:
 	bool  m_bCharging = false;
 	vector<CPlayerArrow*> m_vecArrows;
 	_matrix m_matLArmWorld;		//왼손위치
+	//폭죽화살 변수
+	bool m_bFireworkArrow = false;
+	bool m_bRKeyPrev = false;
+
+	//TNT
+	CTNT* m_pHeldTNT = nullptr;
+	vector<CTNT*> m_vecTNTs;
 
 	//활 발사 모션
 	Engine::CTexture* m_pBowTexture[4] = {};  // 0=standby, 1~3=pulling
@@ -103,6 +114,8 @@ public:
 	//콜라이더 박스 온오프 확인
 	bool Get_AtkColliderActive() const { return m_bAtkColliderActive; }
 
+	void Add_TNT(CTNT* pTNT) { m_vecTNTs.push_back(pTNT); }
+	const vector<CTNT*>& Get_TNTs() const { return m_vecTNTs; }
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
 	CPlayerBody* m_pArmorBufferCom[PART_END] = {};

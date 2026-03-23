@@ -17,8 +17,12 @@ protected:
 	bool IsMouseInRect(); //마우스 호버링 체크
 	_vec2 GetMousePos(); //마우스 위치 받아오기
 	//UI 공통 렌더 -> Transform, View, Projection
-	void BeginUIRender();
-	void EndUIRender();
+	virtual void BeginUIRender();
+	virtual void EndUIRender();
+
+	void Set_Info(float fX, float fY, 
+		float fW, float fH);
+
 protected:
 	virtual void Hover() {}; //호버
 	virtual void Clicked() {}; //클릭

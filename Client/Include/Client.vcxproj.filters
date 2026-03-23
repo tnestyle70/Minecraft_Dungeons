@@ -177,6 +177,10 @@
     <ClCompile Include="..\Code\CGolemStates.cpp">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClCompile>
+
+    <ClCompile Include="..\Code\CTNT.cpp">
+      <Filter>02. GameObject</Filter>
+
     <ClCompile Include="..\Code\CBox.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClCompile>
@@ -195,11 +199,18 @@
     <ClCompile Include="..\Code\CUIInterface.cpp">
       <Filter>02. GameObject\12. UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CTabButton.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CEquipSlot.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\CLamp.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClCompile>
     <ClCompile Include="..\Code\CLampPart.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
+
     </ClCompile>
     <ClCompile Include="..\Code\CEnvironmentMgr.cpp">
       <Filter>03. Manager\04. EnvironmentMgr</Filter>
@@ -384,6 +395,10 @@
     <ClInclude Include="..\Header\IGolemState.h">
       <Filter>02. GameObject\08. Boss</Filter>
     </ClInclude>
+
+    <ClInclude Include="..\Header\CTNT.h">
+      <Filter>02. GameObject</Filter>
+
     <ClInclude Include="..\Header\CBox.h">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClInclude>
@@ -402,11 +417,18 @@
     <ClInclude Include="..\Header\CUIInterface.h">
       <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CTabButton.h">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CEquipSlot.h">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
     <ClInclude Include="..\Header\CLamp.h">
       <Filter>02. GameObject\11. Environment</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\CLampPart.h">
       <Filter>02. GameObject\11. Environment</Filter>
+
     </ClInclude>
     <ClInclude Include="..\Header\CEnvironmentMgr.h">
       <Filter>03. Manager\04. EnvironmentMgr</Filter>

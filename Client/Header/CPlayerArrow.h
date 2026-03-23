@@ -32,10 +32,26 @@ private:
     float  m_fDamage = 0.f;
     float  m_fLifeTime = 0.f;
     bool   m_bDead = false;
+    bool m_bFirework = false;
+
+    bool m_bExploding = false;
+    float m_fExplodeTimer = 0.f;
+    CCollider* m_pExplodeColliderCom = nullptr;
+
+    
 
 public:
     static CPlayerArrow* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         const _vec3& vPos,
         const _vec3& vDir,
         float fCharge);
+
+    void Set_Firework(bool b)   { m_bFirework = b; }
+    bool Is_Firework() const    { return m_bFirework; }
+    void Set_Dead()             { m_bDead = true; }
+
+    bool Is_Exploding() const { return m_bExploding; }
+    CCollider* Get_ExplodeCollider() const { return m_pExplodeColliderCom; }
+
+    void Trigger_Explode();
 };

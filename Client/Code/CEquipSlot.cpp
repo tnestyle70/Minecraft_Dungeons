@@ -1,18 +1,16 @@
 #include "pch.h"
-#include "CInventorySlot.h"
-#include "CRenderer.h"
-#include "CCursorMgr.h"
+#include "CEquipSlot.h"
 
-CInventorySlot::CInventorySlot(LPDIRECT3DDEVICE9 pGraphicDev)
+CEquipSlot::CEquipSlot(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CUIInterface(pGraphicDev)
 {
 }
 
-CInventorySlot::~CInventorySlot()
+CEquipSlot::~CEquipSlot()
 {
 }
 
-HRESULT CInventorySlot::Ready_GameObject()
+HRESULT CEquipSlot::Ready_GameObject()
 {
 	if (FAILED(Add_Component()))
 		return E_FAIL;
@@ -20,19 +18,19 @@ HRESULT CInventorySlot::Ready_GameObject()
 	return S_OK;
 }
 
-_int CInventorySlot::Update_GameObject(const _float& fTimeDelta)
+_int CEquipSlot::Update_GameObject(const _float& fTimeDelta)
 {
 	_int iExit = CUIInterface::Update_GameObject(fTimeDelta);
 
 	return iExit;
 }
 
-void CInventorySlot::LateUpdate_GameObject(const _float& fTimeDelta)
+void CEquipSlot::LateUpdate_GameObject(const _float& fTimeDelta)
 {
 	CUIInterface::LateUpdate_GameObject(fTimeDelta);
 }
 
-void CInventorySlot::Render_GameObject()
+void CEquipSlot::Render_GameObject()
 {
 	BeginUIRender();
 
@@ -42,7 +40,7 @@ void CInventorySlot::Render_GameObject()
 	float fNDCY = 1.f - (m_fY + m_fH * 0.5f) / (WINCY * 0.5f);
 	float fScaleX = m_fW / WINCX;
 	float fScaleY = m_fH / WINCY;
-	
+
 	D3DXMatrixTransformation2D(&matWorld,
 		nullptr, 0.f,
 		&_vec2(fScaleX, fScaleY),
@@ -50,14 +48,14 @@ void CInventorySlot::Render_GameObject()
 		&_vec2(fNDCX, fNDCY));
 
 	m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
-	
+
 	switch (m_eState)
 	{
 	case eSlotState::DEFAULT:
 		m_pFrameTexture->Set_Texture(0);
 		break;
 	case eSlotState::HOVER:
-		m_pHoverTexture->Set_Texture(0);
+		m_pFrameTexture->Set_Texture(0);
 		break;
 	case eSlotState::CLICK:
 		m_pClickedTexture->Set_Texture(0);
@@ -67,32 +65,13 @@ void CInventorySlot::Render_GameObject()
 	}
 
 	m_pBufferCom->Render_Buffer();
-	
+
 	EndUIRender();
 }
 
-void CInventorySlot::Hover()
+void CEquipSlot::BeginUIRender()
 {
-	m_eState = eSlotState::HOVER;
-}
-
-void CInventorySlot::Clicked()
-{
-	m_eState = eSlotState::CLICK;
-}
-
-void CInventorySlot::Leave()
-{
-	//Hover일 때만, Click 상태면 유지
-	if (m_eState == eSlotState::HOVER)
-	{
-		m_eState = eSlotState::DEFAULT;
-	}
-}
-
-void CInventorySlot::BeginUIRender()
-{
-	//Alpha Blending Off
+	//알파블렌딩 X
 	//월드 행렬 항등 행렬로 설정
 	_matrix matWorld;
 	D3DXMatrixIdentity(&matWorld);
@@ -110,7 +89,7 @@ void CInventorySlot::BeginUIRender()
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 }
 
-void CInventorySlot::EndUIRender()
+void CEquipSlot::EndUIRender()
 {
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 
@@ -119,7 +98,7 @@ void CInventorySlot::EndUIRender()
 	m_pGraphicDev->SetTransform(D3DTS_PROJECTION, &m_matOriginProj);
 }
 
-HRESULT CInventorySlot::Add_Component()
+HRESULT CEquipSlot::Add_Component()
 {
 	CComponent* pComponent = nullptr;
 
@@ -141,15 +120,6 @@ HRESULT CInventorySlot::Add_Component()
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_NormalTexture", pComponent });
 
-	//Hover Texture
-	pComponent = m_pHoverTexture = dynamic_cast<CTexture*>
-		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_HoverFrameTexture"));
-
-	if (nullptr == pComponent)
-		return E_FAIL;
-
-	m_mapComponent[ID_STATIC].insert({ L"Com_HoverTexture", pComponent });
-
 	//Clicked Texture
 	pComponent = m_pClickedTexture = dynamic_cast<CTexture*>
 		(CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_ClickedFrameTexture"));
@@ -162,21 +132,38 @@ HRESULT CInventorySlot::Add_Component()
 	return S_OK;
 }
 
-CInventorySlot* CInventorySlot::Create(LPDIRECT3DDEVICE9 pGraphicDev)
+void CEquipSlot::Hover()
 {
-	CInventorySlot* pInventorySlot = new CInventorySlot(pGraphicDev);
+	m_eState = eSlotState::HOVER;
+}
 
-	if (FAILED(pInventorySlot->Ready_GameObject()))
+void CEquipSlot::Clicked()
+{
+	m_eState = eSlotState::CLICK;
+}
+
+void CEquipSlot::Leave()
+{
+	if (m_eState == eSlotState::HOVER)
+		m_eState = eSlotState::DEFAULT;
+}
+
+CEquipSlot* CEquipSlot::Create(LPDIRECT3DDEVICE9 pGraphicDev, 
+	eEquipType eType, float fX, float fY, float fW, float fH)
+{
+	CEquipSlot* pSlot = new CEquipSlot(pGraphicDev);
+	pSlot->m_eEquipType = eType;
+
+	if (FAILED(pSlot->Ready_GameObject()))
 	{
-		Safe_Release(pInventorySlot);
-		MSG_BOX("pInventorySlot Create Failed");
+		Safe_Release(pSlot);
+		MSG_BOX("CEquipSlot Create Failed");
 		return nullptr;
 	}
-
-	return pInventorySlot;
+	//크기 설정
+	pSlot->Set_Info(fX, fY, fW, fH);
+	return pSlot;
 }
 
-void CInventorySlot::Free()
-{
-	CUIInterface::Free();
-}
+void CEquipSlot::Free()
+{}

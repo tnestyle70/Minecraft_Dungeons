@@ -5,6 +5,8 @@
 //트리거 박스 밟을 경우 몬스터들 지정된 위치로 쭉 스폰되도록 설정
 //MonsterMgr에서 IronBarMgr의 false 상태로 전환 시키기
 
+class CMonster;
+
 struct SpawnGroup
 {
 	vector<CMonster*> vecMonsters;
@@ -28,6 +30,7 @@ public:
 	void Render();
 private:
 	void SpawnMonsters(const _float& fTimeDelta);
+	void CheckCursorHover();
 public:
 	bool IsGroupAllDead(int iTriggerID);
 	void SetActiveMonsterGroup(int iTriggerID);
