@@ -12,6 +12,20 @@ void CAGAnim::Update(const _float& fTimeDelta, bool bMoving, bool bAttack)
     m_fStateTime += fTimeDelta;
     m_fWaveTime += fTimeDelta;
 
+    // 추가 - 피격 점멸 타이머
+    if (m_bHitFlash)
+    {
+        m_fHitTimer += fTimeDelta;
+        if (m_fHitTimer >= m_fHitDuration)
+        {
+            m_bHitFlash = false;
+            m_fHitTimer = 0.f;
+            // HIT 상태 끝나면 ORBIT으로 복귀
+            if (m_eState == EAGState::HIT)
+                Set_State(EAGState::ORBIT);
+        }
+    }
+
     Update_Motion(fTimeDelta);
     Update_TailWave();
 }
@@ -23,6 +37,13 @@ void CAGAnim::Set_State(EAGState eState)
 
     m_eState = eState;
     m_fStateTime = 0.f;
+
+    
+    if (eState == EAGState::HIT)
+    {
+        m_bHitFlash = true;
+        m_fHitTimer = 0.f;
+    }
 }
 
 void CAGAnim::Update_Motion(const _float& fTimeDelta)
@@ -32,6 +53,7 @@ void CAGAnim::Update_Motion(const _float& fTimeDelta)
     case EAGState::IDLE:   Pose_Idle();                break;
     case EAGState::ORBIT:  Pose_Orbit(fTimeDelta);     break;
     case EAGState::CHARGE: Pose_Charge(fTimeDelta);    break;
+    case EAGState::HIT:    Pose_Hit(fTimeDelta);       break;
     case EAGState::DEAD:   Pose_Dead(fTimeDelta);      break;
     }
 }
@@ -50,6 +72,13 @@ void CAGAnim::Pose_Orbit(const _float& fTimeDelta)
 
 void CAGAnim::Pose_Charge(const _float& fTimeDelta)
 {
+    m_tPose.SetRot(AG_HEAD, 0.f, 0.f, 0.f);
+    m_tPose.SetRot(AG_HEAD_SPIKE_TOP, 0.f, 0.f, 0.f);
+}
+
+void CAGAnim::Pose_Hit(const _float& fTimeDelta)
+{
+    
     m_tPose.SetRot(AG_HEAD, 0.f, 0.f, 0.f);
     m_tPose.SetRot(AG_HEAD_SPIKE_TOP, 0.f, 0.f, 0.f);
 }

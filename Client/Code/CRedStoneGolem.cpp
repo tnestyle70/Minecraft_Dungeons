@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CRedStoneGolem.h"
 #include "CRenderer.h"
 #include "CDInputMgr.h"
@@ -19,8 +19,8 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_fAnimTime(0.f)
 	, m_bOnGround(false)
 	, m_fVelocityY(0.f)
-	, m_fMaxHp(1000.f)
-	, m_fHp(1000.f)
+	, m_fMaxHp(100.f)
+	, m_fHp(100.f)
 	, m_fAtk(10.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
@@ -42,9 +42,9 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	m_pStates[GOLEM_STATE_HIT] = new CGolemState_Hit();
 	m_pStates[GOLEM_STATE_DEAD] = new CGolemState_Dead();
 	
-	//m_pTransformCom->Set_Pos(-10.f, 10.f, 0.f);
+	m_pTransformCom->Set_Pos(0.f, 10.f, 0.f);
 
-	m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
+	//m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
 
 	Set_PartsOffset();
 	Set_DefaultScale();
@@ -59,6 +59,9 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 
 _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 {
+	if (m_bDeadFinished)
+		return -1;
+
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
 	m_fAnimTime += fTimeDelta;
@@ -91,8 +94,11 @@ _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 	//m_pColliderCom->Update_OBB(*m_pTransformCom->Get_World());
 	//m_pAtkColliderCom->Update_OBB(*m_pTransformCom->Get_World());
 
-	Apply_Gravity(fTimeDelta);
-	Resolve_BlockCollision();
+	if (m_eState != GOLEM_STATE_DEAD)
+	{
+		Apply_Gravity(fTimeDelta);
+		Resolve_BlockCollision();
+	}
 
 	for (int i = 0; i < GOLEM_END; ++i)
 	{
@@ -167,7 +173,7 @@ HRESULT CRedStoneGolem::Add_Component()
 
 	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 2.5f), _vec3(0.f, -1.4f, 3.0f));
 
-	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pAtkColliderCom });
+	m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
 
 	for (int i = 0; i < GOLEM_END; i++)
 	{
@@ -620,7 +626,76 @@ void CRedStoneGolem::Anim_Hit()
 
 void CRedStoneGolem::Anim_Dead()
 {
-	// todo
+	const float t = m_fAnimTime;
+
+	if (!m_bDeadInit)
+	{
+		m_pTransformCom->Get_Info(INFO_POS, &m_vDeadStartPos);
+		m_bDeadInit = true;
+	}
+
+	// 1️⃣ 경직 (루트만 살짝 흔들기)
+	if (t < 0.4f)
+	{
+		float shake = sinf(t * 35.f) * 1.5f;
+
+		m_pTransformCom->Set_Rotation(ROT_Z, shake);
+
+		// 팔만 살짝 힘 빠지게
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, -10.f);
+		m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, -10.f);
+	}
+
+	// 2️⃣ 뒤로 무너지기 시작 (BODY 기준)
+	else if (t < 1.0f)
+	{
+		float p = (t - 0.4f) / 0.6f;
+		float ep = p * p;
+
+		// 핵심: BODY만 회전 → 전체 상체 같이 움직임
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, -50.f * ep);
+
+		// HIP은 반대로 버팀
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_X, 20.f * ep);
+	}
+
+	// 3️⃣ 한쪽으로 붕괴 (루트 회전!)
+	else if (t < 1.8f)
+	{
+		float p = (t - 1.0f) / 0.8f;
+		float ep = 1.f - (1.f - p) * (1.f - p);
+
+		_vec3 vPos = m_vDeadStartPos;
+		vPos.y -= 5.f * ep;
+
+		m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+
+		// 눕기
+		m_pTransformCom->Set_Rotation(ROT_Z, 90.f * ep);
+
+		// BODY는 계속 숙인 상태 유지
+		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_X, -50.f);
+
+		// 팔은 "축 처짐" 느낌만 추가
+		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 40.f * ep);
+		m_pParts[GOLEM_RARM]->Get_Transform()->Set_Rotation(ROT_X, 40.f * ep);
+	}
+
+	// 4️⃣ 바닥 충돌 후 떨림
+	else if (t < 2.5f)
+	{
+		float p = (t - 1.8f) / 0.7f;
+		float shake = sinf(p * 25.f) * (1.f - p) * 2.f;
+
+		m_pTransformCom->Set_Rotation(ROT_Z, 90.f + shake);
+	}
+	else
+	{
+		// 완전히 누운 상태
+		m_pTransformCom->Set_Rotation(ROT_Z, 90.f);
+
+		m_bDeadFinished = true;
+	}
 }
 
 void CRedStoneGolem::Chase_Player(const _float& fTimeDelta)
@@ -677,8 +752,17 @@ void CRedStoneGolem::Check_Distance()
 
 void CRedStoneGolem::Change_State(GOLEM_STATE eState)
 {
-	// 현재 상태가 전환을 허용하지 않으면 무시
-	// → 공격/스킬 중엔 Check_Distance가 Walk 요청해도 차단됨
+	if (eState == GOLEM_STATE_DEAD)
+	{
+		if (m_pCurState)
+			m_pCurState->Exit(this);
+
+		m_pCurState = m_pStates[GOLEM_STATE_DEAD];
+		m_eState = GOLEM_STATE_DEAD;
+		m_pCurState->Enter(this);
+		return;
+	}
+
 	if (m_pCurState && !m_pCurState->Can_Transition())
 		return;
 
@@ -687,7 +771,6 @@ void CRedStoneGolem::Change_State(GOLEM_STATE eState)
 
 	m_pCurState = m_pStates[eState];
 	m_eState = eState;
-
 	m_pCurState->Enter(this);
 }
 
@@ -784,6 +867,37 @@ void CRedStoneGolem::Check_Hit()
 		return;
 
 	CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+
+	for (auto& pArrow : pPlayer->Get_Arrows())
+	{
+		if (pArrow->Is_Dead())
+			continue;
+
+		CCollider* pArrowCollider = dynamic_cast<CCollider*>(pArrow->Get_Component(ID_STATIC, L"Com_Collider"));
+
+		if (!pArrowCollider)
+			continue;
+
+		if (m_pColliderCom->IsColliding(pArrowCollider->Get_AABB()))
+		{
+			if (pArrow->Is_Firework())
+			{
+				pArrow->Trigger_Explode();
+				Take_Damage(pPlayer->Get_BowDmg() * 3.f);
+
+				m_bHitCool = true;
+				m_fHitCoolTime = 0.f;
+			}
+			else
+			{
+				Take_Damage(pPlayer->Get_BowDmg());
+
+				m_bHitCool = true;
+				m_fHitCoolTime = 0.f;
+			}
+			break;
+		}
+	}
 
 	if (!pPlayer || !pPlayer->Get_AtkColliderActive())
 		return;

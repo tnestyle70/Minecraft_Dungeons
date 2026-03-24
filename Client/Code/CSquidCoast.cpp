@@ -29,6 +29,7 @@
 #include "CDamageMgr.h"
 #include "CCMiniMap.h"
 #include "CEnvironmentMgr.h"
+#include "CObjectEditor.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -55,6 +56,7 @@ HRESULT CSquidCoast::Ready_Scene()
 	 
 	CCMiniMap::GetInstance()->Ready_MiniMap(m_pGraphicDev);
 	Ready_StageData(L"../Bin/Data/Stage1.dat");
+	Ready_ObjectData("../Bin/Data/Stage1Object.dat");
 
 	return S_OK;
 }
@@ -277,21 +279,21 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 				dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 
 		//Object
-		pGameObject = CBox::Create(m_pGraphicDev);
+		//pGameObject = CBox::Create(m_pGraphicDev);
 
-		if (!pGameObject)
-			return E_FAIL;
+		//if (!pGameObject)
+		//	return E_FAIL;
 
-		if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
-			return E_FAIL;
+		//if (FAILED(pLayer->Add_GameObject(L"Box", pGameObject)))
+		//	return E_FAIL;
 
-		pGameObject = CLamp::Create(m_pGraphicDev);
+		//pGameObject = CLamp::Create(m_pGraphicDev);
 
-		if (!pGameObject)
-			return E_FAIL;
+		//if (!pGameObject)
+		//	return E_FAIL;
 
-		if (FAILED(pLayer->Add_GameObject(L"Lamp", pGameObject)))
-			return E_FAIL;
+		//if (FAILED(pLayer->Add_GameObject(L"Lamp", pGameObject)))
+		//	return E_FAIL;
 
 		m_mapLayer.insert({ pLayerTag, pLayer });
 		
@@ -310,6 +312,9 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	{
 		CDamageMgr::GetInstance()->Ready_Component();
 		CDamageMgr::GetInstance()->Set_RedStone(pGolem);
+
+		if (pPlayer)
+			pPlayer->Set_Boss(pGolem);
 	}
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
@@ -318,6 +323,10 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 129.f));
 	if (!pGameObject)
 		return E_FAIL;
+
+	CAncientGuardian* pGuardian = dynamic_cast<CAncientGuardian*>(pGameObject);
+	if (pGuardian && pPlayer)
+		pPlayer->Set_Guardian(pGuardian);
 
 	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
 		return E_FAIL;
@@ -412,6 +421,68 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 	}
 
 	fclose(pFile);
+	return S_OK;
+}
+
+HRESULT CSquidCoast::Ready_ObjectData(const char* pFileName)
+{
+	FILE* pFile = nullptr;
+	if (fopen_s(&pFile, pFileName, "rb") != 0)
+		return E_FAIL;
+
+	int iCount = 0;
+	fread(&iCount, sizeof(int), 1, pFile);
+
+	CLayer* pLayer = m_mapLayer[L"GameLogic_Layer"];
+	if (!pLayer)
+	{
+		fclose(pFile);
+		return E_FAIL;
+	}
+
+	static int iID = 0;
+
+	for (int i = 0; i < iCount; ++i)
+	{
+		OBJECT_DATA data;
+		fread(&data, sizeof(OBJECT_DATA), 1, pFile);
+
+		CGameObject* pObj = nullptr;
+		switch (data.eType)
+		{
+		case OBJECT_BOX:
+			pObj = CBox::Create(m_pGraphicDev);
+			break;
+		case OBJECT_LAMP:
+			pObj = CLamp::Create(m_pGraphicDev);
+			break;
+		default:
+			continue;
+		}
+
+		if (!pObj) continue;
+
+		CTransform* pTrans = dynamic_cast<CTransform*>
+			(pObj->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
+		if (pTrans)
+		{
+			pTrans->Set_Pos(data.vPos[0], data.vPos[1], data.vPos[2]);
+			pTrans->Set_Rotation(ROT_X, data.vRot[0]);
+			pTrans->Set_Rotation(ROT_Y, data.vRot[1]);
+			pTrans->Set_Rotation(ROT_Z, data.vRot[2]);
+		}
+
+		CBox* pBox = dynamic_cast<CBox*>(pObj);
+		if (pBox)
+			CEnvironmentMgr::GetInstance()->Add_Box(pBox);
+
+		wstring key = L"Object_" + to_wstring(iID++);
+		pLayer->Add_GameObject(key.c_str(), pObj);
+	}
+
+	fclose(pFile);
+
 	return S_OK;
 }
 

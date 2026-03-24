@@ -30,11 +30,18 @@ protected:
 	Engine::CCollider* m_pColliderCom = nullptr;					   // 몸통 콜라이더 - 플레이어 공격 피격 판정용 
 	Engine::CCollider* m_pAtkColliderCom = nullptr;					   // 공격 콜라이더 - 보스가 플레이어 공격할때 판정용 
 
-	int  m_iHp = 100;
-	int  m_iMaxHp = 100;
-
+	int  m_iHp = 0;
+	int  m_iMaxHp = 0;
 	float m_fMoveSpeed = 3.f;
-	float m_fDetectRange = 10.f;
+	float m_fDetectRange = 10.f; 
+
+	// 사망 완료 플래그 - 파생 클래스에서 true 설정
+	bool  m_bDeadDone = false;
+
+	// 사망 모션 - Transform 접근 필요하므로 CDLCBoss에서 관리
+	float m_fDeadRotZ = 0.f;
+	float m_fDeadVelY = 0.f;
+	static constexpr float m_fDeadGravity = -15.f;
 
 protected:
 	virtual void Free();											   // 메모리 해제 - 콜라이더 Release 후 CGameObject::Free() 호출

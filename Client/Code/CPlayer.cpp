@@ -9,6 +9,8 @@
 #include "CEnvironmentMgr.h"
 #include "CMonster.h"
 #include "CMonsterMgr.h"
+#include "CRedStoneGolem.h"
+#include "CAncientGuardian.h"
 
 CPlayer::CPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -191,7 +193,7 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	m_vecArrows.erase(
 		remove_if(m_vecArrows.begin(), m_vecArrows.end(),
 			[](CPlayerArrow* p) {
-				if (p->Is_Dead()) { Safe_Release(p); return true; }
+				if (p->Is_Dead() && !p->Is_Exploding()) { Safe_Release(p); return true; }
 				return false;
 			}),
 		m_vecArrows.end());
@@ -616,28 +618,54 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			if (m_fCharge > m_fMaxCharge)
 				m_fCharge = m_fMaxCharge;
 
-			_vec3 vTarget = Picking_OnBlock();
 			_vec3 vPos;
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
-			_vec3 vDir = vTarget - vPos;
-			vDir.y = 0.f;
-			if (D3DXVec3Length(&vDir) > 0.1f)
+
+			// 가디언 조준 우선
+			bool bAimedGuardian = false;
+			if (m_pTargetGuardian && !m_pTargetGuardian->Is_Dead())
 			{
-				D3DXVec3Normalize(&vDir, &vDir);
-				m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+				CCollider* pCol = dynamic_cast<CCollider*>(
+					m_pTargetGuardian->Get_Component(ID_STATIC, L"Com_Collider"));
+				if (pCol)
+				{
+					AABB tAABB = pCol->Get_AABB();
+					_vec3 vCenter = (tAABB.vMin + tAABB.vMax) * 0.5f;
+					_vec3 vDir = vCenter - vPos;
+					if (D3DXVec3Length(&vDir) > 0.1f)
+					{
+						D3DXVec3Normalize(&vDir, &vDir);
+						m_vBowDir = vDir;
+						_vec3 vDirH = { vDir.x, 0.f, vDir.z };
+						if (D3DXVec3Length(&vDirH) > 0.01f)
+							m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDirH.x, vDirH.z)) + 180.f;
+						bAimedGuardian = true;
+					}
+				}
+			}
+
+			// 가디언 없으면 블록 피킹 방향
+			if (!bAimedGuardian)
+			{
+				_vec3 vTarget = Picking_OnBlock();
+				_vec3 vDir = vTarget - vPos;
+				vDir.y = 0.f;
+				if (D3DXVec3Length(&vDir) > 0.1f)
+				{
+					D3DXVec3Normalize(&vDir, &vDir);
+					m_vBowDir = vDir;
+					m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
+				}
 			}
 		}
+
 		else if (m_bCharging)
 		{
-			_vec3 vPos, vLook;
+			_vec3 vPos;
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
-			m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-			D3DXVec3Normalize(&vLook, &vLook);
-			vLook = -vLook;
 			vPos.y += 1.0f;
-
 			float fCharge = m_fCharge / m_fMaxCharge;
-			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, vLook, fCharge);
+			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, m_vBowDir, fCharge);
 			if (pArrow)
 			{
 				pArrow->Set_Firework(m_bFireworkArrow);
@@ -682,16 +710,19 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			
 			if (!pTrans)
 				continue;
+
 			_vec3 vBoxPos;
 			pTrans->Get_Info(INFO_POS, &vBoxPos);
 			_vec3 vPlayerDiff = vBoxPos - vPos;
 			vPlayerDiff.y = 0.f;
 			if (D3DXVec3Length(&vPlayerDiff) >= 2.f)
 				continue;
+
 			_vec3 vPickDiff = vPickPos - vBoxPos;
 			vPickDiff.y = 0.f;
 			if (D3DXVec3Length(&vPickDiff) >= 2.f)
 				continue;
+
 			pBox->Open_Box();
 			break;
 		}
@@ -769,6 +800,49 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 				break;
 		}
 
+		// 보스 피킹
+		if (!bMonsterPicked && m_pTargetBoss)
+		{
+			CCollider* pCol = dynamic_cast<CCollider*>(
+				m_pTargetBoss->Get_Component(ID_STATIC, L"Com_Collider"));
+
+			if (pCol)
+			{
+				AABB tAABB = pCol->Get_AABB();
+				_vec3 vBossCenter = (tAABB.vMin + tAABB.vMax) * 0.5f;
+
+				_vec3 vPickDiff = vPickPos - vBossCenter;
+				vPickDiff.y = 0.f;
+
+				if (D3DXVec3Length(&vPickDiff) < 3.f)
+				{
+					_vec3 vPlayerDiff = vBossCenter - vPos;
+					vPlayerDiff.y = 0.f;
+					bool bInRange = D3DXVec3Length(&vPlayerDiff) < 3.f;
+
+					if (bInRange && (m_iComboStep == 0 ||
+						(m_fAtkTime >= m_fAtkDuration && m_fComboTimer > 0.f)))
+					{
+						// 바로 공격
+						m_iComboStep = (m_iComboStep % 3) + 1;
+						m_fAtkTime = 0.f;
+						m_fComboTimer = m_fComboWindow;
+						m_bHasTarget = false;
+					}
+					else
+					{
+						// 이동
+						m_vTargetPos = vBossCenter;
+						m_vTargetPos.y = 0.f;
+						m_bHasTarget = true;
+						m_pTargetMonster = nullptr;
+					}
+					bMonsterPicked = true;
+				}
+			}
+		}
+
+
 		// 4. 일반 이동
 		if (!bMonsterPicked)
 		{
@@ -789,6 +863,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 		if (fDist > 0.3f)
 		{
 			D3DXVec3Normalize(&vDir, &vDir);
+			if(!m_bCharging)
 			m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z)) + 180.f;
 			m_pTransformCom->Move_Pos(&vDir, m_fMoveSpeed, fTimeDelta);
 			m_bMoving = true;

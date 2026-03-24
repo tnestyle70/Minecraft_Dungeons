@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 #include "CBodyBase.h"
 
 
@@ -14,6 +14,7 @@ enum class EMonsterType
 enum class EMonsterState { IDLE, WALK, ATTACK, HIT, DEAD, MAX };
 
 class CMonsterAnim : public CBodyAnim
+
 {
 public:
     CMonsterAnim(EMonsterType);
@@ -31,8 +32,7 @@ public:
     EMonsterState Get_State() const { return m_eState; }  
     float Get_StateTime() const { return m_fStateTime; }
     const _vec3* Get_DeadOffsets() const { return m_vDeadOffset; } 
-
-    bool Is_DeadDone() const { return m_bDeadDone; }// ∏ÛΩ∫≈Õ ªË¡¶ 
+    bool Is_DeadDone() const { return m_bDeadDone; }// Î™¨Ïä§ÌÑ∞ ÏÇ≠Ï†ú 
   
 
 private:
@@ -63,7 +63,7 @@ private:
 
     bool  m_bHitFlash = false;  
 
-    bool m_bDeadDone = false; // ªË¡¶ ∆Æ∏Æ∞≈ 
+    bool m_bDeadDone = false; // ÏÇ≠Ï†ú Ìä∏Î¶¨Í±∞ 
 
     _vec3 m_vDeadOffset[6] = {
     { 0.f, 0.f, 0.f },

@@ -9,6 +9,8 @@
 #include "CPlayer.h"
 #include "CMonsterMgr.h"
 #include "CDamageMgr.h"
+#include "CPlayerArrow.h"
+#include "CTNT.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -103,35 +105,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
-    if (pAnim && pAnim->Get_KnockbackDelta() > 0.f)
-    {
-        Engine::CComponent* pCom = CManagement::GetInstance()->Get_Component(
-            ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform");
-        Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(pCom);
-
-        if (pPlayerTrans)
-        {
-            _vec3 vMyPos, vPlayerPos;
-            m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
-            pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
-
-            _vec3 vKnockDir = vMyPos - vPlayerPos;
-            vKnockDir.y = 0.f;
-            D3DXVec3Normalize(&vKnockDir, &vKnockDir);
-
-            float fMove = min(pAnim->Get_KnockbackDelta(), 2.f - m_fKnockbackAccum);
-            if (fMove > 0.f)
-            {
-                m_fKnockbackAccum += fMove;
-                vMyPos += vKnockDir * fMove;
-                m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
-            }
-        }
-    }
-    else
-    {
-        m_fKnockbackAccum = 0.f;
-    }
+    
 
     if (pAnim && pAnim->Is_DeadDone())
     {
@@ -193,11 +167,10 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
-    // 플레이어 공격 콜라이더와 충돌 체크 (몬스터 피격)
+    // 플레이어 근접 공격 콜라이더와 충돌 체크 (몬스터 피격)
     Engine::CComponent* pAtkCom = CManagement::GetInstance()->Get_Component(
         ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider");
     Engine::CCollider* pAtkCollider = dynamic_cast<Engine::CCollider*>(pAtkCom);
-
 
     CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
 
@@ -206,27 +179,151 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     else
         CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
-    //====Editor용======//
     if (!pPlayer)
         return 0;
 
-    if (pAtkCollider && pAnim
+    // 근접 공격
+    bool bMeleeColliding = (pAtkCollider && pAnim
         && pAnim->Get_State() != EMonsterState::HIT
         && pAnim->Get_State() != EMonsterState::DEAD
-        && pPlayer && pPlayer->Get_AtkColliderActive()
-        && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
-    {
-        m_iHp -= 1;
+        && pPlayer->Get_AtkColliderActive()
+        && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()));
 
-        Take_Damage(pPlayer->Get_BowDmg());
+    if (bMeleeColliding && !m_bPrevMeleeColliding)
+        Take_Damage((int)pPlayer->Get_MeleeDmg());
 
-        if (m_iHp <= 0)
-            pAnim->Set_State(EMonsterState::DEAD);
-        else
-            pAnim->Set_State(EMonsterState::HIT);
-    }
+    m_bPrevMeleeColliding = bMeleeColliding;
 
     m_pBodyCom->Update_Body(fTimeDelta, m_bIsMoving, false);
+
+    if (pAnim && pAnim->Get_KnockbackDelta() > 0.f)
+    {
+        Engine::CComponent* pCom = CManagement::GetInstance()->Get_Component(
+            ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform");
+        Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(pCom);
+
+        if (pPlayerTrans)
+        {
+            _vec3 vMyPos, vPlayerPos;
+            m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+            pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
+
+            _vec3 vKnockDir = vMyPos - vPlayerPos;
+            vKnockDir.y = 0.f;
+            D3DXVec3Normalize(&vKnockDir, &vKnockDir);
+
+            float fMove = min(pAnim->Get_KnockbackDelta(), 2.f - m_fKnockbackAccum);
+            if (fMove > 0.f)
+            {
+                m_fKnockbackAccum += fMove;
+                vMyPos += vKnockDir * fMove;
+                m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
+            }
+        }
+    }
+
+    // 스켈레톤 화살 처리
+    if (m_eType == EMonsterType::SKELETON)
+    {
+        if (pAnim && pAnim->Get_State() == EMonsterState::ATTACK)
+        {
+            if (!m_bFired)
+            {
+                Fire_Arrow();
+                m_bFired = true;
+            }
+        }
+        else
+        {
+            m_bFired = false;
+        }
+        Update_Arrow(fTimeDelta);
+    }
+
+    // 기본화살 충돌
+    if (pAnim && pAnim->Get_State() != EMonsterState::HIT
+        && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        for (auto& pArrow : pPlayer->Get_Arrows())
+        {
+            if (pArrow->Is_Dead()) continue;
+            CCollider* pArrowCollider = dynamic_cast<CCollider*>(
+                pArrow->Get_Component(ID_STATIC, L"Com_Collider"));
+            if (!pArrowCollider) continue;
+            if (m_pColliderCom->IsColliding(pArrowCollider->Get_AABB()))
+            {
+                if (pArrow->Is_Firework())
+                {
+                    pArrow->Trigger_Explode();//폭죽화살이면 폭발
+                }
+                else
+                {
+                    Take_Damage((int)pArrow->Get_Damage());
+                    pArrow->Set_Dead();
+                }
+                break;
+            }
+        }
+    }
+
+    // 폭죽화살 폭발
+    if (pAnim && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        bool bExploding = false;
+        for (auto& pArrow : pPlayer->Get_Arrows())
+        {
+            if (!pArrow->Is_Exploding())
+                continue;
+
+            CCollider* pExplodeCollider = pArrow->Get_ExplodeCollider();
+
+            if (!pExplodeCollider)
+                continue;
+
+            if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
+            {
+                bExploding = true;
+                if (!m_bPrevExplosionColliding)
+                    Take_Damage((int)pPlayer->Get_BowDmg() * 3);
+                break;
+            }
+        }
+        m_bPrevExplosionColliding = bExploding;
+    }
+
+    // TNT 폭발
+    if (pAnim && pAnim->Get_State() != EMonsterState::DEAD)
+    {
+        for (auto& pTNT : pPlayer->Get_TNTs())
+        {
+            if (!pTNT->Is_Exploding()) continue;
+            CCollider* pExplodeCollider = pTNT->Get_ExplodeCollider();
+            if (!pExplodeCollider) continue;
+            if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
+                Take_Damage(50);
+        }
+    }
+
+
+ //   //====Editor용======//
+ //   if (!pPlayer)
+ //       return 0;
+ //
+ //   if (pAtkCollider && pAnim
+ //       && pAnim->Get_State() != EMonsterState::HIT
+ //       && pAnim->Get_State() != EMonsterState::DEAD
+ //       && pPlayer && pPlayer->Get_AtkColliderActive()
+ //       && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
+ //   {
+ //       m_iHp -= 1;
+ //
+ //       Take_Damage(pPlayer->Get_BowDmg());
+ //
+ //       if (m_iHp <= 0)
+ //           pAnim->Set_State(EMonsterState::DEAD);
+ //       else
+ //           pAnim->Set_State(EMonsterState::HIT);
+ //   }
 
     // 스켈레톤 화살 처리
     if (m_eType == EMonsterType::SKELETON)
@@ -266,13 +363,6 @@ void CMonster::Render_GameObject()
 
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
 
-    if (pAnim && pAnim->Is_HitFlash())
-    {
-        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
-        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
-        m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_XRGB(255, 0, 0));
-    }
-
     if (m_eType == EMonsterType::SKELETON)
     {
         m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
@@ -281,6 +371,14 @@ void CMonster::Render_GameObject()
         m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
         m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
         m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+
+        // 피격 빨간색 점멸
+        if (pAnim && pAnim->Is_HitFlash())
+        {
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+            m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 0, 0, 255));
+        }
 
         if (pAnim && pAnim->Get_State() == EMonsterState::DEAD)
         {
@@ -300,12 +398,22 @@ void CMonster::Render_GameObject()
     }
     else
     {
+        // 피격 빨간색 점멸
+        if (pAnim && pAnim->Is_HitFlash())
+        {
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+            m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 0, 0, 255));
+        }
+
         m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
     }
 
+    // 렌더 상태 복구
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
 
+    // 스켈레톤 화살 렌더
     for (auto* pArrow : m_vecArrows)
     {
         if (pArrow && !pArrow->Is_Dead())
@@ -413,7 +521,7 @@ void CMonster::Fire_Arrow()
 void CMonster::Take_Damage(int iDamage)
 {
     if (m_bDeadDone) return;
-
+    m_fKnockbackAccum = 0.f;
     m_iHp -= iDamage;
 
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
@@ -533,7 +641,7 @@ void CMonster::Update_AI(const _float& fTimeDelta)
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
     if (!pAnim) return;
     if (pAnim->Get_State() == EMonsterState::DEAD) return;
-
+    if (pAnim->Get_State() == EMonsterState::HIT) return;
     // 항상 플레이어 방향으로 회전
     _vec3 vLookDir = vPlayerPos - vMyPos;
     vLookDir.y = 0.f;

@@ -31,7 +31,8 @@ public:
     void    Set_Direction(const _vec3& vDir) { m_vDir = vDir; } // 발사 방향 설정 - Create 직후 호출
     bool    Is_Dead() const { return m_bDead; }                 // Update_Beams에서 삭제 여부 판단
     int     m_iDamage = 15;                                     // 플레이어 팀원이 Get해서 Hit에 사용
-    Engine::CCollider* Get_Collider() { return m_pColliderCom; } // 플레이어 충돌 체크용
+    Engine::CCollider* Get_Collider() { return m_pColliderCom; } // 플레이어 충돌 체크용 
+    void   Set_Dead() { m_bDead = true; }
 public:
     static CBeam* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         const _vec3& vStartPos, const _vec3& vDir);

@@ -82,7 +82,7 @@ _int CPlayerArrow::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
-    if (m_bDead)
+    if (m_bDead && !m_bExploding)
         return -1;
 
     // 이동
@@ -166,7 +166,7 @@ CPlayerArrow* CPlayerArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev,
 {
     CPlayerArrow* pArrow = new CPlayerArrow(pGraphicDev);
     pArrow->m_vDir = vDir;
-    pArrow->m_fDamage = 10.f + 40.f * fCharge;
+    pArrow->m_fDamage = 10.f + 15.f * fCharge;
 
     if (FAILED(pArrow->Ready_GameObject()))
     {
@@ -184,7 +184,12 @@ void CPlayerArrow::Trigger_Explode()
 {
     _vec3 vPos;
     m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+    CParticleMgr::GetInstance()->Add_Emitter(
+        CParticleEmitter::Create(m_pGraphicDev, PARTICLE_FIREWORK, vPos, nullptr));
+
     m_pExplodeColliderCom->Update_AABB(vPos);
+    m_fSpeed = 0.f;
     m_bExploding = true;
     m_fExplodeTimer = 0.3f;
     m_bDead = true;

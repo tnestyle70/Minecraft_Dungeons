@@ -4,6 +4,9 @@
 #include "CManagement.h"
 #include "CFontMgr.h"
 #include "CDamageMgr.h"
+#include "CMonsterMgr.h"
+#include "CPlayer.h"
+#include "CCollider.h"
 
 CAncientGuardian::CAncientGuardian(LPDIRECT3DDEVICE9 pGraphicDev)
     : CDLCBoss(pGraphicDev)
@@ -19,6 +22,10 @@ HRESULT CAncientGuardian::Ready_GameObject()
     if (FAILED(CDLCBoss::Ready_GameObject()))
         return E_FAIL;
 
+    // AG Î≥¥Ïä§ Í∞úÎ≥Ñ Ï≤¥Î†• ÏÑ§Ï†ï
+    m_iHp = 300;
+    m_iMaxHp = 300;
+
     return S_OK;
 }
 
@@ -28,6 +35,27 @@ _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
 
     if (!m_pBodyCom) return iExit;
     m_pBodyCom->Update_Body(fTimeDelta, false, false);
+
+    // Ï∂îÍ∞Ä - DEAD ÏÉÅÌÉúÎ©¥ ZÏ∂ï ÌöåÏ†Ñ + ÎÇôÌïò Ï≤òÎ¶¨
+    if (m_pBodyCom->Get_Anim() &&
+        dynamic_cast<CAGAnim*>(m_pBodyCom->Get_Anim())->Get_State() == EAGState::DEAD)
+    {
+        // ZÏ∂ï ÌöåÏ†Ñ 0 ‚Üí 90ÎèÑ
+        m_fDeadRotZ += 90.f * fTimeDelta;
+        if (m_fDeadRotZ > 90.f) m_fDeadRotZ = 90.f;
+        m_pTransformCom->m_vAngle.z = m_fDeadRotZ;
+
+        // Ï§ëÎ†• ÎÇôÌïò
+        m_fDeadVelY += m_fDeadGravity * fTimeDelta;
+        _vec3 vPos;
+        m_pTransformCom->Get_Info(INFO_POS, &vPos);
+        vPos.y += m_fDeadVelY * fTimeDelta;
+        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+
+        // Y < -10 Ïù¥Ìïò ‚Üí ÏÇ≠Ï†ú
+        if (vPos.y < -10.f)
+            m_bDeadDone = true;
+    }
 
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
@@ -56,12 +84,27 @@ HRESULT CAncientGuardian::Add_Component()
     m_pBodyCom = CAGBody::Create(m_pGraphicDev);
     if (!m_pBodyCom) return E_FAIL;
 
+    // Î™∏ÌÜµ ÏΩúÎùºÏù¥Îçî
+    m_pColliderCom = CCollider::Create(m_pGraphicDev,
+        _vec3(3.f, 3.f, 3.f),
+        _vec3(0.f, 0.f, 0.f));
+    if (!m_pColliderCom) return E_FAIL;
+    m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
+
     return S_OK;
 }
 
 void CAncientGuardian::Update_AI(const _float& fTimeDelta)
 {
     if (!m_pTransformCom) return;
+
+    // HP 0 ‚Üí DEAD Ï†ÑÌôò
+    if (m_iHp <= 0)
+    {
+        if (m_pBodyCom->Get_Anim())
+            m_pBodyCom->Get_Anim()->Set_State(EAGState::DEAD);
+        return;
+    }
 
     Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(
         CManagement::GetInstance()->Get_Component(
@@ -81,7 +124,6 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     switch (m_eState)
     {
     case EPufferFishState::IDLE:
-      
         m_fHoverTime += fTimeDelta;
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 20.f;
         {
@@ -91,15 +133,12 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
             if (vMyPos.y > 15.f) vMyPos.y = 15.f;
         }
         m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
-
         if (fDist < m_fDetectRange)
         {
-            // «ˆ¿Á ¿ßƒ° ±‚¡ÿ¿∏∑Œ ±Àµµ ∞¢µµ √ ±‚»≠ - º¯∞£¿Ãµø πÊ¡ˆ
             _vec3 vDiff = vMyPos - vPlayerPos;
             vDiff.y = 0.f;
             m_fOrbitAngle = atan2f(vDiff.z, vDiff.x);
-            m_fOrbitHeight = vMyPos.y - vPlayerPos.y; // ºˆ¡§ - «ˆ¿Á Y ±‚¡ÿ¿∏∑Œ ∞Ì¡§
-
+            m_fOrbitHeight = vMyPos.y - vPlayerPos.y;
             m_eState = EPufferFishState::ORBIT;
             m_fChargeCooldown = m_fChargeCoolMax;
             if (m_pBodyCom->Get_Anim())
@@ -110,34 +149,25 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     case EPufferFishState::ORBIT:
         m_fHoverTime += fTimeDelta;
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 10.f;
-
-        Update_Orbit(fTimeDelta); // º¯∞£¿Ãµø πÊ¡ˆ - ORBIT ªÛ≈¬¿œ ∂ß∏∏ »£√‚
-
+        Update_Orbit(fTimeDelta);
         m_bFiring = true;
         Update_Beams(fTimeDelta);
-        Update_Biomines(fTimeDelta);
-
         if (m_fChargeCooldown <= 0.f)
         {
             m_bFiring = false;
-
             _vec3 vChargeDir = vPlayerPos - vMyPos;
             vChargeDir.y = 0.f;
             D3DXVec3Normalize(&vChargeDir, &vChargeDir);
-
             m_vChargeTarget.x = vPlayerPos.x + vChargeDir.x * 15.f;
-            m_vChargeTarget.y = vMyPos.y; // Y ∞Ì¡§ (¿ß∏¶ ¡ˆ≥™∞®)
+            m_vChargeTarget.y = vMyPos.y;
             m_vChargeTarget.z = vPlayerPos.z + vChargeDir.z * 15.f;
-
             m_fCurSpeed = 0.f;
-            m_bDropped = false; // ªı CHARGE Ω√¿€ Ω√ ≈ı«œ ø©∫Œ √ ±‚»≠
-            m_fDropTimer = 0.f;   // ≈ı«œ ≈∏¿Ã∏” √ ±‚»≠
-
+            m_bDropped = false;
+            m_fDropTimer = 0.f;
             m_eState = EPufferFishState::CHARGE;
             if (m_pBodyCom->Get_Anim())
                 m_pBodyCom->Get_Anim()->Set_State(EAGState::CHARGE);
         }
-
         if (fDist >= m_fDetectRange)
         {
             m_bFiring = false;
@@ -149,24 +179,45 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
 
     case EPufferFishState::CHARGE:
         m_fHoverTime += fTimeDelta;
-        Update_Charge(fTimeDelta); // Update_Orbit »£√‚ æ¯¿Ω - º¯∞£¿Ãµø πÊ¡ˆ
-        Update_Biomines(fTimeDelta);
+        Update_Charge(fTimeDelta);
         break;
 
-    case EPufferFishState::REPOSITION: // µπ¡¯ »ƒ ¡¶¿⁄∏Æ ¡§¡ˆ
+    case EPufferFishState::REPOSITION:
         m_fHoverTime += fTimeDelta;
         Update_Reposition(fTimeDelta);
-        Update_Biomines(fTimeDelta); // REPOSITION ¡ﬂø°µµ πŸ¿Ãø¿∏∂¿Œ æ˜µ•¿Ã∆Æ
         break;
     }
+
+    // Ìï≠ÏÉÅ Î∞îÏù¥Ïò§ÎßàÏù∏ ÏóÖÎç∞Ïù¥Ìä∏
+    Update_Biomines(fTimeDelta);
 }
 
 void CAncientGuardian::Render_GameObject()
 {
     if (!m_pBodyCom || !m_pTransformCom || !m_pTextureCom) return;
+
+    // Ï∂îÍ∞Ä - ÌîºÍ≤© Ï†êÎ©∏ Ï≤òÎ¶¨
+    CAGAnim* pAnim = m_pBodyCom->Get_Anim();
+    if (pAnim && pAnim->Is_HitFlash())
+    {
+        float fBlink = sinf(pAnim->Get_HitTimer() * D3DX_PI * 10.f);
+        if (fBlink > 0.f)
+        {
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+            m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 0, 0, 255));
+        }
+    }
+
     m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
-    
-    //∫∏Ω∫ ¿Ã∏ß, √º∑¬πŸ ∑ª¥ı∏µ
+
+    // Ï∂îÍ∞Ä - Ï†êÎ©∏ Î†åÎçî ÏÉÅÌÉú Î≥µÍµ¨
+    if (pAnim && pAnim->Is_HitFlash())
+    {
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+    }
+
     if (m_eState != EPufferFishState::IDLE)
     {
         _vec2 vPos{ 500.f, 10.f };
@@ -196,7 +247,6 @@ void CAncientGuardian::Update_Orbit(const _float& fTimeDelta)
     vTargetPos.z = vPlayerPos.z + sinf(m_fOrbitAngle) * m_fOrbitRadius;
 
     vMyPos.x += (vTargetPos.x - vMyPos.x) * 5.f * fTimeDelta;
-    //vMyPos.y += (vTargetPos.y - vMyPos.y) * 1.f * fTimeDelta; // √ﬂ∞° - Yµµ ∫ŒµÂ∑¥∞‘ ¿Ãµø
     vMyPos.z += (vTargetPos.z - vMyPos.z) * 5.f * fTimeDelta;
 
     _vec3 vLookDir = vPlayerPos - vMyPos;
@@ -206,7 +256,7 @@ void CAncientGuardian::Update_Orbit(const _float& fTimeDelta)
         float fTargetAngleY = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z)) + 180.f;
         float fCurAngleY = m_pTransformCom->m_vAngle.y;
         float fDiffY = fTargetAngleY - fCurAngleY;
-        while (fDiffY > 180.f) fDiffY -= 360.f;
+        while (fDiffY > 180.f)  fDiffY -= 360.f;
         while (fDiffY < -180.f) fDiffY += 360.f;
         float fMaxRot = 150.f * fTimeDelta;
         if (fabsf(fDiffY) < fMaxRot)
@@ -227,26 +277,23 @@ void CAncientGuardian::Update_Charge(const _float& fTimeDelta)
     vDir.y = 0.f;
     float fDist = D3DXVec3Length(&vDir);
 
-    // µπ¡¯ ¡ﬂ ¿œ¡§ ∞£∞›¿∏∑Œ πŸ¿Ãø¿∏∂¿Œ ø¨º” ≈ı«œ
     m_fDropTimer += fTimeDelta;
-    if (m_fDropTimer >= m_fDropInterval) // 0.3√ ∏∂¥Ÿ ≈ı«œ
+    if (m_fDropTimer >= m_fDropInterval)
     {
         m_fDropTimer = 0.f;
-        Drop_Biomine(); // ø¨º” ≈ı«œ
+        Drop_Biomine();
     }
 
-    // ∏Ò«• ≈Î∞˙ »ƒ REPOSITION¿∏∑Œ ¿¸»Ø
     if (fDist < 1.5f)
     {
         m_eState = EPufferFishState::REPOSITION;
-        m_fRepoTimer = 0.f; // ¥Î±‚ ≈∏¿Ã∏” √ ±‚»≠
-        m_fDropTimer = 0.f; // ≈ı«œ ≈∏¿Ã∏” √ ±‚»≠
+        m_fRepoTimer = 0.f;
+        m_fDropTimer = 0.f;
         if (m_pBodyCom->Get_Anim())
-            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE); // ¥Î±‚ æ÷¥œ∏ﬁ¿Ãº«
+            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE);
         return;
     }
 
-    // ∫¸∏• µπ¡¯ º”µµ
     float fMaxSpeed = 50.f;
     if (fDist > 5.f)
         m_fCurSpeed = min(m_fCurSpeed + m_fAccel * fTimeDelta, fMaxSpeed);
@@ -265,9 +312,8 @@ void CAncientGuardian::Update_Charge(const _float& fTimeDelta)
 
 void CAncientGuardian::Update_Reposition(const _float& fTimeDelta)
 {
-    m_fRepoTimer += fTimeDelta; // ¥Î±‚ Ω√∞£ ¥©¿˚
+    m_fRepoTimer += fTimeDelta;
 
-    // ¡¶¿⁄∏Æø°º≠ «√∑π¿ÃæÓ √µ√µ»˜ πŸ∂Û∫∏±‚
     Engine::CTransform* pPlayerTrans = dynamic_cast<Engine::CTransform*>(
         CManagement::GetInstance()->Get_Component(
             ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
@@ -284,10 +330,9 @@ void CAncientGuardian::Update_Reposition(const _float& fTimeDelta)
             float fTargetAngleY = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z)) + 180.f;
             float fCurAngleY = m_pTransformCom->m_vAngle.y;
             float fDiffY = fTargetAngleY - fCurAngleY;
-            while (fDiffY > 180.f) fDiffY -= 360.f;
+            while (fDiffY > 180.f)  fDiffY -= 360.f;
             while (fDiffY < -180.f) fDiffY += 360.f;
-
-            float fMaxRot = 60.f * fTimeDelta; // 60µµ/√  (¥¿∏∞ »∏¿¸)
+            float fMaxRot = 60.f * fTimeDelta;
             if (fabsf(fDiffY) < fMaxRot)
                 m_pTransformCom->m_vAngle.y = fTargetAngleY;
             else
@@ -295,12 +340,11 @@ void CAncientGuardian::Update_Reposition(const _float& fTimeDelta)
         }
     }
 
-    // 1.5√  »ƒ IDLE ∫π±Õ - ¥ŸΩ√ √µ√µ»˜ «√∑π¿ÃæÓø°∞‘ ¡¢±Ÿ // ºˆ¡§
     if (m_fRepoTimer >= m_fRepoMax)
     {
-        m_eState = EPufferFishState::IDLE; // ºˆ¡§ - ORBIT °Ê IDLE
+        m_eState = EPufferFishState::IDLE;
         if (m_pBodyCom->Get_Anim())
-            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE); // ºˆ¡§
+            m_pBodyCom->Get_Anim()->Set_State(EAGState::IDLE);
     }
 }
 
@@ -346,10 +390,30 @@ void CAncientGuardian::Update_Beams(const _float& fTimeDelta)
         }
     }
 
+    CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+    CCollider* pPlayerCollider = nullptr;
+    if (pPlayer)
+    {
+        pPlayerCollider = dynamic_cast<CCollider*>(
+            pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+    }
+
     for (auto iter = m_vecBeams.begin(); iter != m_vecBeams.end();)
     {
         (*iter)->Update_GameObject(fTimeDelta);
         (*iter)->LateUpdate_GameObject(fTimeDelta);
+
+        if (pPlayer && pPlayerCollider && !(*iter)->Is_Dead())
+        {
+            Engine::CCollider* pBeamCollider = (*iter)->Get_Collider();
+            if (pBeamCollider &&
+                pBeamCollider->IsColliding(pPlayerCollider->Get_AABB()))
+            {
+                pPlayer->Hit();
+                (*iter)->Set_Dead();
+            }
+        }
+
         if ((*iter)->Is_Dead())
         {
             Safe_Release(*iter);
@@ -364,7 +428,6 @@ void CAncientGuardian::Drop_Biomine()
 {
     if (!m_pTransformCom) return;
 
-    // ∫∏Ω∫ «ˆ¿Á ¿ßƒ°ø°º≠ πŸ¿Ãø¿∏∂¿Œ ª˝º∫
     _vec3 vMyPos;
     m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
 
@@ -375,10 +438,28 @@ void CAncientGuardian::Drop_Biomine()
 
 void CAncientGuardian::Update_Biomines(const _float& fTimeDelta)
 {
+    CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+    CCollider* pPlayerCollider = nullptr;
+    if (pPlayer)
+    {
+        pPlayerCollider = dynamic_cast<CCollider*>(
+            pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+    }
+
     for (auto iter = m_vecBiomines.begin(); iter != m_vecBiomines.end();)
     {
         (*iter)->Update_GameObject(fTimeDelta);
         (*iter)->LateUpdate_GameObject(fTimeDelta);
+
+        if (pPlayer && pPlayerCollider && (*iter)->Is_Exploded())
+        {
+            Engine::CCollider* pExplosionCollider = (*iter)->Get_ExplosionCollider();
+            if (pExplosionCollider &&
+                pExplosionCollider->IsColliding(pPlayerCollider->Get_AABB()))
+            {
+                pPlayer->Hit();
+            }
+        }
 
         if (!(*iter)->Is_Dead())
             CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, *iter);
@@ -411,12 +492,10 @@ CAncientGuardian* CAncientGuardian::Create(LPDIRECT3DDEVICE9 pGraphicDev, _vec3 
 
 void CAncientGuardian::Free()
 {
-    // ∞°Ω√ ¡§∏Æ
     for (auto* pBeam : m_vecBeams)
         Safe_Release(pBeam);
     m_vecBeams.clear();
 
-    // πŸ¿Ãø¿∏∂¿Œ ¡§∏Æ
     for (auto* pMine : m_vecBiomines)
         Safe_Release(pMine);
     m_vecBiomines.clear();

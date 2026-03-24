@@ -52,6 +52,7 @@ public:
 	_float Get_HP() { return m_fHp; }
 	_float Get_MaxHP() { return m_fMaxHp; }
 	GOLEM_STATE Get_State() { return m_eState; }
+	_bool Get_Dead() { return m_bDeadFinished; }
 
 private:
 	HRESULT	Add_Component();
@@ -83,6 +84,10 @@ private:
 	Engine::CCollider* m_pAtkColliderCom;
 
 	GOLEM_STATE m_eState;
+
+	_vec3 m_vDeadStartPos;
+	_bool m_bDeadInit = false;
+	_bool m_bDeadFinished = false;
 
 	_float m_fAnimTime;
 

@@ -165,6 +165,10 @@ _uint CLoading::Loading_SquidCoast()
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/T_Lamp.png"))))
         return E_FAIL;
 
+    // Emerald
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EmeraldTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/chest_emerald_pop.png"))))
+
     //오징어 해안 로딩 텍스쳐`
     //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
     //    Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))

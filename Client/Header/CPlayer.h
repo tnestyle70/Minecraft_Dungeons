@@ -7,6 +7,8 @@
 #include "CEquipSlot.h"
 
 class CMonster;
+class CRedStoneGolem;
+class CAncientGuardian;
 
 enum BODYPART
 {
@@ -79,6 +81,7 @@ private:
 	float m_fCharge = 0.f;
 	float m_fMaxCharge = 2.f;
 	bool  m_bCharging = false;
+	_vec3 m_vBowDir = { 0.f, 0.f, 1.f };
 	vector<CPlayerArrow*> m_vecArrows;
 	_matrix m_matLArmWorld;		//왼손위치
 	//폭죽화살 변수
@@ -112,15 +115,22 @@ public:
 	void Set_MeleeDmg(float fDmg) { m_fMeleeDmg = fDmg; }
 	void Set_BowDmg(float fDmg) { m_fBowDmg = fDmg; }
 
+
 	void Set_Armor(ARMOR_TYPE eType) { m_eArmorType = eType; }
 	ARMOR_TYPE Get_ArmorType() const { return m_eArmorType; }
 
 	//콜라이더 박스 온오프 확인
 	bool Get_AtkColliderActive() const { return m_bAtkColliderActive; }
 
+	//TNT 추가함수
 	void Add_TNT(CTNT* pTNT) { m_vecTNTs.push_back(pTNT); }
 	const vector<CTNT*>& Get_TNTs() const { return m_vecTNTs; }
 	
+	//보스 추가함수
+	void Set_Boss(CRedStoneGolem* pBoss) { m_pTargetBoss = pBoss; }
+
+	void Set_Guardian(CAncientGuardian* pGuardian) { m_pTargetGuardian = pGuardian; }
+
 	CTransform* Get_Transform() { return m_pTransformCom; }
 
 	void Equip(eEquipType eType);
@@ -183,6 +193,10 @@ private:
 	static constexpr float m_fHitDuration = 0.5f;
 	//몬스터 공격타겟
 	CMonster* m_pTargetMonster = nullptr;
+	//레드스톤골렘 타겟
+	CRedStoneGolem* m_pTargetBoss = nullptr;
+	//가디언 타겟
+	CAncientGuardian* m_pTargetGuardian = nullptr;
 
 private: //중력 적용과 충돌시 위치값 보정
 	void Apply_Gravity(const _float& fTimeDelta);

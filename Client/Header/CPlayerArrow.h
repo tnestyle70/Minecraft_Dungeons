@@ -46,6 +46,7 @@ public:
         const _vec3& vDir,
         float fCharge);
 
+    float Get_Damage() const { return m_fDamage; }
     void Set_Firework(bool b)   { m_bFirework = b; }
     bool Is_Firework() const    { return m_bFirework; }
     void Set_Dead()             { m_bDead = true; }

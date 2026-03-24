@@ -6,6 +6,7 @@ enum class EAGState
     IDLE,
     ORBIT,
     CHARGE,
+    HIT,
     DEAD,
 };
 
@@ -22,13 +23,16 @@ public:
     void        Set_State(EAGState eState);
     EAGState    Get_State()     const { return m_eState; }
     float       Get_StateTime() const { return m_fStateTime; }
-    bool        Is_Dead()       const { return m_bDeadDone; }
+    bool        Is_Dead()       const { return m_bDeadDone; } 
+    bool        Is_HitFlash()   const { return m_bHitFlash; }
+    float       Get_HitTimer()  const { return m_fHitTimer; }
 
 private:
     void        Update_Motion(const _float& fTimeDelta);
     void        Update_TailWave();
     void        Pose_Idle();
-    void        Pose_Orbit(const _float& fTimeDelta);
+    void        Pose_Orbit(const _float& fTimeDelta); 
+    void        Pose_Hit(const _float& fTimeDelta);   
     void        Pose_Charge(const _float& fTimeDelta);
     void        Pose_Dead(const _float& fTimeDelta);
 
@@ -37,5 +41,9 @@ private:
     BodyPose    m_tPose;
     float       m_fStateTime = 0.f;
     float       m_fWaveTime = 0.f;
-    bool        m_bDeadDone = false;
+    bool        m_bDeadDone = false; 
+    // 추가 - 피격 점멸
+    bool        m_bHitFlash = false;
+    float       m_fHitTimer = 0.f;
+    static constexpr float m_fHitDuration = 0.5f;
 };

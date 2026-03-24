@@ -11,6 +11,7 @@ CBox::CBox(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_pColliderCom(nullptr)
 	, m_bIsOpen(false)
 	, m_bIsOpening(false)
+	, m_pEmerald(nullptr)
 	, m_fAnimTime(0.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
@@ -23,6 +24,7 @@ CBox::CBox(const CBox& rhs)
 	, m_pColliderCom(nullptr)
 	, m_bIsOpen(false)
 	, m_bIsOpening(false)
+	, m_pEmerald(nullptr)
 	, m_fAnimTime(0.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
@@ -43,7 +45,7 @@ HRESULT CBox::Ready_GameObject()
 	Set_PartsOffset();
 	Set_PartsParent();
 
-	CEnvironmentMgr::GetInstance()->Add_Box(this);
+	//CEnvironmentMgr::GetInstance()->Add_Box(this);
 
 	return S_OK;
 }
@@ -63,6 +65,11 @@ _int CBox::Update_GameObject(const _float& fTimeDelta)
 		m_pParts[i]->Update_GameObject(fTimeDelta);
 	}
 
+	if (m_pEmerald)
+	{
+		m_pEmerald->Update_GameObject(fTimeDelta);
+	}
+
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
 
@@ -79,6 +86,9 @@ void CBox::LateUpdate_GameObject(const _float& fTimeDelta)
 	{
 		m_pParts[i]->LateUpdate_GameObject(fTimeDelta);
 	}
+
+	if (m_pEmerald)
+		m_pEmerald->LateUpdate_GameObject(fTimeDelta);
 }
 
 void CBox::Render_GameObject()
@@ -90,6 +100,9 @@ void CBox::Render_GameObject()
 	{
 		m_pParts[i]->Render_GameObject();
 	}
+
+	if (m_pEmerald)
+		m_pEmerald->Render_GameObject();
 
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 }
@@ -167,16 +180,24 @@ void CBox::Box_Animation()
 		m_bIsOpen = true;
 		m_bIsOpening = false;
 
+		m_pEmerald = CEmerald::Create(m_pGraphicDev);
+		CTransform* pEmeraldTransCom = dynamic_cast<CTransform*>(m_pEmerald->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+		
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+		pEmeraldTransCom->Set_Pos(vPos.x, vPos.y + 2.f, vPos.z);
+
 		return;
 	}
 
 	CTransform* pTopTransform = m_pParts[BOX_TOP]->Get_Transform();
 
-	_float hingeZ = -0.62f * m_fWorldScale;
+	_float hingeZ = 0.62f * m_fWorldScale;
 
-	pTopTransform->Set_Rotation(ROT_X, fAngle);
+	pTopTransform->Set_Rotation(ROT_X, -fAngle);
 
-	_float rad = D3DXToRadian(fAngle);
+	_float rad = D3DXToRadian(-fAngle);
 	_float dz = (hingeZ * cosf(rad) - hingeZ) * 0.5f;
 
 	pTopTransform->Set_Pos(0.f, 0.62f * m_fWorldScale, dz);

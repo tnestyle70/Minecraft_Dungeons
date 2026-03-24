@@ -170,6 +170,7 @@
     <ClInclude Include="..\Header\CDynamicCamera.h" />
     <ClInclude Include="..\Header\CEditor.h" />
     <ClInclude Include="..\Header\CEffect.h" />
+    <ClInclude Include="..\Header\CEmerald.h" />
     <ClInclude Include="..\Header\CEnvironmentMgr.h" />
     <ClInclude Include="..\Header\CEquipSlot.h" />
     <ClInclude Include="..\Header\CGolemStates.h" />
@@ -251,6 +252,7 @@
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
     <ClCompile Include="..\Code\CEffect.cpp" />
+    <ClCompile Include="..\Code\CEmerald.cpp" />
     <ClCompile Include="..\Code\CEnvironmentMgr.cpp" />
     <ClCompile Include="..\Code\CEquipSlot.cpp" />
     <ClCompile Include="..\Code\CGolemStates.cpp" />

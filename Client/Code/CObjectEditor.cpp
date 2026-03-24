@@ -137,6 +137,7 @@ void CObjectEditor::Render_Scene()
 
     // ¿ø·¡ »óÅÂ º¹±¸
     m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, dwLighting);
+    m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, TRUE);
     m_pGraphicDev->SetFVF(dwFVF);
 }
 

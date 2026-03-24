@@ -2,6 +2,7 @@
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CBoxPart.h"
+#include "CEmerald.h"
 
 class CBox : public CGameObject
 {
@@ -31,6 +32,8 @@ private:
 	static constexpr _float m_fWorldScale = 3.f;
 
 	CBoxPart* m_pParts[BOX_END];
+
+	CEmerald* m_pEmerald;
 
 	CTexture* m_pTextureCom;
 	CTransform* m_pTransformCom;

@@ -112,6 +112,24 @@ HRESULT CLampHeadTex::Ready_Buffer()
     pVertex[22].vTexUV = { 0.76563f, 0.53125f };
     pVertex[23].vTexUV = { 0.65625f, 0.53125f };
 
+    for (int i = 0; i < 4; ++i)
+        pVertex[i].vNormal = { 0.f, 0.f, 1.f };
+
+    for (int i = 4; i < 8; ++i)
+        pVertex[i].vNormal = { 0.f, 0.f, -1.f };
+
+    for (int i = 8; i < 12; ++i)
+        pVertex[i].vNormal = { -1.f, 0.f, 0.f };
+
+    for (int i = 12; i < 16; ++i)
+        pVertex[i].vNormal = { 1.f, 0.f, 0.f };
+
+    for (int i = 16; i < 20; ++i)
+        pVertex[i].vNormal = { 0.f, 1.f, 0.f };
+
+    for (int i = 20; i < 24; ++i)
+        pVertex[i].vNormal = { 0.f, -1.f, 0.f };
+
     m_pVB->Unlock();
 
     INDEX32* pIndex = NULL;
