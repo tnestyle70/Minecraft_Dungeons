@@ -193,6 +193,8 @@
     <ClInclude Include="..\Header\CMonsterMgr.h" />
     <ClInclude Include="..\Header\CMonsterUV.h" />
     <ClInclude Include="..\Header\CNavNode.h" />
+    <ClInclude Include="..\Header\CNetworkMgr.h" />
+    <ClInclude Include="..\Header\CNetworkPlayer.h" />
     <ClInclude Include="..\Header\CNetworkStage.h" />
     <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
@@ -204,6 +206,7 @@
     <ClInclude Include="..\Header\CRedStone.h" />
     <ClInclude Include="..\Header\CRedStoneGolem.h" />
     <ClInclude Include="..\Header\CRedStoneGolemPart.h" />
+    <ClInclude Include="..\Header\CRemotePlayer.h" />
     <ClInclude Include="..\Header\CSceneChanger.h" />
     <ClInclude Include="..\Header\CSkyBox.h" />
     <ClInclude Include="..\Header\CSquidCoast.h" />
@@ -273,6 +276,8 @@
     <ClCompile Include="..\Code\CMonsterAnim.cpp" />
     <ClCompile Include="..\Code\CMonsterBody.cpp" />
     <ClCompile Include="..\Code\CMonsterMgr.cpp" />
+    <ClCompile Include="..\Code\CNetworkMgr.cpp" />
+    <ClCompile Include="..\Code\CNetworkPlayer.cpp" />
     <ClCompile Include="..\Code\CNetworkStage.cpp" />
     <ClCompile Include="..\Code\CObjectEditor.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
@@ -283,6 +288,7 @@
     <ClCompile Include="..\Code\CRedStone.cpp" />
     <ClCompile Include="..\Code\CRedStoneGolem.cpp" />
     <ClCompile Include="..\Code\CRedStoneGolemPart.cpp" />
+    <ClCompile Include="..\Code\CRemotePlayer.cpp" />
     <ClCompile Include="..\Code\CSceneChanger.cpp" />
     <ClCompile Include="..\Code\CSkyBox.cpp" />
     <ClCompile Include="..\Code\CSquidCoast.cpp" />

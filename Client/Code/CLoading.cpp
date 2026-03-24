@@ -168,6 +168,7 @@ _uint CLoading::Loading_SquidCoast()
     // Emerald
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_EmeraldTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Object/chest_emerald_pop.png"))))
+        return E_FAIL;
 
     //오징어 해안 로딩 텍스쳐`
     //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
@@ -179,12 +180,12 @@ _uint CLoading::Loading_SquidCoast()
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png"))))
         return E_FAIL;
 
-    //레드 스톤 로딩 텍스쳐
+    ////레드 스톤 로딩 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneLoadingTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Fiery_Forge.png"))))
         return E_FAIL;
 
-    //옵시디언 로딩 텍스쳐
+    ////옵시디언 로딩 텍스쳐
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ObsidianLoadingTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Obsidian_Pinnacle.png"))))
         return E_FAIL;
@@ -536,9 +537,9 @@ _uint CLoading::Loading_Camp()
     lstrcpy(m_szLoading, L"Camp Texture Loading.......");
 
     //캠프 로딩씬
-    //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampTexture",
-    //    CTexture::Create(m_pGraphicDev, TEX_NORMAL, 
-    //        L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png")))); 
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CampTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, 
+            L"../Bin/Resource/Texture/Logo/Loading_Screen_Lobby.png")))); 
     // 스카이박스 텍스처 등록
    
 
@@ -554,8 +555,8 @@ _uint CLoading::Loading_RedStone()
     lstrcpy(m_szLoading, L"RedStone Texture Loading.......");
 
     //레드스톤 로딩씬
-    //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneTexture",
-    //    CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Fiery_Forge.png"))));
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Fiery_Forge.png"))));
 
     lstrcpy(m_szLoading, L"Loading Complete");
 
@@ -569,8 +570,8 @@ _uint CLoading::Loading_Obsidian()
     lstrcpy(m_szLoading, L"Obsidian Texture Loading.......");
 
     //옵시디언 로딩씬
-    //if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ObsidianTexture",
-    //    CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Obsidian_Pinnacle.png"))))
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ObsidianTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Obsidian_Pinnacle.png"))))
 
     lstrcpy(m_szLoading, L"Loading Complete");
 

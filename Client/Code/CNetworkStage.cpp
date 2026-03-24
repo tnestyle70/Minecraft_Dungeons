@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "CNetworkStage.h"
+#include "CNetworkMgr.h"
 #include "CMonster.h"
-#include "CPlayer.h"
+#include "CNetworkPlayer.h"
 #include "CIronBar.h"
 #include "CTriggerBox.h"
 #include "CMonsterAnim.h"
@@ -48,6 +49,47 @@ _int CNetworkStage::Update_Scene(const _float& fTimeDelta)
 {
 	_int iExit = CScene::Update_Scene(fTimeDelta);
 
+	// ── 네트워크 수신 + 원격 플레이어 업데이트 ──────────────────────────
+	CNetworkMgr::GetInstance()->Update(fTimeDelta);
+
+	// ── 로컬 플레이어 이동 방향 → 서버 전송 (20TPS) ─────────────────────
+	if (m_pLocalPlayer && CNetworkMgr::GetInstance()->IsLoggedIn())
+	{
+		m_fInputTimer += fTimeDelta;
+		if (m_fInputTimer >= 0.05f)   // 20TPS = 50ms
+		{
+			m_fInputTimer = 0.f;
+
+			Engine::CTransform* pTr = m_pLocalPlayer->Get_Transform();
+			if (pTr)
+			{
+				_vec3 vCurPos;
+				pTr->Get_Info(INFO_POS, &vCurPos);
+
+				// 이전 프레임 대비 이동 벡터로 방향 추출
+				_vec3 vDelta = vCurPos - m_vPrevPlayerPos;
+				vDelta.y = 0.f;
+				float fLen = D3DXVec3Length(&vDelta);
+				bool  bMoving = (fLen > 0.01f);
+
+				float fDirX = 0.f, fDirZ = 0.f;
+				if (bMoving)
+				{
+					_vec3 vNorm;
+					D3DXVec3Normalize(&vNorm, &vDelta);
+					fDirX = vNorm.x;
+					fDirZ = vNorm.z;
+				}
+
+				float fRotY = pTr->m_vAngle.y;
+				CNetworkMgr::GetInstance()->SendInput(fDirX, fDirZ, fRotY, bMoving,
+					vCurPos.x, vCurPos.y, vCurPos.z);
+
+				m_vPrevPlayerPos = vCurPos;
+			}
+		}
+	}
+
 	CBlockMgr::GetInstance()->Update(fTimeDelta);
 
 	CTriggerBoxMgr::GetInstance()->Update(fTimeDelta);
@@ -56,22 +98,22 @@ _int CNetworkStage::Update_Scene(const _float& fTimeDelta)
 
 	CMonsterMgr::GetInstance()->Update(fTimeDelta);
 
-	if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
-	{
-		//Render Group Clear Before Change Scene!!!!
-		//TriggerBoxMgr 다시 설정
-		CTriggerBoxMgr::GetInstance()->SetSceneChanged(false);
-		CRenderer::GetInstance()->Clear_RenderGroup();
-		CTriggerBoxMgr::GetInstance()->Clear();
-		CIronBarMgr::GetInstance()->Clear();
-		CMonsterMgr::GetInstance()->Clear();
-		if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_OBSIDIAN)))
-		{
-			MSG_BOX("Obsidian Create Failed");
-			return -1;
-		}
-		return iExit;
-	}
+	//if (GetAsyncKeyState(VK_RETURN) || CTriggerBoxMgr::GetInstance()->IsSceneChanged())
+	//{
+	//	//Render Group Clear Before Change Scene!!!!
+	//	//TriggerBoxMgr 다시 설정
+	//	CTriggerBoxMgr::GetInstance()->SetSceneChanged(false);
+	//	CRenderer::GetInstance()->Clear_RenderGroup();
+	//	CTriggerBoxMgr::GetInstance()->Clear();
+	//	CIronBarMgr::GetInstance()->Clear();
+	//	CMonsterMgr::GetInstance()->Clear();
+	//	if (FAILED(CSceneChanger::ChangeScene(m_pGraphicDev, eSceneType::SCENE_OBSIDIAN)))
+	//	{
+	//		MSG_BOX("Obsidian Create Failed");
+	//		return -1;
+	//	}
+	//	return iExit;
+	//}
 
 	return iExit;
 }
@@ -79,6 +121,9 @@ _int CNetworkStage::Update_Scene(const _float& fTimeDelta)
 void CNetworkStage::LateUpdate_Scene(const _float& fTimeDelta)
 {
 	CScene::LateUpdate_Scene(fTimeDelta);
+
+	// ── 원격 플레이어 LateUpdate ─────────────────────────────────────────
+	CNetworkMgr::GetInstance()->LateUpdate(fTimeDelta);
 
 	CTriggerBoxMgr::GetInstance()->LateUpdate(fTimeDelta);
 
@@ -90,6 +135,9 @@ void CNetworkStage::LateUpdate_Scene(const _float& fTimeDelta)
 void CNetworkStage::Render_Scene()
 {
 	CBlockMgr::GetInstance()->Render();
+
+	// ── 원격 플레이어 렌더 (Day 3: CPlayerBody 연동 예정) ────────────────
+	CNetworkMgr::GetInstance()->Render();
 }
 
 void CNetworkStage::Render_UI()
@@ -140,8 +188,37 @@ HRESULT CNetworkStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	CGameObject* pGameObject = nullptr;
 
+	// ── 드래곤 4마리 스폰 ──────────────────────────────────────────────────
+	const _vec3 vDragonSpawn[4] = {
+		{ -5.f, 8.f,  5.f },
+		{  5.f, 16.f,  5.f },
+		{ -5.f, 24.f, -5.f },
+		{  5.f, 32.f, -5.f },
+	};
+
+	const wchar_t* szDragonTag[4] = {
+		L"Dragon_0", L"Dragon_1", L"Dragon_2", L"Dragon_3"
+	};
+
+	for (int i = 0; i < 4; ++i)
+	{
+		m_pDragon[i] = CDragon::Create(m_pGraphicDev);
+		if (!m_pDragon[i])
+		{
+			MSG_BOX("Dragon Create Failed");
+			return E_FAIL;
+		}
+		m_pDragon[i]->Set_MoveTarget(vDragonSpawn[i]);
+		//m_pDragon[i]->Set_PatrolStartIndex(i);  // 0,1,2,3 → 각자 다른 순찰 포인트에서 시작
+
+		if (FAILED(pLayer->Add_GameObject(szDragonTag[i], m_pDragon[i])))
+			return E_FAIL;
+	}
+
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	//Player
-	pGameObject = CPlayer::Create(m_pGraphicDev);
+	pGameObject = CNetworkPlayer::Create(m_pGraphicDev);
 
 	if (!pGameObject)
 		return E_FAIL;
@@ -149,42 +226,48 @@ HRESULT CNetworkStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
 		return E_FAIL;
 
+	m_mapLayer.insert({ pLayerTag, pLayer });
+
 	//TriggerBoxMgr
-	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
-	CCollider* pCollider = dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
+	CNetworkPlayer* pPlayer = dynamic_cast<CNetworkPlayer*>(pGameObject);
+	CCollider* pCollider = pPlayer
+		? dynamic_cast<CCollider*>(pPlayer->Get_Component(ID_STATIC, L"Com_Collider"))
+		: nullptr;
 	if (!pCollider)
 	{
 		MSG_BOX("Player Collider Set Failed");
 	}
 	CTriggerBoxMgr::GetInstance()->SetPlayerCollider(pCollider);
-	CMonsterMgr::GetInstance()->SetPlayer(pPlayer);
+	//CMonsterMgr::GetInstance()->SetPlayer(pPlayer);
 
 	//고정카메라 추가
 	if (m_pDynamicCamera)
 		m_pDynamicCamera->SetFollowTarget(
 			dynamic_cast<Engine::CTransform*>(pPlayer->Get_Component(ID_DYNAMIC, L"Com_Transform")));
 
+	// ── 로컬 플레이어 포인터 저장 (입력 추출용) ──────────────────────────
+	m_pLocalPlayer = pPlayer;
+	if (m_pLocalPlayer)
+	{
+		Engine::CTransform* pTr = m_pLocalPlayer->Get_Transform();
+		if (pTr) pTr->Get_Info(INFO_POS, &m_vPrevPlayerPos);
+	}
+
+	// ── 서버 접속 — 프로세스 ID 기반 고유 닉네임 (임시, 추후 로비 UI 연동) ─
+	char szNick[32];
+	sprintf_s(szNick, sizeof(szNick), "Player%u", GetCurrentProcessId() % 10000);
+	CNetworkMgr::GetInstance()->Connect(m_pGraphicDev, "127.0.0.1", 9000, szNick);
+
 	//Boss
-	pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
+	//pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
 
-	if (!pGameObject)
-		return E_FAIL;
+	//if (!pGameObject)
+	//	return E_FAIL;
 
-	if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
-		return E_FAIL;
+	//if (FAILED(pLayer->Add_GameObject(L"RedStoneGolem", pGameObject)))
+	//	return E_FAIL;
 
-	m_mapLayer.insert({ pLayerTag, pLayer });
-
-	//Dragon
-	pGameObject = CDragon::Create(m_pGraphicDev);
-
-	if (!pGameObject)
-		return E_FAIL;
-
-	if (FAILED(pLayer->Add_GameObject(L"Dragon", pGameObject)))
-		return E_FAIL;
-
-	m_mapLayer.insert({ pLayerTag, pLayer });
+	//m_mapLayer.insert({ pLayerTag, pLayer });
 
 	return S_OK;
 }
@@ -232,7 +315,7 @@ HRESULT CNetworkStage::Ready_StageData(const _tchar* szPath)
 		return E_FAIL;
 	}
 
-	CBlockMgr::GetInstance()->SetRenderMode(eRenderMode::RENDER_QUADTREE); // 먼저 모드 설정
+	CBlockMgr::GetInstance()->SetRenderMode(eRenderMode::RENDER_BATCH); // 먼저 모드 설정
 
 	CBlockMgr::GetInstance()->LoadBlocks(pFile);
 
