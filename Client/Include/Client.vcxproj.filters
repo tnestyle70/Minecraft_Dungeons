@@ -219,6 +219,9 @@
     <ClCompile Include="..\Code\CTNT.cpp">
       <Filter>02. GameObject\14. TNT</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CNetworkStage.cpp">
+      <Filter>04. Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -441,6 +444,9 @@
     <ClInclude Include="..\Header\CTNT.h">
       <Filter>02. GameObject\14. TNT</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CNetworkStage.h">
+      <Filter>04. Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
@@ -595,6 +601,9 @@
     </Filter>
     <Filter Include="02. GameObject\14. TNT">
       <UniqueIdentifier>{ee906648-4283-4010-8c63-5acab7552df1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network">
+      <UniqueIdentifier>{6ca04b61-c955-4a20-8b73-1abe3ca8d9d7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

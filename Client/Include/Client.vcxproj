@@ -192,6 +192,7 @@
     <ClInclude Include="..\Header\CMonsterMgr.h" />
     <ClInclude Include="..\Header\CMonsterUV.h" />
     <ClInclude Include="..\Header\CNavNode.h" />
+    <ClInclude Include="..\Header\CNetworkStage.h" />
     <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
@@ -270,6 +271,7 @@
     <ClCompile Include="..\Code\CMonsterAnim.cpp" />
     <ClCompile Include="..\Code\CMonsterBody.cpp" />
     <ClCompile Include="..\Code\CMonsterMgr.cpp" />
+    <ClCompile Include="..\Code\CNetworkStage.cpp" />
     <ClCompile Include="..\Code\CObjectEditor.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />

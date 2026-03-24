@@ -61,7 +61,7 @@ private:
 	float m_fMaxHp = 100.f;
 	float m_fMeleeDmg = 10.f;
 	float m_fBowDmg = 15.f;
-	float m_fMoveSpeed = 10.f;
+	float m_fMoveSpeed = 30.f;
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];

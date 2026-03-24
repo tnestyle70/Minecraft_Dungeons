@@ -3,6 +3,20 @@
 #include "CRenderer.h"
 #include "CManagement.h"
 #include "CDInputMgr.h"
+#include <fstream>
+#include <string>
+
+namespace
+{
+	void AgentLog(const char* location, const char* message, const std::string& data, const char* hypothesisId)
+	{
+		std::ofstream ofs("debug-47244f.log", std::ios::app);
+		if (!ofs.is_open()) return;
+		ofs << "{\"sessionId\":\"47244f\",\"runId\":\"pre-fix\",\"hypothesisId\":\"" << hypothesisId
+			<< "\",\"location\":\"" << location << "\",\"message\":\"" << message
+			<< "\",\"data\":" << data << ",\"timestamp\":" << GetTickCount64() << "}\n";
+	}
+}
 
 static const _vec3 s_PatrolPoints[] =
 {
@@ -16,7 +30,7 @@ CDragon::CDragon(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CGameObject(pGraphicDev)
 	, m_vMoveTarget(0.f, 8.f, 10.f)
 	, m_vVelocity(0.f, 0.f, 0.f)
-	, m_fMoveSpeed(5.f)
+	, m_fMoveSpeed(30.f)
 	, m_fWingTimer(0.f)
 	, m_fWingSpeed(3.5f)
 	, m_fWingAmp(D3DX_PI * 0.35f)
@@ -37,7 +51,7 @@ CDragon::CDragon(LPDIRECT3DDEVICE9 pGraphicDev)
 	ZeroMemory(m_WingR, sizeof(m_WingR));
 }
 
-CDragon::CDragon(const CDragon & rhs)
+CDragon::CDragon(const CDragon& rhs)
 	:CGameObject(rhs)
 	, m_vMoveTarget(rhs.m_vMoveTarget)
 	, m_vVelocity(rhs.m_vVelocity)
@@ -63,19 +77,41 @@ CDragon::CDragon(const CDragon & rhs)
 }
 
 CDragon::~CDragon()
-{
-}
+{}
 
 HRESULT CDragon::Ready_GameObject()
 {
+	// #region agent log
+	AgentLog("CDragon.cpp:Ready_GameObject:entry", "dragon ready start", "{\"ok\":true}", "H1");
+	// #endregion
 	if (FAILED(Init_SpineChain()))
+	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Ready_GameObject:Init_SpineChain", "init spine failed", "{\"ok\":false}", "H2");
+		// #endregion
 		return E_FAIL;
+	}
 	if (FAILED(Init_NeckAndHead()))
+	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Ready_GameObject:Init_NeckAndHead", "init neck/head failed", "{\"ok\":false}", "H2");
+		// #endregion
 		return E_FAIL;
+	}
 	if (FAILED(Init_TailChain()))
+	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Ready_GameObject:Init_TailChain", "init tail failed", "{\"ok\":false}", "H2");
+		// #endregion
 		return E_FAIL;
+	}
 	if (FAILED(Init_WingChains()))
+	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Ready_GameObject:Init_WingChains", "init wings failed", "{\"ok\":false}", "H2");
+		// #endregion
 		return E_FAIL;
+	}
 
 	for (_int i = 0; i < DRAGON_NECK_COUNT; ++i)
 		m_Neck[i].qRot = DirToQuaternion(m_Neck[i].vDir);
@@ -87,14 +123,20 @@ HRESULT CDragon::Ready_GameObject()
 
 	if (!m_pTextureCom)
 	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Ready_GameObject:TextureClone", "texture clone failed", "{\"proto\":\"Proto_ObsidianPngTexture\"}", "H1");
+		// #endregion
 		MSG_BOX("Dragon Texture Clone Failed");
 		return E_FAIL;
 	}
 
+	// #region agent log
+	AgentLog("CDragon.cpp:Ready_GameObject:success", "dragon ready success", "{\"ok\":true}", "H1");
+	// #endregion
 	return S_OK;
 }
 
-HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone, 
+HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 	_float fW, _float fH, _float fD, const FACE_UV& uv)
 {
 	//개별 bone에 따른 큐브 생성
@@ -113,7 +155,7 @@ HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 		MSG_BOX("Dragon BoneBuffer Create Failed");
 		return E_FAIL;
 	}
-	
+
 	D3DXMatrixIdentity(&bone.matWorld);
 
 	return S_OK;
@@ -121,62 +163,75 @@ HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 
 void CDragon::Handle_Input(const _float& fTimeDelta)
 {
-	const _float fInputSpeed = 200.f;
-	_vec3 vInputDelta(0.f, 0.f, 0.f);
-	m_bManualControl = false;
-	
-	//m_vMoveTarget을 현재 기준을 중심으로 해서 밀어준다
-	if (GetAsyncKeyState(VK_UP) & 0x8000)
+	//드래곤 척추 방향으로 이동하게 설정
+	_vec3 vSpineForward = m_Spine[0].vDir;
+	//수평 방향만 담당 - Y값 0.f
+	vSpineForward.y = 0.f;
+
+	if (D3DXVec3Length(&vSpineForward) > 0.01f)
 	{
-		vInputDelta += m_vInputForward * fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
+		D3DXVec3Normalize(&m_vInputForward, &vSpineForward);
+		//world의 Up 벡터와 forward를 외적해서 수직인 법선 구하기
+		_vec3 vWorldUp(0.f, 1.f, 0.f);
+		D3DXVec3Cross(&m_vInputRight, &vWorldUp, &m_vInputForward);
+		//척추 방향을 기준으로 입력에 따른 방향 이동
+		D3DXVec3Normalize(&m_vInputRight, &m_vInputRight);
 	}
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+	//left right down -> 진행 방향 회전
+	//target이 호를 그리며 회전하기 때문에, Spine을 기준으로 모든 몸체들이 선회하면서 움직이게 됨
+	const _float fTurnSpeed = D3DX_PI * 1.f;
+	_float fYaw = 0.f;
+
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
 	{
-		vInputDelta -= m_vInputForward * fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
+		fYaw -= fTurnSpeed * fTimeDelta;
 	}
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 	{
-		vInputDelta += m_vInputRight * fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
+		fYaw += fTurnSpeed * fTimeDelta;
 	}
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	{
-		vInputDelta -= m_vInputRight * fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
+		//더 빠르게 U턴
+		fYaw += fTurnSpeed * 2.f * fTimeDelta;
 	}
-	if (GetAsyncKeyState('Q') & 0x8000)
+
+	if (fYaw != 0)
 	{
-		vInputDelta.y += fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
-	}
-	if (GetAsyncKeyState('E') & 0x8000)
-	{
-		vInputDelta.y -= fInputSpeed * fTimeDelta;
-		m_bManualControl = true;
-	}
-	//움직였을 경우 타겟을 입력만큼 움직여주기
-	if (m_bManualControl)
-		m_vMoveTarget += vInputDelta;
-	// A/D 입력 시 전진 방향 자체를 Y축 회전 → 용이 선회함
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState(VK_RIGHT) & 0x8000)
-	{
-		_float fTurnDir = (GetAsyncKeyState(VK_RIGHT) & 0x8000) ? 1.f : -1.f;
-		_float fTurnAngle = D3DX_PI * fTurnDir * fTimeDelta * 1.2f;
-		_matrix matTurn;
-		D3DXMatrixRotationY(&matTurn, fTurnAngle);
-		D3DXVec3TransformNormal(&m_vInputForward, &m_vInputForward, &matTurn);
-		D3DXVec3TransformNormal(&m_vInputRight, &m_vInputRight, &matTurn);
+		//Y축 회전 값만큼의 회전 행렬 만들기
+		_matrix matYaw;
+		D3DXMatrixRotationY(&matYaw, fYaw);
+		D3DXVec3TransformNormal(&m_vInputForward, &m_vInputForward, &matYaw);
+		D3DXVec3TransformNormal(&m_vInputRight, &m_vInputRight, &matYaw);
 		D3DXVec3Normalize(&m_vInputForward, &m_vInputForward);
 		D3DXVec3Normalize(&m_vInputRight, &m_vInputRight);
 	}
+	//타겟 - 항상 진행 방향 앞
+	const _float fLookAhead = 10.f;
+	_vec3 vTarget = m_Spine[0].vPos + m_vInputForward * fLookAhead;
 
-	// ── RTY 상태 강제 전환 (단발) ──────────────────
-	// GetAsyncKeyState 는 홀드 감지라 Key_Down 흉내 필요
-	// static으로 이전 프레임 상태 저장해서 비교
+	//Q / E 고도 제어
+	if (GetAsyncKeyState('Q') & 0x8000) vTarget.y += fLookAhead;
+	if (GetAsyncKeyState('E') & 0x8000) vTarget.y -= fLookAhead;
+
+	//타겟 적용
+	m_vMoveTarget = vTarget;
+	m_bManualControl = true;
+
+	bool bAnyKey = (GetAsyncKeyState(VK_UP) & 0x8000)
+		| (GetAsyncKeyState(VK_DOWN) & 0x8000)
+		| (GetAsyncKeyState(VK_LEFT) & 0x8000)
+		| (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+		| (GetAsyncKeyState('Q') & 0x8000)
+		| (GetAsyncKeyState('E') & 0x8000);
+
+	if (bAnyKey)
+		m_vMoveTarget = vTarget;         // 진행 방향 앞 → 이동
+	else
+		m_vMoveTarget = m_Spine[0].vPos; // 현재 위치 → 정지
+
+	// ── RTY 상태 강제 전환 (기존 그대로) ─────────────────────────────
 	static bool bR_prev = false, bT_prev = false, bY_prev = false;
-
 	bool bR_cur = (GetAsyncKeyState('R') & 0x8000) != 0;
 	bool bT_cur = (GetAsyncKeyState('T') & 0x8000) != 0;
 	bool bY_cur = (GetAsyncKeyState('Y') & 0x8000) != 0;
@@ -196,7 +251,7 @@ HRESULT CDragon::Init_SpineChain()
 	const _float fW[DRAGON_SPINE_COUNT] = { 2.f, 2.f, 1.8f, 1.6f, 1.4f, 1.2f, 1.f };
 	const _float fH[DRAGON_SPINE_COUNT] = { 1.5f, 1.5f, 1.4f, 1.3f, 1.2f, 1.1f, 1.f };
 	const _float fD[DRAGON_SPINE_COUNT] = { 1.5f, 1.5f, 1.4f, 1.3f, 1.2f, 1.1f, 1.f };
-	
+
 	const _float fBoneLen = 1.5f;
 	//임시 전체 UV
 	FACE_UV uv = { 0.f, 0.f, 1.f, 1.f };
@@ -224,7 +279,7 @@ HRESULT CDragon::Init_NeckAndHead()
 	for (int i = 0; i < DRAGON_NECK_COUNT; ++i)
 	{
 		_vec3 vBase = m_Spine[0].vPos;
-		m_Neck[i].vPos = _vec3(vBase.x, 
+		m_Neck[i].vPos = _vec3(vBase.x,
 			vBase.y + (_float)(i + 1) * 0.4f,
 			vBase.z + (_float)(i + 1) * fNeckLen);
 		m_Neck[i].vDir = _vec3(0.f, 0.f, 1.f);
@@ -271,24 +326,28 @@ HRESULT CDragon::Init_TailChain()
 
 HRESULT CDragon::Init_WingChains()
 {
-	_vec3 vWingRoot = m_Spine[2].vPos;
-	const _float fWingLen = 1.8f;
+	_vec3 vWingRoot = m_Spine[1].vPos;
+	const _float fWingLen = 2.5f;
 	FACE_UV uv = { 0.f, 0.f, 1.f, 1.f };
 
-	// 세그먼트별 크기: 납작하고 길게 (날개 느낌)
-	const _float fWW[DRAGON_WING_COUNT] = { 1.3f, 1.3f, 1.3f, 1.3f };
-	const _float fWH[DRAGON_WING_COUNT] = { 0.9f, 0.9f, 0.9f, 0.9f };
-	const _float fWD[DRAGON_WING_COUNT] = { 1.3f, 1.3f, 1.3f, 1.3f };
+	//                      [0]루트  [1]     [2]     [3]끝
+	// fWW: X축 세그먼트 길이 — fWingLen과 동일하게 유지해서 세그먼트 사이 빈틈 제거
+	const _float fWW[DRAGON_WING_COUNT] = { 2.5f,   2.5f,   2.5f,   2.5f };
+	// fWH: 날개 두께(Y) — 루트 두껍고 끝 얇음
+	const _float fWH[DRAGON_WING_COUNT] = { 0.55f,  0.55f,  0.55f,  0.55f };
+	// fWD: 앞뒤 폭(Z, 날개 코드) — 이게 날개 면적을 만듦. 루트 넓고 끝 좁음
+	const _float fWD[DRAGON_WING_COUNT] = { 3.5f,   2.4f,   2.4f,   2.4f };
 
 	for (_int i = 0; i < DRAGON_WING_COUNT; ++i)
 	{
 		_float fOfs = (_float)(i + 1) * fWingLen;
+		_float fZFwd = (_float)i * (-0.5f); //끝으로 갈 수록 앞으로 꺽임
 
-		m_WingL[i].vPos = _vec3(vWingRoot.x - fOfs, vWingRoot.y, vWingRoot.z);
+		m_WingL[i].vPos = _vec3(vWingRoot.x - fOfs, vWingRoot.y, vWingRoot.z + fZFwd);
 		m_WingL[i].vDir = _vec3(-1.f, 0.f, 0.f);
 		m_WingL[i].fBoneLen = fWingLen;
 
-		m_WingR[i].vPos = _vec3(vWingRoot.x + fOfs, vWingRoot.y, vWingRoot.z);
+		m_WingR[i].vPos = _vec3(vWingRoot.x + fOfs, vWingRoot.y, vWingRoot.z + fZFwd);
 		m_WingR[i].vDir = _vec3(1.f, 0.f, 0.f);
 		m_WingR[i].fBoneLen = fWingLen;
 
@@ -325,10 +384,10 @@ _int CDragon::Update_GameObject(const _float& fTimeDelta)
 	default:
 		break;
 	}
-	
+
 	//Flag
 	Update_WingFlap(fTimeDelta);
-	
+
 	//전체 뼈 월드 행렬 갱신
 	Update_ChainMatrices(m_Spine, DRAGON_SPINE_COUNT);
 	Update_ChainMatrices(m_Neck, DRAGON_NECK_COUNT);
@@ -339,7 +398,7 @@ _int CDragon::Update_GameObject(const _float& fTimeDelta)
 
 	//렌더 그룹 등록
 	CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
-	
+
 	return CGameObject::Update_GameObject(fTimeDelta);
 }
 
@@ -418,7 +477,7 @@ void CDragon::Solve_CCD(DRAGON_BONE* pChain, _int iCount,
 	}
 }
 
-void CDragon::Solve_FollowLeader(DRAGON_BONE * pChain, _int iCount)
+void CDragon::Solve_FollowLeader(DRAGON_BONE* pChain, _int iCount)
 {
 	//Solve_Follow Leader
 	for (int i = 1; i < iCount; ++i)
@@ -440,12 +499,12 @@ void CDragon::Solve_FollowLeader(DRAGON_BONE * pChain, _int iCount)
 	}
 }
 
-void CDragon::Update_WingFlap(const _float & fTimeDelta)
+void CDragon::Update_WingFlap(const _float& fTimeDelta)
 {
 	//sin 파형 날개짓
 	//fAngle = wingamplitude * (1 + i * 0,15f) * sin(wingtimer + i * 0.3f)
 	m_fWingTimer += fTimeDelta * m_fWingSpeed;
-	
+
 	_vec3 vWingRoot = m_Spine[2].vPos; //날개 부착점
 
 	for (int i = 0; i < DRAGON_WING_COUNT; ++i)
@@ -478,7 +537,7 @@ void CDragon::Update_WingFlap(const _float & fTimeDelta)
 
 void CDragon::Update_TailSwing(const _float& fTimeDelta)
 {
-	
+
 }
 
 D3DXQUATERNION CDragon::DirToQuaternion(const _vec3& vDir)
@@ -509,7 +568,7 @@ D3DXQUATERNION CDragon::DirToQuaternion(const _vec3& vDir)
 	mat._11 = vX.x; mat._12 = vX.y; mat._13 = vX.z;
 	mat._21 = vY.x; mat._22 = vY.y; mat._23 = vY.z;
 	mat._31 = vZ.x; mat._32 = vZ.y; mat._33 = vZ.z;
-	
+
 	D3DXQUATERNION q;
 	D3DXQuaternionRotationMatrix(&q, &mat);
 	D3DXQuaternionNormalize(&q, &q);
@@ -527,7 +586,7 @@ _vec3 CDragon::QuaternionToDir(const D3DXQUATERNION& quaternion)
 
 void CDragon::Slerp_NeckChain(DRAGON_BONE* pResult, //Cyclic Coordinate Descent
 	DRAGON_BONE* pCurrent, //현재 실제 뼈 배열
-	_int iCount, 
+	_int iCount,
 	_float fAlpha) //보간 강도(0 ~ 1, 클수록 빠름)
 {
 	for (int i = 0; i < iCount; ++i)
@@ -558,7 +617,7 @@ void CDragon::Slerp_NeckChain(DRAGON_BONE* pResult, //Cyclic Coordinate Descent
 	}
 }
 
-void CDragon::Compute_BoneMatrix(DRAGON_BONE & bone)
+void CDragon::Compute_BoneMatrix(DRAGON_BONE& bone)
 {
 	//vZ = Noramlize(bone.vDir)
 	//vX = Normalize(worldUp * vZ)
@@ -609,7 +668,7 @@ void CDragon::Update_ChainMatrices(DRAGON_BONE* pChain, _int iCount)
 	}
 }
 
-void CDragon::Render_Chain(DRAGON_BONE * pChain, _int iCount)
+void CDragon::Render_Chain(DRAGON_BONE* pChain, _int iCount)
 {
 	for (int i = 0; i < iCount; ++i)
 	{
@@ -662,7 +721,7 @@ void CDragon::Update_IDLE(const _float& fTimeDelta)
 			m_iPatrolIndex = (m_iPatrolIndex + 1) % 4; // m_iPatrolCount 대신 4
 	}
 	//m_vMoveTarget을 향해서 이동
-	_vec3 vToTarget = m_vMoveTarget - m_Spine[0].vPos;	
+	_vec3 vToTarget = m_vMoveTarget - m_Spine[0].vPos;
 	_float fDist = D3DXVec3Length(&vToTarget);
 	//척추, 기준이 되는 Spine으로 용 이동
 	if (fDist > 1.f)
@@ -790,14 +849,23 @@ _float CDragon::DistToPlayer() const
 
 CDragon* CDragon::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 {
+	// #region agent log
+	AgentLog("CDragon.cpp:Create:entry", "dragon create called", "{\"deviceNull\":false}", "H3");
+	// #endregion
 	CDragon* pDragon = new CDragon(pGraphicDev);
-	
+
 	if (FAILED(pDragon->Ready_GameObject()))
 	{
+		// #region agent log
+		AgentLog("CDragon.cpp:Create:ready_failed", "dragon ready failed in create", "{\"result\":\"E_FAIL\"}", "H3");
+		// #endregion
 		Safe_Release(pDragon);
 		MSG_BOX("CDragon Create Failed");
 		return nullptr;
 	}
+	// #region agent log
+	AgentLog("CDragon.cpp:Create:success", "dragon create success", "{\"ok\":true}", "H3");
+	// #endregion
 	return pDragon;
 }
 
