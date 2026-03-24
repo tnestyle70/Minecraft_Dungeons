@@ -320,19 +320,22 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
 	//Ancient Guardian
-	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 129.f));
+	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 219.f));
 	if (!pGameObject)
 		return E_FAIL;
 
 	CAncientGuardian* pGuardian = dynamic_cast<CAncientGuardian*>(pGameObject);
 	if (pGuardian && pPlayer)
+	{
 		pPlayer->Set_Guardian(pGuardian);
+		CDamageMgr::GetInstance()->Set_Guardian(pGuardian);
+
+	}
 
 	if (FAILED(pLayer->Add_GameObject(L"AncientGuardian", pGameObject)))
 		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
-
 
 	return S_OK;
 }

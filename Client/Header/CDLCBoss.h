@@ -17,8 +17,10 @@ public:
 					  
 	virtual bool	  Is_Dead()  override { return m_iHp <= 0; }       // CLayer::Delete_GameObject 에서 삭제 
 	void	          Take_Damage(int iDamage);					       // 피격처리 
-					  
-					  
+					 
+	int Get_HP() { return m_iHp; }
+	int Get_MaxHP() { return m_iMaxHp; }
+
 protected:			  
 	virtual HRESULT   Add_Component() = 0;							   // 텍스처/버퍼/파츠를 파생 클래스에서 생성
 	virtual void      Update_AI(const _float& fTimeDelta) = 0;		   // 이동/공격 패턴을 파생 클래스에서 구현

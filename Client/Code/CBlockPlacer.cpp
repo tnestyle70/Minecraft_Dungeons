@@ -2,6 +2,7 @@
 #include "CBlockPlacer.h"
 #include "CBlockMgr.h"
 #include "CBlockPreset.h"
+#include "CCursorMgr.h"
 
 CBlockPlacer::CBlockPlacer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: m_pGraphicDev(pGraphicDev), m_fBlockSize(1.f),
@@ -16,6 +17,9 @@ CBlockPlacer::~CBlockPlacer()
 
 _int CBlockPlacer::Update_Placer(eBlockType eType)
 {
+	if (!CCursorMgr::GetInstance()->IsMouseInClient())
+		return 0;
+
 	if (ImGui::GetIO().WantCaptureMouse)
 		return 0;
 

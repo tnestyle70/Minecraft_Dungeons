@@ -36,13 +36,19 @@ _int CCursorMgr::Update(const _float& fTimeDelta)
 	GetCursorPos(&pt);
 	ScreenToClient(g_hWnd, &pt);
 	m_vMousePos = _vec2((_float)pt.x, (_float)pt.y);
+
+	// 마우스가 클라이언트 영역 안에 있는지 체크 (노트북 단일 화면 환경용)
+	RECT rcClient;
+	GetClientRect(g_hWnd, &rcClient);
+	m_bMouseInClient = (PtInRect(&rcClient, pt) != FALSE);
+
 	//플래그로 이번 프레임에 눌렸는지 아닌지를 판단
 	bool bLButton = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
 
 	//이번 프레임에 눌렸는지 판단 - 이번 프레임
 	m_bClickedThisFrame = bLButton && !m_bClicked;
 	m_bClicked = bLButton;
-	
+
 	if (bLButton)
 		m_eCursorState = eCursorState::CLICK;
 	else if (m_eCursorState == eCursorState::CLICK)

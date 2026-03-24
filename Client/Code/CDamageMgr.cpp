@@ -72,27 +72,30 @@ void CDamageMgr::Render()
 
 void CDamageMgr::Render_BossHP()
 {
-	//if (m_pGuardian)
-	//{
-	//	Render_SingleBossHP(
-	//		m_pGuardian->Get_HP(),
-	//		m_pGuardian->Get_MaxHp(),
-	//		m_pGuardian->Is_Idle()); // IDLE이면 바 숨기기
-	//}
+	if (m_pGuardian)
+	{
+		bool bIdle = (m_pGuardian->Get_State()) == EPufferFishState::IDLE;
+		bool bDead = (m_pGuardian->Get_HP() <= 0);
+		Render_SingleBossHP(
+			m_pGuardian->Get_HP(),
+			m_pGuardian->Get_MaxHP(),
+			bIdle, bDead); // IDLE이면 바 숨기기
+	}
 
 	if (m_pRedStoneGolem)
 	{
 		bool bIdle = (m_pRedStoneGolem->Get_State() == GOLEM_STATE::GOLEM_STATE_IDLE);
+		bool bDead = (m_pRedStoneGolem->Get_HP() <= 0);
 		Render_SingleBossHP(
 			m_pRedStoneGolem->Get_HP(),
 			m_pRedStoneGolem->Get_MaxHP(),
-			bIdle);
+			bIdle, bDead);
 	}
 }
 
-void CDamageMgr::Render_SingleBossHP(float fHP, float fMaxHP, bool bIdle)
+void CDamageMgr::Render_SingleBossHP(float fHP, float fMaxHP, bool bIdle, bool bDead)
 {
-	if (bIdle) return;
+	if (bIdle || bDead) return;
 
 	float fRatio = (fMaxHP > 0.f) ? fHP / fMaxHP : 0.f;
 	float fDamageRatio = 1.f - fRatio;

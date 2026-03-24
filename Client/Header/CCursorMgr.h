@@ -28,6 +28,7 @@ public:
 	bool IsClickedThisFrame() { return m_bClickedThisFrame; }
 	bool IsClicked() { return m_bClicked; }
 	const _vec2& Get_MousePos() const { return m_vMousePos; }
+	bool IsMouseInClient() const { return m_bMouseInClient; }
 private:
 	HRESULT AddComponent();
 private:
@@ -44,6 +45,8 @@ private:
 	//클릭 감지
 	bool m_bClicked = false;
 	bool m_bClickedThisFrame = false;
+	//마우스가 클라이언트 영역 안에 있는지
+	bool m_bMouseInClient = false;
 	//렌더링 복원
 	_matrix m_matOriginView, m_matOriginProj;
 	static constexpr float m_fCursorSize = 64.f;

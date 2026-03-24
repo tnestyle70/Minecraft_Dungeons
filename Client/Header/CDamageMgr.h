@@ -29,7 +29,7 @@ public:
 private:
 	void Render_BossHP();
 
-	void Render_SingleBossHP(float fHP, float fMaxHP, bool bIdle);
+	void Render_SingleBossHP(float fHP, float fMaxHP, bool bIdle, bool bDead);
 public:
 	void AddDamage(_vec3 vWorldPos, _int iDamage);
 

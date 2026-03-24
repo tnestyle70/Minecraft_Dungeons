@@ -219,11 +219,20 @@
     <ClCompile Include="..\Code\CTNT.cpp">
       <Filter>02. GameObject\14. TNT</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CNetworkStage.cpp">
-      <Filter>04. Network</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CEmerald.cpp">
       <Filter>02. GameObject\11. Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CNetworkStage.cpp">
+      <Filter>04. Network\00. Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CNetworkPlayer.cpp">
+      <Filter>04. Network\01. Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CNetworkMgr.cpp">
+      <Filter>04. Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CRemotePlayer.cpp">
+      <Filter>04. Network\01. Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -447,11 +456,20 @@
     <ClInclude Include="..\Header\CTNT.h">
       <Filter>02. GameObject\14. TNT</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CNetworkStage.h">
-      <Filter>04. Network</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\CEmerald.h">
       <Filter>02. GameObject\11. Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNetworkStage.h">
+      <Filter>04. Network\00. Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNetworkPlayer.h">
+      <Filter>04. Network\01. Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNetworkMgr.h">
+      <Filter>04. Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CRemotePlayer.h">
+      <Filter>04. Network\01. Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -610,6 +628,12 @@
     </Filter>
     <Filter Include="04. Network">
       <UniqueIdentifier>{6ca04b61-c955-4a20-8b73-1abe3ca8d9d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network\00. Stage">
+      <UniqueIdentifier>{306d3d90-988d-4540-8c4c-813f9aef6195}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network\01. Player">
+      <UniqueIdentifier>{ce829bfd-1cc7-4162-87b0-618b914908a6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

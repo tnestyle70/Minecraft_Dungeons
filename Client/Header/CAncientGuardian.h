@@ -21,6 +21,8 @@ public:
     virtual HRESULT Ready_GameObject();
     virtual _int    Update_GameObject(const _float& fTimeDelta);
     virtual void    LateUpdate_GameObject(const _float& fTimeDelta);
+public:
+    EPufferFishState Get_State() { return m_eState; }
 protected:
     virtual HRESULT Add_Component()                     override; // 텍스처, 트랜스폼, 바디 등록
     virtual void    Update_AI(const _float& fTimeDelta) override; // 상태머신 - IDLE/ORBIT/CHARGE/REPOSITION 전환
