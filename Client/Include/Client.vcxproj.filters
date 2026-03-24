@@ -228,11 +228,11 @@
     <ClCompile Include="..\Code\CNetworkPlayer.cpp">
       <Filter>04. Network\01. Player</Filter>
     </ClCompile>
-    <ClCompile Include="..\Code\CNetworkMgr.cpp">
-      <Filter>04. Network</Filter>
-    </ClCompile>
     <ClCompile Include="..\Code\CRemotePlayer.cpp">
       <Filter>04. Network\01. Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CNetworkMgr.cpp">
+      <Filter>04. Network\02. NetworkMgr</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -465,11 +465,11 @@
     <ClInclude Include="..\Header\CNetworkPlayer.h">
       <Filter>04. Network\01. Player</Filter>
     </ClInclude>
-    <ClInclude Include="..\Header\CNetworkMgr.h">
-      <Filter>04. Network</Filter>
-    </ClInclude>
     <ClInclude Include="..\Header\CRemotePlayer.h">
       <Filter>04. Network\01. Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNetworkMgr.h">
+      <Filter>04. Network\02. NetworkMgr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -634,6 +634,12 @@
     </Filter>
     <Filter Include="04. Network\01. Player">
       <UniqueIdentifier>{ce829bfd-1cc7-4162-87b0-618b914908a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network\02. NetworkMgr">
+      <UniqueIdentifier>{5d75b8d7-8088-4d3b-bbe2-29990f37f52d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network\03. Ocean">
+      <UniqueIdentifier>{49f8fc79-e1a2-4ada-9146-430bcae8b0da}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -54,7 +54,7 @@ HRESULT CSceneChanger::ChangeScene(LPDIRECT3DDEVICE9 pGraphicDev, eSceneType eTy
 	case SCENE_NETWORK:
 		pScene = CLoadingScene::Create(
 			pGraphicDev,
-			CLoading::LOADING_OBSIDIAN,
+			CLoading::LOADIND_SQUIDCOAST,
 			SCENE_NETWORK_PLAY,
 			L"Proto_SquidCoastLoadingTexture");
 		break;

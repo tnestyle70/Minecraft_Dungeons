@@ -202,9 +202,18 @@ _int CNetworkPlayer::Update_GameObject(const _float& fTimeDelta)
 			[](CTNT* p) { return p->Is_Dead(); }),
 		m_vecTNTs.end());
 
-	Apply_Gravity(fTimeDelta);
-	Roll_Update(fTimeDelta);
-	Resolve_BlockCollision();
+	//드래곤 탑승했을 경우
+	if (m_bRiding && m_pMountedDragon && m_pMountedDragon->Is_Ridden())
+	{
+		Sync_ToMountedDragon();
+		m_fVelocityY = 0.f;
+	}
+	else
+	{
+		Apply_Gravity(fTimeDelta);
+		Roll_Update(fTimeDelta);
+		Resolve_BlockCollision();
+	}
 
 	if (m_fRollCooldown > 0.f)
 		m_fRollCooldown -= fTimeDelta;
@@ -591,6 +600,44 @@ HRESULT CNetworkPlayer::Add_Component()
 void CNetworkPlayer::Key_Input(const _float& fTimeDelta)
 {
 	m_bMoving = false;
+
+	bool bGCur = (GetAsyncKeyState('G') & 0x8000) != 0;
+	if (bGCur && !m_bGKeyPrev)
+	{
+		if (!m_bRiding)
+		{
+			CDragon* pNearest = nullptr;
+			float    fMinDist = m_fMountRange;
+			_vec3    vMyPos = {};
+			m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+
+			for (int i = 0; i < m_iDragonCount; ++i)
+			{
+				if (!m_pDragonList[i] || m_pDragonList[i]->Is_Ridden()) continue;
+				_vec3 vDragonPos = m_pDragonList[i]->Get_SpineRoot();
+				_vec3 vDiff = vDragonPos - vMyPos;
+				float fDist = D3DXVec3Length(&vDiff);
+				if (fDist < fMinDist) { fMinDist = fDist; pNearest = m_pDragonList[i]; }
+			}
+			if (pNearest)
+			{
+				m_pMountedDragon = pNearest;
+				m_pMountedDragon->Set_Ridden(true);
+				m_pMountedDragon->Force_Idle_State();
+				m_bRiding = true;
+				m_fVelocityY = 0.f;
+				m_bOnGround = false;
+			}
+		}
+		else
+		{
+			if (m_pMountedDragon) m_pMountedDragon->Set_Ridden(false);
+			m_pMountedDragon = nullptr;
+			m_bRiding = false;
+		}
+	}
+	m_bGKeyPrev = bGCur;
+	if (m_bRiding) return;   // 탑승 중 일반 입력 전부 스킵
 
 	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
@@ -1230,6 +1277,25 @@ void CNetworkPlayer::Render_Bow()
 	m_pBowBufferCom->Render_Buffer();
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+}
+
+void CNetworkPlayer::Set_DragonList(CDragon * *ppDragons, int iCount)
+{
+	m_iDragonCount = min(iCount, 4);
+	for (int i = 0; i < m_iDragonCount; ++i)
+		m_pDragonList[i] = ppDragons[i];
+}
+
+void CNetworkPlayer::Sync_ToMountedDragon()
+{
+	if (!m_pMountedDragon || !m_bRiding) return;
+
+	_vec3 vRiderPos = m_pMountedDragon->Get_RiderPos();
+	m_pTransformCom->Set_Pos(vRiderPos.x, vRiderPos.y, vRiderPos.z);
+
+	_vec3 vDir = m_pMountedDragon->Get_RiderDir();
+	if (D3DXVec3Length(&vDir) > 0.01f)
+		m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDir.x, vDir.z));
 }
 
 void CNetworkPlayer::Attack_Collision()

@@ -245,6 +245,11 @@ void CDragon::Handle_Input(const _float& fTimeDelta)
 	bY_prev = bY_cur;
 }
 
+void CDragon::Force_Idle_State()
+{
+	Transition_State(eDragonState::IDLE);
+}
+
 HRESULT CDragon::Init_SpineChain()
 {
 	//크기를 Index 0이 가장 앞(목 쪽), 6이 꼬리 쪽

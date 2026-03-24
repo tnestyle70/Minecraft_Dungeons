@@ -6,6 +6,7 @@
 #include "CTNT.h"
 #include "CEquipSlot.h"
 #include "CPlayer.h"
+#include "CDragon.h"
 
 class CMonster;
 class CRedStoneGolem;
@@ -38,6 +39,18 @@ private:
 
 public:
 	const vector<CPlayerArrow*>& Get_Arrows() const { return m_vecArrows; }
+
+	void Set_DragonList(CDragon** ppDragons, int iCount);
+	bool Is_Riding() const { return m_bRiding; }
+private:
+	void Sync_ToMountedDragon();
+
+	CDragon* m_pMountedDragon = nullptr;
+	CDragon* m_pDragonList[4] = {};
+	int      m_iDragonCount = 0;
+	bool     m_bRiding = false;
+	bool     m_bGKeyPrev = false;
+	static constexpr float m_fMountRange = 20.f;
 
 private:
 	//플레이어 정보
@@ -78,8 +91,6 @@ private:
 	//활 발사 모션
 	Engine::CTexture* m_pBowTexture[4] = {};  // 0=standby, 1~3=pulling
 	Engine::CRcTex* m_pBowBufferCom = nullptr;
-
-
 
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
 	bool m_bAtkColliderActive = false;

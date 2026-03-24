@@ -53,6 +53,16 @@ public:
 	_vec3 Get_SpineRoot() const { return m_Spine[0].vPos; }
 	eDragonState Get_State() const { return m_eState; }
 
+	//탑승자용 추가 API
+	_vec3 Get_RiderPos() const { return m_Spine[2].vPos + _vec3(0.f, 1.8f, 0.f); }
+	_vec3 Get_RiderDir()  const { return m_Spine[0].vDir; }
+	bool  Is_Ridden()     const { return m_bRidden; }
+	void  Set_Ridden(bool bVal) { m_bRidden = bVal; }
+	void  Force_Idle_State();   // CDragon.cpp에 구현
+	
+private:
+	bool m_bRidden = false;
+
 private:
 	//초기화 헬퍼
 	HRESULT Init_SpineChain();
