@@ -105,7 +105,8 @@ private:
     float m_fMoveSpeed = 2.f;  // 이동 속도      // 경로 이동 속도 
 
     bool m_bActive = false;
-
+    bool m_bPrevMeleeColliding = false; // 몬스터 1회만 피격
+    bool m_bPrevExplosionColliding = false; // 폭죽화살도 1회만 피격
 public:
     static CMonster* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         EMonsterType eType = EMonsterType::ZOMBIE, _vec3 vPos = { -1.f, 5.f, 3.f });

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CRedStoneGolem.h"
 #include "CRenderer.h"
 #include "CDInputMgr.h"
@@ -167,7 +167,7 @@ HRESULT CRedStoneGolem::Add_Component()
 
 	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 2.5f), _vec3(0.f, -1.4f, 3.0f));
 
-	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pAtkColliderCom });
+	m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
 
 	for (int i = 0; i < GOLEM_END; i++)
 	{
