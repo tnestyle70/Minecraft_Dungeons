@@ -55,9 +55,9 @@ private:
 	//장착 슬롯
 	CEquipSlot* m_arrEquipSlot[(int)eEquipType::EQUIP_END] = {};
 	//탭 슬롯
-	CTabButton* m_arrTabButton[(int)eInventoryTab::INVENTORY_END];
+	CTabButton* m_arrTabButton[(int)eInventoryTab::INVENTORY_END] = {};
 	//중앙 인벤토리 12개
-	vector<CInventorySlot*> m_vecSlots[(int)eInventoryTab::INVENTORY_END];
+	vector<CInventorySlot*> m_vecSlots[(int)eInventoryTab::INVENTORY_END] = {};
 	//아이템 패널 설명창
 	CItemPanel* m_arrItemPanel[(int)eEquipType::EQUIP_END] = {};
 	//현재 선택된 슬롯, 장비창
@@ -67,7 +67,7 @@ private:
 	CPlayer* m_pPlayer = nullptr;
 
 private:
-	LPDIRECT3DDEVICE9 m_pGraphicDev;
+	LPDIRECT3DDEVICE9 m_pGraphicDev = nullptr;
 
 	bool m_bI_Prev = false;
 	bool m_bActive = false; //활성 여부

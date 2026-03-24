@@ -296,7 +296,7 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		//	return E_FAIL;
 
 		m_mapLayer.insert({ pLayerTag, pLayer });
-
+		
 	//Boss
 	pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
 

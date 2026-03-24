@@ -16,6 +16,7 @@ CInventoryMgr::~CInventoryMgr()
 HRESULT CInventoryMgr::Ready_InventoryMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 {
 	m_pGraphicDev = pGraphicDev;
+	m_pGraphicDev->AddRef();
 	
 	//InventorySlot들 전부 세팅
 	for(int tab = 0; tab < (int)eInventoryTab::INVENTORY_END; tab++)
@@ -355,7 +356,7 @@ void CInventoryMgr::Free()
 		Safe_Release(m_arrTabButton[i]);
 	}
 	//장착
-	for (int i = 0; i < (int)eInventoryTab::INVENTORY_END; ++i)
+	for (int i = 0; i < (int)eEquipType::EQUIP_END; ++i)
 	{
 		Safe_Release(m_arrEquipSlot[i]);
 	}
