@@ -56,6 +56,17 @@ _int CBiomine::Update_GameObject(const _float& fTimeDelta)
         if (m_fExplodeTimer >= m_fExplodeMax && !m_bExploded)
         {
             Explode(); // 폭발 처리
+        } 
+
+        if (m_pExplosionLight)
+        {
+            m_pExplosionLight->Update(fTimeDelta);
+            if (m_pExplosionLight->Is_Done())
+            {
+                delete m_pExplosionLight;
+                m_pExplosionLight = nullptr;
+            }
+
         }
 
         // 폭발 후 0.2초 뒤 삭제
@@ -96,7 +107,10 @@ void CBiomine::Render_GameObject()
 
     // 폭발 범위 콜라이더도 디버그용 렌더
     if (m_bExploded && m_pExplosionColliderCom)
-        m_pExplosionColliderCom->Render_Collider();
+        m_pExplosionColliderCom->Render_Collider(); 
+
+    if (m_pExplosionLight)
+        m_pExplosionLight->Render();
 }
 
 HRESULT CBiomine::Add_Component()
@@ -190,10 +204,12 @@ void CBiomine::Explode()
 {
     m_bExploded = true;
 
-    // 폭발 범위 콜라이더 위치 갱신 - 플레이어 팀원이 충돌 체크에 사용
     _vec3 vPos;
     m_pTransformCom->Get_Info(INFO_POS, &vPos);
     m_pExplosionColliderCom->Update_AABB(vPos);
+
+   
+    m_pExplosionLight = new CExplosionLight(m_pGraphicDev, vPos);
 }
 
 CBiomine* CBiomine::Create(LPDIRECT3DDEVICE9 pGraphicDev,
@@ -213,8 +229,14 @@ CBiomine* CBiomine::Create(LPDIRECT3DDEVICE9 pGraphicDev,
     return pMine;
 }
 
-void CBiomine::Free()
+void CBiomine::Free() 
 {
+    if (m_pExplosionLight)
+    {
+        delete m_pExplosionLight;
+        m_pExplosionLight = nullptr;
+    }
+
     Safe_Release(m_pExplosionColliderCom); // 맵에 안 넣은 콜라이더라 직접 해제
     CGameObject::Free();
 }

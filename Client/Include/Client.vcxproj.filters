@@ -240,6 +240,9 @@
     <ClCompile Include="..\Code\COceanBuffer.cpp">
       <Filter>04. Network\03. Ocean</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CExplosionLight.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -476,6 +479,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CNetworkMgr.h">
       <Filter>04. Network\02. NetworkMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CExplosionLight.h">
+      <Filter>02. GameObject</Filter>
     </ClInclude>
     <ClInclude Include="..\Header\COceanTypes.h">
       <Filter>04. Network\03. Ocean</Filter>

@@ -29,7 +29,9 @@
 #include "CDamageMgr.h"
 #include "CCMiniMap.h"
 #include "CEnvironmentMgr.h"
+#include "CSkyBox.h"
 #include "CObjectEditor.h"
+#include "CSoundMgr.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -56,6 +58,8 @@ HRESULT CSquidCoast::Ready_Scene()
 	 
 	CCMiniMap::GetInstance()->Ready_MiniMap(m_pGraphicDev);
 	Ready_StageData(L"../Bin/Data/Stage1.dat");
+
+	CSoundMgr::GetInstance()->PlayBGM(L"BGM/bgm_Test.wav", 0.5f);
 	Ready_ObjectData("../Bin/Data/Stage1Object.dat");
 
 	return S_OK;
@@ -210,6 +214,13 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 	);
 
 	//SkyBox 추가
+	pGameObject = CSkyBox::Create(m_pGraphicDev);
+
+	if (nullptr == pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"SkyBox", pGameObject)))
+		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
@@ -516,6 +527,8 @@ void CSquidCoast::Free()
 	CMonsterMgr::GetInstance()->Clear();
 	CTriggerBoxMgr::GetInstance()->Clear();
 	CIronBarMgr::GetInstance()->Clear();
+
+	CSoundMgr::GetInstance()->StopSound(SOUND_BGM);
 
 	CScene::Free();
 }
