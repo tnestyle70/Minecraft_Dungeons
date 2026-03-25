@@ -29,6 +29,7 @@
 #include "CDamageMgr.h"
 #include "CCMiniMap.h"
 #include "CEnvironmentMgr.h"
+#include "CSkyBox.h"
 #include "CObjectEditor.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
@@ -210,6 +211,13 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 	);
 
 	//SkyBox 추가
+	pGameObject = CSkyBox::Create(m_pGraphicDev);
+
+	if (nullptr == pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"SkyBox", pGameObject)))
+		return E_FAIL;
 
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
