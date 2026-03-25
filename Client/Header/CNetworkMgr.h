@@ -47,7 +47,7 @@ public:
     // ── 송신 ──────────────────────────────────────────────────────────
     // Day 3 에서 CPlayer 입력 연동 시 호출
     void SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
-        float fX, float fY, float fZ);
+        float fX, float fY, float fZ, bool bOnDragon = false, int iDragonIdx = -1);
 
     // ── 상태 조회 ─────────────────────────────────────────────────────
     int  GetMyPlayerId()  const { return m_iMyPlayerId; }

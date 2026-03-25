@@ -45,6 +45,7 @@ HRESULT CRedStoneGolem::Ready_GameObject()
 	//m_pTransformCom->Set_Pos(0.f, 10.f, 0.f);
 
 	m_pTransformCom->Set_Pos(-73.f, 15.f, 430.f);
+	m_pTransformCom->Set_Rotation(ROT_Y, 180.f);
 
 	Set_PartsOffset();
 	Set_DefaultScale();
@@ -129,8 +130,8 @@ void CRedStoneGolem::Render_GameObject()
 		m_pParts[i]->Render_GameObject();
 	}
 
-	m_pColliderCom->Render_Collider();
-	m_pAtkColliderCom->Render_OBB();
+	//m_pColliderCom->Render_Collider();
+	//m_pAtkColliderCom->Render_OBB();
 
 	//m_pColliderCom->Render_OBB();
 	//m_pAtkColliderCom->Render_OBB();
@@ -171,7 +172,7 @@ HRESULT CRedStoneGolem::Add_Component()
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
-	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 2.5f), _vec3(0.f, -1.4f, 3.0f));
+	m_pAtkColliderCom = CCollider::Create(m_pGraphicDev, _vec3(7.f, 7.f, 5.f), _vec3(0.f, -1.4f, 3.0f));
 
 	m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
 
@@ -376,7 +377,7 @@ void CRedStoneGolem::Anim_NormalAttack()
 
 		m_pParts[GOLEM_BODY]->Get_Transform()->Set_Rotation(ROT_Y, 90.f * ep);
 		m_pParts[GOLEM_HEAD]->Get_Transform()->Set_Rotation(ROT_Y, -70.f * ep);  
-		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Y, -45.f * ep);
+		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(ROT_Y, 45.f * ep);
 		m_pParts[GOLEM_LSHOULDER]->Get_Transform()->Set_Rotation(ROT_X, 80.f * ep);
 		m_pParts[GOLEM_LARM]->Get_Transform()->Set_Rotation(ROT_X, 30.f * ep);
 	}
@@ -403,8 +404,8 @@ void CRedStoneGolem::Anim_NormalAttack()
 		_float epHip = ((p - 0.15f) < 0.f ? 0.f : (p - 0.15f) / 0.85f);
 		epHip = epHip * epHip * epHip;
 
-		_float hipY_start = -45.f;
-		_float hipY_end = -25.f;
+		_float hipY_start = 45.f;
+		_float hipY_end = 25.f;
 
 		m_pParts[GOLEM_HIP]->Get_Transform()->Set_Rotation(
 			ROT_Y, hipY_start + (hipY_end - hipY_start) * epHip);
@@ -742,9 +743,9 @@ void CRedStoneGolem::Check_Distance()
 
 	_float fDistance = D3DXVec3Length(&vDir);
 
-	if (fDistance <= 6.f)
+	if (fDistance <= 7.f)
 		Change_State(GOLEM_STATE_ATTACK);
-	else if (fDistance <= 15.f)
+	else if (fDistance <= 40.f)
 		Change_State(GOLEM_STATE_WALK);
 	else
 		Change_State(GOLEM_STATE_IDLE);

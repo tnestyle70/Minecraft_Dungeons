@@ -82,8 +82,24 @@ _int CNetworkStage::Update_Scene(const _float& fTimeDelta)
 				}
 
 				float fRotY = pTr->m_vAngle.y;
+
+				// 탑승 중이면 방향/이동 0으로 명시 (서버 적분 스킵과 의미 일치)
+				bool bOnDragon = m_pLocalPlayer->Is_Riding();
+				int  iDragonIdx = -1;
+				if (bOnDragon)
+				{
+					fDirX = 0.f; fDirZ = 0.f; bMoving = false;
+					for (int i = 0; i < 4; ++i)
+					{
+						if (m_pDragon[i] && m_pDragon[i]->Is_Ridden())
+						{
+							iDragonIdx = i; break;
+						}
+					}
+				}
+
 				CNetworkMgr::GetInstance()->SendInput(fDirX, fDirZ, fRotY, bMoving,
-					vCurPos.x, vCurPos.y, vCurPos.z);
+					vCurPos.x, vCurPos.y, vCurPos.z, bOnDragon, iDragonIdx);
 
 				m_vPrevPlayerPos = vCurPos;
 			}
@@ -251,13 +267,17 @@ HRESULT CNetworkStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	{
 		Engine::CTransform* pTr = m_pLocalPlayer->Get_Transform();
 		if (pTr) pTr->Get_Info(INFO_POS, &m_vPrevPlayerPos);
+
+		// 드래곤 리스트 전달 (탑승 인식용)
+		m_pLocalPlayer->Set_DragonList(m_pDragon, 4);
 	}
 
 	// ── 서버 접속 — 프로세스 ID 기반 고유 닉네임 (임시, 추후 로비 UI 연동) ─
 	char szNick[32];
 	sprintf_s(szNick, sizeof(szNick), "Player%u", GetCurrentProcessId() % 10000);
-	CNetworkMgr::GetInstance()->Connect(m_pGraphicDev, "127.0.0.1", 9000, szNick);
-
+	//와이파이 IP로 접속 가능하도록 변경
+	CNetworkMgr::GetInstance()->Connect(m_pGraphicDev, "192.168.0.7", 9000, szNick);
+	
 	//Boss
 	//pGameObject = CRedStoneGolem::Create(m_pGraphicDev);
 

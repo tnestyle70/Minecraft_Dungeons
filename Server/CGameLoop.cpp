@@ -72,6 +72,8 @@ void CGameLoop::UpdateWorld(float fDt)
     {
         CSession* pS = CSessionMgr::GetInstance()->Find(id);
         if (!pS || !pS->IsLoggedIn()) continue;
+        //드래곤 탑승 중일 경우 서버단에서의 적분 생략
+        if (pS->GetOnDragon()) continue;
 
         // 마지막으로 받은 입력 방향으로 위치 계산
         float fDirX  = pS->GetDirX();
@@ -122,6 +124,8 @@ void CGameLoop::BroadcastSnapshot(DWORD dwTick)
         pkt.players[idx].fRotY        = pS->GetRotY();
         pkt.players[idx].iState       = pS->GetState();
         pkt.players[idx].iLastSequence = pS->GetLastSeq();
+        pkt.players[idx].bOnDragon = pS->GetOnDragon();
+        pkt.players[idx].iDragonIdx = pS->GetDragonIdx();
     }
 
     if (pkt.iPlayerCount > 0)

@@ -72,6 +72,8 @@ struct PKT_C2S_Input
     float fX;   // 클라이언트 실제 위치 (서버 위치 보정용)
     float fY;
     float fZ;
+    bool  bOnDragon;    // 드래곤 탑승 여부
+    int   iDragonIdx;   // 탑승한 드래곤 인덱스 (0~3, 미탑승 시 -1)
 };
 
 struct PlayerState
@@ -79,8 +81,10 @@ struct PlayerState
     int iPlayerId;
     float fX, fY, fZ;
     float fRotY;
-    int iState;
-    int iLastSequence;
+    int  iState;
+    int  iLastSequence;
+    bool bOnDragon;     // 드래곤 탑승 여부
+    int  iDragonIdx;    // 탑승한 드래곤 인덱스 (0~3, 미탑승 시 -1)
 };
 
 struct PKT_S2C_StateSnapshot
