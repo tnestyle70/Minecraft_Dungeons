@@ -154,11 +154,11 @@ void CNetworkMgr::Render()
 //  SendInput  —  Day 3 에서 CPlayer 입력 연동 시 호출
 // =====================================================================
 void CNetworkMgr::SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
-    float fX, float fY, float fZ)
+    float fX, float fY, float fZ, bool bOnDragon, int iDragonIdx)
 {
     if (!m_bConnected || m_iMyPlayerId == -1)
         return;
-
+    //전송할 패킷 구조체의 정보
     PKT_C2S_Input pkt = {};
     FillHeader(pkt, C2S_INPUT);
     pkt.iSequence = ++m_iSequence;
@@ -170,6 +170,8 @@ void CNetworkMgr::SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
     pkt.fX = fX;
     pkt.fY = fY;
     pkt.fZ = fZ;
+    pkt.bOnDragon = bOnDragon;
+    pkt.iDragonIdx = iDragonIdx;
 
     Send(&pkt, sizeof(pkt));
 }
@@ -359,7 +361,7 @@ void CNetworkMgr::On_Snapshot(const PKT_S2C_StateSnapshot* pPkt)
         {
             // iLastSequence 전달 → 역전된 오래된 스냅샷 자동 무시
             it->second->SetTargetState(st.fX, st.fY, st.fZ, st.fRotY,
-                st.iState, st.iLastSequence);
+                st.iState, st.iLastSequence, st.bOnDragon);
         }
     }
 }

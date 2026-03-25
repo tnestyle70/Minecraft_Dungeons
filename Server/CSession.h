@@ -46,6 +46,9 @@ public:
     {
         m_fDirX = fDirX; m_fDirZ = fDirZ; m_fRotY = fRotY;
     }
+    bool GetOnDragon()  const { return m_bOnDragon; }
+    int  GetDragonIdx() const { return m_iDragonIdx; }
+    void SetOnDragon(bool b, int idx) { m_bOnDragon = b; m_iDragonIdx = idx; }
     void Disconnect();
 
 private:
@@ -69,4 +72,8 @@ private:
     // Cached last input direction.
     float m_fDirX = 0.f;
     float m_fDirZ = 0.f;
+
+    // 드래곤 탑승 상태
+    bool  m_bOnDragon = false;
+    int   m_iDragonIdx = -1;
 };

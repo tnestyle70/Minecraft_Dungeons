@@ -277,11 +277,15 @@ void CServer::HandleLogin(CSession* pSession, const PKT_C2S_Login* pPkt)
 void CServer::HandleInput(CSession* pSession, const PKT_C2S_Input* pPkt)
 {
     if (!pSession->IsLoggedIn()) return;
+    //클라이언트가 서버로 보낸 패킷의 정보를 확인해서 해당 정보를 신뢰 후 위치 반영
+    if (pPkt->bOnDragon)
+        pSession->SetPosition(pPkt->fX, pPkt->fY, pPkt->fZ);
+    else
+        pSession->SetPosition(pPkt->fX, pSession->GetY(), pPkt->fZ);
 
-    // 클라이언트가 보낸 실제 위치로 서버 위치 보정 (속도 불일치 해소)
-    pSession->SetPosition(pPkt->fX, pSession->GetY(), pPkt->fZ);
     pSession->SetInput(pPkt->fDirX, pPkt->fDirZ, pPkt->fRotY);
     pSession->SetLastSeq(pPkt->iSequence);
+    pSession->SetOnDragon(pPkt->bOnDragon, pPkt->iDragonIdx);
     CSessionMgr::GetInstance()->AddRecvCount();
 }
 

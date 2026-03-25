@@ -471,6 +471,9 @@
     <ClInclude Include="..\Header\CNetworkMgr.h">
       <Filter>04. Network\02. NetworkMgr</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\COceanTypes.h">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />

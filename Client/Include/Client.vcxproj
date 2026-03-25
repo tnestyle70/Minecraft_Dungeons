@@ -198,6 +198,7 @@
     <ClInclude Include="..\Header\CNetworkStage.h" />
     <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
+    <ClInclude Include="..\Header\COceanTypes.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
     <ClInclude Include="..\Header\CPlayer.h" />
     <ClInclude Include="..\Header\CPlayerArrow.h" />
