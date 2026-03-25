@@ -136,7 +136,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             Engine::CCollider* pPlayerCollider = dynamic_cast<Engine::CCollider*>(
                 pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
             if (pPlayerCollider && m_pAtkColliderCom->IsColliding(pPlayerCollider->Get_AABB()))
-                pPlayer->Hit();
+                pPlayer->Hit(m_iAtkDamage);
         }
     }
 
@@ -163,7 +163,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             Engine::CCollider* pPlayerCollider = dynamic_cast<Engine::CCollider*>(
                 pPlayer->Get_Component(ID_STATIC, L"Com_Collider"));
             if (pPlayerCollider && m_pExplosionColliderCom->IsColliding(pPlayerCollider->Get_AABB()))
-                pPlayer->Hit();
+                pPlayer->Hit(m_fExplodeDmg);
         }
     }
 

@@ -89,6 +89,7 @@ private:
     bool                    m_bDeadDone = false;               // 몬스터 삭제용도 
     int                     m_iHp = 2;
     int                     m_iAtkDamage = 10;
+    float                   m_fExplodeDmg = 12.f;
 
 
     static constexpr float  m_fGravity = -20.f;

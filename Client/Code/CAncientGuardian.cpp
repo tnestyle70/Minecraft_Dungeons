@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CAncientGuardian.h"
 #include "CRenderer.h"
 #include "CManagement.h"
@@ -54,7 +54,11 @@ _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
 
         // Y < -10 이하 → 삭제
         if (vPos.y < -10.f)
+        {
+            CDamageMgr::GetInstance()->Clear_Guardian();
             m_bDeadDone = true;
+        }
+           
     }
 
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
@@ -409,7 +413,7 @@ void CAncientGuardian::Update_Beams(const _float& fTimeDelta)
             if (pBeamCollider &&
                 pBeamCollider->IsColliding(pPlayerCollider->Get_AABB()))
             {
-                pPlayer->Hit();
+                pPlayer->Hit(5.f);
                 (*iter)->Set_Dead();
             }
         }
@@ -457,7 +461,7 @@ void CAncientGuardian::Update_Biomines(const _float& fTimeDelta)
             if (pExplosionCollider &&
                 pExplosionCollider->IsColliding(pPlayerCollider->Get_AABB()))
             {
-                pPlayer->Hit();
+                pPlayer->Hit(5.f);
             }
         }
 

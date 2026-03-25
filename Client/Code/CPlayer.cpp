@@ -172,6 +172,9 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 		}
 	}
 
+	if (m_fBowCooldown > 0.f)
+		m_fBowCooldown -= fTimeDelta;
+
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
 	m_pColliderCom->Update_AABB(vPos);
@@ -202,6 +205,23 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 		remove_if(m_vecTNTs.begin(), m_vecTNTs.end(),
 			[](CTNT* p) { return p->Is_Dead(); }),
 		m_vecTNTs.end());
+
+
+	//넉백
+	if (m_bKnockback)
+	{
+		m_fKnockbackTime += fTimeDelta;
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+		vPos.x += m_vKnockbackDir.x * m_fKnockbackSpeed * fTimeDelta;
+		vPos.z += m_vKnockbackDir.z * m_fKnockbackSpeed * fTimeDelta;
+		m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+		if (m_fKnockbackTime >= m_fKnockbackDuration)
+		{
+			m_bKnockback = false;
+			m_fKnockbackTime = 0.f;
+		}
+	}
 
 	Apply_Gravity(fTimeDelta);
 	Roll_Update(fTimeDelta);
@@ -611,7 +631,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 	}
 	else
 	{
-		if (bRClick)
+		if (bRClick && m_fBowCooldown <= 0.f)
 		{
 			m_bCharging = true;
 			m_fCharge += fTimeDelta;
@@ -620,8 +640,8 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 
 			_vec3 vPos;
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
+			_vec3 vPickPos = Picking_OnBlock();
 
-			// 가디언 조준 우선
 			bool bAimedGuardian = false;
 			if (m_pTargetGuardian && !m_pTargetGuardian->Is_Dead())
 			{
@@ -631,24 +651,32 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 				{
 					AABB tAABB = pCol->Get_AABB();
 					_vec3 vCenter = (tAABB.vMin + tAABB.vMax) * 0.5f;
-					_vec3 vDir = vCenter - vPos;
-					if (D3DXVec3Length(&vDir) > 0.1f)
+
+					_vec3 vToGuardian = { vCenter.x - vPos.x, 0.f, vCenter.z - vPos.z };
+					_vec3 vToPick = { vPickPos.x - vPos.x, 0.f, vPickPos.z - vPos.z };
+					D3DXVec3Normalize(&vToGuardian, &vToGuardian);
+					D3DXVec3Normalize(&vToPick, &vToPick);
+
+					float fDot = D3DXVec3Dot(&vToGuardian, &vToPick);
+					if (fDot > 0.5f)
 					{
-						D3DXVec3Normalize(&vDir, &vDir);
-						m_vBowDir = vDir;
-						_vec3 vDirH = { vDir.x, 0.f, vDir.z };
-						if (D3DXVec3Length(&vDirH) > 0.01f)
-							m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDirH.x, vDirH.z)) + 180.f;
-						bAimedGuardian = true;
+						_vec3 vDir = vCenter - vPos;
+						if (D3DXVec3Length(&vDir) > 0.1f)
+						{
+							D3DXVec3Normalize(&vDir, &vDir);
+							m_vBowDir = vDir;
+							_vec3 vDirH = { vDir.x, 0.f, vDir.z };
+							if (D3DXVec3Length(&vDirH) > 0.01f)
+								m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vDirH.x, vDirH.z)) + 180.f;
+							bAimedGuardian = true;
+						}
 					}
 				}
 			}
 
-			// 가디언 없으면 블록 피킹 방향
 			if (!bAimedGuardian)
 			{
-				_vec3 vTarget = Picking_OnBlock();
-				_vec3 vDir = vTarget - vPos;
+				_vec3 vDir = vPickPos - vPos;
 				vDir.y = 0.f;
 				if (D3DXVec3Length(&vDir) > 0.1f)
 				{
@@ -658,19 +686,19 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 				}
 			}
 		}
-
 		else if (m_bCharging)
 		{
 			_vec3 vPos;
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
 			vPos.y += 1.0f;
-			float fCharge = m_fCharge / m_fMaxCharge;
-			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, m_vBowDir, fCharge);
+			m_fLastChargeRatio = m_fCharge / m_fMaxCharge;
+			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, m_vBowDir, Get_BowDmg());
 			if (pArrow)
 			{
 				pArrow->Set_Firework(m_bFireworkArrow);
 				m_vecArrows.push_back(pArrow);
 			}
+			m_fBowCooldown = 1.f;
 			m_fCharge = 0.f;
 			m_bCharging = false;
 			m_bFireworkArrow = false;
@@ -780,6 +808,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 				{
 					//바로 공격
 					m_iComboStep = (m_iComboStep % 3) + 1;
+					m_fMeleeDmg = 10.f + (float)(rand() % 6);
 					if (m_iComboStep == 1 || m_iComboStep == 2 || m_iComboStep == 3)
 						m_fAtkTime = 0.f;
 					m_fComboTimer = m_fComboWindow;
@@ -825,6 +854,7 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 					{
 						// 바로 공격
 						m_iComboStep = (m_iComboStep % 3) + 1;
+						m_fMeleeDmg = 10.f + (float)(rand() % 6);
 						m_fAtkTime = 0.f;
 						m_fComboTimer = m_fComboWindow;
 						m_bHasTarget = false;
@@ -1360,15 +1390,25 @@ void CPlayer::Resolve_BlockCollision()
 	}
 }
 
-void CPlayer::Hit()
+void CPlayer::Hit(float fDamage)
 {
-	if (m_bHit)  // 이미 피격 중이면 무시
+	if (m_bHit)
 		return;
-
 	m_bHit = true;
 	m_fHitTime = 0.f;
-	m_fHp -= 10.f;
+	m_fHp -= fDamage;
 	if (m_fHp < 0.f) m_fHp = 0.f;
+
+	// 넉백값 이상이면 넉백
+	if (fDamage >= m_fKnockbackThreshold)
+	{
+		_vec3 vLook;
+		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
+		D3DXVec3Normalize(&vLook, &vLook);
+		m_vKnockbackDir = vLook;  // 바라보는 반대로 날아감
+		m_bKnockback = true;
+		m_fKnockbackTime = 0.f;
+	}
 }
 
 void CPlayer::Roll_Update(const _float& fTimeDelta)

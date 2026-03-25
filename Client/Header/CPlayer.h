@@ -59,34 +59,38 @@ public:
 private:
 	//플레이어 정보
 
-	float m_fHp = 100.f;
-	float m_fMaxHp = 100.f;
-	float m_fMeleeDmg = 10.f;
-	float m_fBowDmg = 15.f;
-	float m_fMoveSpeed = 30.f;
+	_float m_fHp = 100.f;
+	_float m_fMaxHp = 100.f;
+	_float m_fMeleeDmg = 10.f;
+	_float m_fBowDmg = 10.f;
+	_float m_fMoveSpeed = 30.f;
+
+	_float m_fBowCooldown = 0.f;
+	static constexpr float m_fBowCoolMax = 1.f;
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];
 
 	//공격모션
-	int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
-	float m_fAtkTime = 0.f;    // 현재 공격 경과 시간
-	float m_fAtkDuration = 0.55f;   // 공격 지속 시간
-	float m_fComboWindow = 0.6f;   // 다음 공격 입력 대기 시간
-	float m_fComboTimer = 0.f;    // 콤보 타이머
-	bool  m_bAtkInput = false;  // 공격 입력 감지
-	bool  m_bAtkKeyPrev = false;
+	_int   m_iComboStep = 0;      // 0=대기, 1=우→좌, 2=좌→우, 3=찌르기
+	_float m_fAtkTime = 0.f;    // 현재 공격 경과 시간
+	_float m_fAtkDuration = 0.55f;   // 공격 지속 시간
+	_float m_fComboWindow = 0.6f;   // 다음 공격 입력 대기 시간
+	_float m_fComboTimer = 0.f;    // 콤보 타이머
+	_bool  m_bAtkInput = false;  // 공격 입력 감지
+	_bool  m_bAtkKeyPrev = false;
 
 	//화살 발사 변수
-	float m_fCharge = 0.f;
-	float m_fMaxCharge = 2.f;
-	bool  m_bCharging = false;
+	_float m_fCharge = 0.f;
+	_float m_fMaxCharge = 2.f;
+	_bool  m_bCharging = false;
 	_vec3 m_vBowDir = { 0.f, 0.f, 1.f };
 	vector<CPlayerArrow*> m_vecArrows;
 	_matrix m_matLArmWorld;		//왼손위치
 	//폭죽화살 변수
-	bool m_bFireworkArrow = false;
-	bool m_bRKeyPrev = false;
+	_bool m_bFireworkArrow = false;
+	_bool m_bRKeyPrev = false;
+	_float m_fLastChargeRatio = 0.f;
 	
 	//TNT
 	CTNT* m_pHeldTNT = nullptr;
@@ -99,19 +103,19 @@ private:
 
 
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
-	bool m_bAtkColliderActive = false;
+	_bool m_bAtkColliderActive = false;
 
 	//공격 이펙트
 	LPDIRECT3DTEXTURE9 m_pAttackTexture = nullptr;
 
 public:
 	//플레이어 정보 Get / Set
-	float Get_Hp() const { return m_fHp; }
-	float Get_MaxHp() const { return m_fMaxHp; }
+	_float Get_Hp() const { return m_fHp; }
+	_float Get_MaxHp() const { return m_fMaxHp; }
 	void Set_Hp(float fHp) { m_fHp = fHp; }
 
-	float Get_MeleeDmg() const { return m_fMeleeDmg; }
-	float Get_BowDmg() const { return m_fBowDmg; }
+	_float Get_MeleeDmg() const { return m_fMeleeDmg; }
+	_float Get_BowDmg() const { return m_fBowDmg + 15.f * m_fLastChargeRatio; }
 	void Set_MeleeDmg(float fDmg) { m_fMeleeDmg = fDmg; }
 	void Set_BowDmg(float fDmg) { m_fBowDmg = fDmg; }
 
@@ -120,7 +124,7 @@ public:
 	ARMOR_TYPE Get_ArmorType() const { return m_eArmorType; }
 
 	//콜라이더 박스 온오프 확인
-	bool Get_AtkColliderActive() const { return m_bAtkColliderActive; }
+	_bool Get_AtkColliderActive() const { return m_bAtkColliderActive; }
 
 	//TNT 추가함수
 	void Add_TNT(CTNT* pTNT) { m_vecTNTs.push_back(pTNT); }
@@ -159,38 +163,47 @@ private:
 	_bool				m_bMoving;		// 이동 중 여부
 
 	_vec3 m_vTargetPos;
-	bool  m_bHasTarget = false;
+	_bool  m_bHasTarget = false;
 
-	static constexpr float m_fGravity = -20.f;
-	static constexpr float m_fJumpPower = 8.f;
-	static constexpr float m_fMaxFall = -20.f;
+	_float m_fGravity = -20.f;
+	_float m_fJumpPower = 8.f;
+	_float m_fMaxFall = -20.f;
 
-	float m_fVelocityY = 0.f;
-	bool m_bOnGround = false;
+	_float m_fVelocityY = 0.f;
+	_bool m_bOnGround = false;
 
 
 	//구르기
-	bool   m_bRolling = false;
-	float  m_fRollTime = 0.f;
-	float  m_fRollCooldown = 0.f;
+	_bool   m_bRolling = false;
+	_float  m_fRollTime = 0.f;
+	_float  m_fRollCooldown = 0.f;
 
-	static constexpr float m_fRollDuration = 0.5f;   
-	static constexpr float m_fRollSpeed = 22.f;   
-	static constexpr float m_fRollCoolMax = 3.f;    
+	_float m_fRollDuration = 0.5f;   
+	_float m_fRollSpeed = 22.f;   
+	_float m_fRollCoolMax = 3.f;    
 	_vec3  m_vRollDir; 
 
 	//=======FootPrint Effect Variable=======
 	Engine::CParticleEmitter* m_pFootStepEmitter = nullptr;
 	Engine::CParticleEmitter* m_pAttackEmitter = nullptr;
 
-	bool m_bSwordEquipped = true;
-	bool m_bBowEquipped = false;
+	_bool m_bSwordEquipped = true;
+	_bool m_bBowEquipped = false;
 
 private:
 	//피격
-	bool  m_bHit = false;
-	float m_fHitTime = 0.f;
-	static constexpr float m_fHitDuration = 0.5f;
+	_bool  m_bHit = false;
+	_float m_fHitTime = 0.f;
+
+	// 넉백
+	_bool  m_bKnockback = false;
+	_float m_fKnockbackTime = 0.f;
+	_float m_fKnockbackDuration = 0.3f;
+	_float m_fKnockbackSpeed = 20.f;
+	_float m_fKnockbackThreshold = 12.f;
+	_vec3 m_vKnockbackDir = {};
+
+	_float m_fHitDuration = 0.5f;
 	//몬스터 공격타겟
 	CMonster* m_pTargetMonster = nullptr;
 	//레드스톤골렘 타겟
@@ -214,7 +227,7 @@ private: //중력 적용과 충돌시 위치값 보정
 public:
 	static CPlayer* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
-	void Hit();
+	void Hit(float fDamage);
 
 private:
 	virtual void Free();

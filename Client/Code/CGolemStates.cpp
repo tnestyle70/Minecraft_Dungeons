@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CGolemStates.h"
 #include "CRedStoneGolem.h"
 #include "CPlayer.h"
@@ -7,13 +7,13 @@
 // ====================== IDLE ======================
 void CGolemState_Idle::Enter(CRedStoneGolem* pGolem)
 {
-    // Idle ÁøÀÔ ½Ã Æ¯º°ÇÑ Ã³¸® ¾øÀ½
+    // Idle ì§„ìž… ì‹œ íŠ¹ë³„í•œ ì²˜ë¦¬ ì—†ìŒ
 }
 
 void CGolemState_Idle::Update(CRedStoneGolem* pGolem, const _float& fTimeDelta)
 {
     pGolem->Anim_Idle();
-    pGolem->Check_Distance();   // °Å¸® Á¶°Ç¿¡ µû¶ó ÀüÈ¯ ¿äÃ»
+    pGolem->Check_Distance();   // ê±°ë¦¬ ì¡°ê±´ì— ë”°ë¼ ì „í™˜ ìš”ì²­
 }
 
 // ====================== WALK ======================
@@ -49,7 +49,7 @@ void CGolemState_Attack::Update(CRedStoneGolem* pGolem, const _float& fTimeDelta
             pPlayer = CMonsterMgr::GetInstance()->Get_Player();
 
             if (pPlayer)
-                pPlayer->Hit();
+                pPlayer->Hit(pGolem->Get_Atk());
         }
 
         m_bHit = true;

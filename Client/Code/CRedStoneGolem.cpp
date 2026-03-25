@@ -21,7 +21,7 @@ CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	, m_fVelocityY(0.f)
 	, m_fMaxHp(100.f)
 	, m_fHp(100.f)
-	, m_fAtk(10.f)
+	, m_fAtk(12.f)
 {
 	ZeroMemory(m_pParts, sizeof(m_pParts));
 }
@@ -892,7 +892,7 @@ void CRedStoneGolem::Check_Hit()
 			else
 			{
 				Take_Damage(pPlayer->Get_BowDmg());
-
+				pArrow->Set_Dead();
 				m_bHitCool = true;
 				m_fHitCoolTime = 0.f;
 			}
