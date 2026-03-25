@@ -33,7 +33,7 @@ private:
 
 	CBoxPart* m_pParts[BOX_END];
 
-	CEmerald* m_pEmerald;
+	vector<CEmerald*> m_vecEmerald;
 
 	CTexture* m_pTextureCom;
 	CTransform* m_pTransformCom;
