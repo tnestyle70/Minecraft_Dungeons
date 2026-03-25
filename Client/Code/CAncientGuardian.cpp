@@ -68,6 +68,7 @@ _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
 
 void CAncientGuardian::LateUpdate_GameObject(const _float& fTimeDelta)
 {
+    Update_AI(fTimeDelta);
     CDLCBoss::LateUpdate_GameObject(fTimeDelta);
 }
 

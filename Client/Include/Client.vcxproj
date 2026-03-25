@@ -173,6 +173,7 @@
     <ClInclude Include="..\Header\CEmerald.h" />
     <ClInclude Include="..\Header\CEnvironmentMgr.h" />
     <ClInclude Include="..\Header\CEquipSlot.h" />
+    <ClInclude Include="..\Header\CExplosionLight.h" />
     <ClInclude Include="..\Header\CGolemStates.h" />
     <ClInclude Include="..\Header\CHUD.h" />
     <ClInclude Include="..\Header\CInventoryMgr.h" />
@@ -259,6 +260,7 @@
     <ClCompile Include="..\Code\CEmerald.cpp" />
     <ClCompile Include="..\Code\CEnvironmentMgr.cpp" />
     <ClCompile Include="..\Code\CEquipSlot.cpp" />
+    <ClCompile Include="..\Code\CExplosionLight.cpp" />
     <ClCompile Include="..\Code\CGolemStates.cpp" />
     <ClCompile Include="..\Code\CHUD.cpp" />
     <ClCompile Include="..\Code\CInventoryMgr.cpp" />

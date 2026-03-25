@@ -11,6 +11,7 @@
 #include "CDamageMgr.h"
 #include "CPlayerArrow.h"
 #include "CTNT.h"
+#include "CExplosionLight.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -26,8 +27,6 @@ CMonster::~CMonster()
 {
 }
 
-
-
 HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 {
     if (FAILED(Add_Component()))
@@ -35,24 +34,29 @@ HRESULT CMonster::Ready_GameObject(_vec3& vPos)
 
     switch (m_eType)
     {
-    case EMonsterType::ZOMBIE:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+    case EMonsterType::ZOMBIE:
+        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
         m_iHp = 200;
         m_iAtkDamage = 10;
         break;
-    case EMonsterType::SKELETON: m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+    case EMonsterType::SKELETON:
+        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
         m_iHp = 200;
         m_iAtkDamage = 0;
         break;
-    case EMonsterType::CREEPER:  m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+    case EMonsterType::CREEPER:
+        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
         m_iHp = 100;
         m_iAtkDamage = 100;
         break;
-    case EMonsterType::SPIDER:   m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+    case EMonsterType::SPIDER:
+        m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
         m_iHp = 200;
         m_iAtkDamage = 10;
+        break;
     }
 
-    //=====Effect Emitter Connect======// 
+    //=====Effect Emitter Connect======//
     LPDIRECT3DTEXTURE9 pDeathEffectTexture = nullptr;
     D3DXCreateTextureFromFile(m_pGraphicDev,
         L"../Bin/Resource/Texture/Effect/Smoke.png", &pDeathEffectTexture);
@@ -105,8 +109,6 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
-    
-
     if (pAnim && pAnim->Is_DeadDone())
     {
         m_bDeadDone = true;
@@ -127,7 +129,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         m_pAtkColliderCom->Update_AABB(vAtkPos);
     }
 
-    //몬스터 공격 - 플레이어 피격 충돌판정
+    // 몬스터 공격 - 플레이어 피격 충돌판정
     if (m_pAtkColliderCom)
     {
         CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
@@ -151,6 +153,12 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             m_pExplosionColliderCom->Update_AABB(vPos);
             m_bExploded = true;
             pAnim->Set_State(EMonsterState::DEAD);
+
+            // 설명 : 폭발 조명 + 화면 플래시 생성
+            m_pExplosionLight = new CExplosionLight(m_pGraphicDev, vPos);
+            // 설명 : 크리퍼 몸 노란 번쩍임 시작
+            m_bExplosionFlash = true;
+            m_fExplosionFlashTimer = 0.f;
         }
     }
 
@@ -165,6 +173,25 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             if (pPlayerCollider && m_pExplosionColliderCom->IsColliding(pPlayerCollider->Get_AABB()))
                 pPlayer->Hit(m_fExplodeDmg);
         }
+    }
+
+    // 설명 : 폭발 조명 업데이트 → Is_Done() 시 자동 삭제
+    if (m_pExplosionLight)
+    {
+        m_pExplosionLight->Update(fTimeDelta);
+        if (m_pExplosionLight->Is_Done())
+        {
+            delete m_pExplosionLight;
+            m_pExplosionLight = nullptr;
+        }
+    }
+
+    // 설명 : 크리퍼 몸 노란 번쩍임 타이머 관리 (0.3초 후 종료)
+    if (m_bExplosionFlash)
+    {
+        m_fExplosionFlashTimer += fTimeDelta;
+        if (m_fExplosionFlashTimer >= 0.3f)
+            m_bExplosionFlash = false;
     }
 
     // 플레이어 근접 공격 콜라이더와 충돌 체크 (몬스터 피격)
@@ -254,7 +281,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             {
                 if (pArrow->Is_Firework())
                 {
-                    pArrow->Trigger_Explode();//폭죽화살이면 폭발
+                    pArrow->Trigger_Explode();
                 }
                 else
                 {
@@ -272,14 +299,9 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
         bool bExploding = false;
         for (auto& pArrow : pPlayer->Get_Arrows())
         {
-            if (!pArrow->Is_Exploding())
-                continue;
-
+            if (!pArrow->Is_Exploding()) continue;
             CCollider* pExplodeCollider = pArrow->Get_ExplodeCollider();
-
-            if (!pExplodeCollider)
-                continue;
-
+            if (!pExplodeCollider) continue;
             if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
             {
                 bExploding = true;
@@ -302,45 +324,6 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             if (m_pColliderCom->IsColliding(pExplodeCollider->Get_AABB()))
                 Take_Damage(50);
         }
-    }
-
-
- //   //====Editor용======//
- //   if (!pPlayer)
- //       return 0;
- //
- //   if (pAtkCollider && pAnim
- //       && pAnim->Get_State() != EMonsterState::HIT
- //       && pAnim->Get_State() != EMonsterState::DEAD
- //       && pPlayer && pPlayer->Get_AtkColliderActive()
- //       && m_pColliderCom->IsColliding(pAtkCollider->Get_AABB()))
- //   {
- //       m_iHp -= 1;
- //
- //       Take_Damage(pPlayer->Get_BowDmg());
- //
- //       if (m_iHp <= 0)
- //           pAnim->Set_State(EMonsterState::DEAD);
- //       else
- //           pAnim->Set_State(EMonsterState::HIT);
- //   }
-
-    // 스켈레톤 화살 처리
-    if (m_eType == EMonsterType::SKELETON)
-    {
-        if (pAnim && pAnim->Get_State() == EMonsterState::ATTACK)
-        {
-            if (!m_bFired)
-            {
-                Fire_Arrow();
-                m_bFired = true;
-            }
-        }
-        else
-        {
-            m_bFired = false;
-        }
-        Update_Arrow(fTimeDelta);
     }
 
     return iExit;
@@ -372,7 +355,6 @@ void CMonster::Render_GameObject()
         m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
         m_pGraphicDev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
 
-        // 피격 빨간색 점멸
         if (pAnim && pAnim->Is_HitFlash())
         {
             m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
@@ -398,12 +380,24 @@ void CMonster::Render_GameObject()
     }
     else
     {
-        // 피격 빨간색 점멸
+        // 설명 : 피격 빨간 점멸 (HitFlash)
         if (pAnim && pAnim->Is_HitFlash())
         {
             m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
             m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
             m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 0, 0, 255));
+        }
+        // 설명 : 크리퍼 폭발 노란 번쩍임 (HitFlash보다 우선 적용)
+        else if (m_eType == EMonsterType::CREEPER && m_bExplosionFlash)
+        {
+            // 설명 : 0.1초 간격으로 깜빡임
+            bool bFlashOn = ((int)(m_fExplosionFlashTimer / 0.1f) % 2 == 0);
+            if (bFlashOn)
+            {
+                m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+                m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+                m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 200, 50, 255));
+            }
         }
 
         m_pBodyCom->Render_Body(m_pTransformCom->Get_World(), m_pTextureCom);
@@ -423,7 +417,6 @@ void CMonster::Render_GameObject()
     if (m_pColliderCom)
         m_pColliderCom->Render_Collider();
 
-    // 좀비/스파이더 공격 콜라이더 디버그 렌더
     if (m_pAtkColliderCom && pAnim &&
         (m_eType == EMonsterType::ZOMBIE || m_eType == EMonsterType::SPIDER) &&
         pAnim->Get_State() == EMonsterState::ATTACK)
@@ -431,17 +424,19 @@ void CMonster::Render_GameObject()
         m_pAtkColliderCom->Render_Collider();
     }
 
-    // 크리퍼 폭발 콜라이더 디버그 렌더
     if (m_eType == EMonsterType::CREEPER && m_bExploded && m_pExplosionColliderCom)
     {
         m_pExplosionColliderCom->Render_Collider();
     }
 
-    // 스켈레톤 화살 콜라이더 디버그 렌더
     if (m_eType == EMonsterType::SKELETON && m_pAtkColliderCom)
     {
         m_pAtkColliderCom->Render_Collider();
     }
+
+    // 설명 : 폭발 화면 플래시 렌더 (눈뽕 구간 0.05초)
+    if (m_pExplosionLight)
+        m_pExplosionLight->Render();
 }
 
 void CMonster::Render_Bow()
@@ -506,7 +501,7 @@ void CMonster::Fire_Arrow()
         m_pTransformCom->Get_World()
     );
     _vec3 vStartPos = { matRArm._41, matRArm._42, matRArm._43 };
-    
+
     _vec3 vPlayerPos;
     pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
 
@@ -518,6 +513,7 @@ void CMonster::Fire_Arrow()
     if (pArrow)
         m_vecArrows.push_back(pArrow);
 }
+
 void CMonster::Take_Damage(int iDamage)
 {
     if (m_bDeadDone) return;
@@ -527,7 +523,6 @@ void CMonster::Take_Damage(int iDamage)
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
     if (!pAnim) return;
 
-    //Damage Text
     _vec3 vPos = m_pTransformCom->m_vInfo[INFO_POS];
     vPos.y += 1.5f;
     CDamageMgr::GetInstance()->AddDamage(vPos, iDamage);
@@ -551,8 +546,6 @@ void CMonster::Update_Arrow(const _float& fTimeDelta)
         {
             pArrow->Update_GameObject(fTimeDelta);
 
-            // 화살 위치로 Com_AtkCollider 갱신
-            // 플레이어가 다른 몬스터와 동일하게 Com_AtkCollider로 받아감
             AABB tAABB = pArrow->Get_Collider()->Get_AABB();
             _vec3 vArrowPos = (tAABB.vMin + tAABB.vMax) * 0.5f;
             m_pAtkColliderCom->Update_AABB(vArrowPos);
@@ -641,14 +634,13 @@ void CMonster::Update_AI(const _float& fTimeDelta)
     CMonsterAnim* pAnim = dynamic_cast<CMonsterAnim*>(m_pBodyCom->Get_Anim());
     if (!pAnim) return;
     if (pAnim->Get_State() == EMonsterState::DEAD) return;
-    if (pAnim->Get_State() == EMonsterState::HIT) return;
-    // 항상 플레이어 방향으로 회전
+    if (pAnim->Get_State() == EMonsterState::HIT)  return;
+
     _vec3 vLookDir = vPlayerPos - vMyPos;
     vLookDir.y = 0.f;
     D3DXVec3Normalize(&vLookDir, &vLookDir);
     m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z));
 
-    // 스켈레톤은 기존 원거리 로직 유지
     if (m_eType == EMonsterType::SKELETON)
     {
         if (fDist <= m_fDetectRange)
@@ -664,7 +656,6 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         return;
     }
 
-    // 1. DetectRange 밖 → IDLE, A* 안 돌림
     if (fDist > m_fDetectRange)
     {
         m_bIsMoving = false;
@@ -674,7 +665,6 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         return;
     }
 
-    // 2. AttackRange 안 → 제자리 공격
     if (fDist <= m_fAttackRange)
     {
         m_bIsMoving = false;
@@ -684,20 +674,18 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         return;
     }
 
-    // 3. DetectRange 안 + AttackRange 밖 → A* 경로 추적으로 이동
     pAnim->Set_State(EMonsterState::WALK);
 
     m_fPathTimer += fTimeDelta;
     if (m_fPathTimer >= m_fPathInterval || m_vecPath.empty())
     {
         m_fPathTimer = 0.f;
-        BlockPos tStart = { (int)roundf(vMyPos.x),    (int)roundf(vMyPos.y),    (int)roundf(vMyPos.z) };
-        BlockPos tGoal = { (int)roundf(vPlayerPos.x),(int)roundf(vPlayerPos.y),(int)roundf(vPlayerPos.z) };
+        BlockPos tStart = { (int)roundf(vMyPos.x),     (int)roundf(vMyPos.y),     (int)roundf(vMyPos.z) };
+        BlockPos tGoal = { (int)roundf(vPlayerPos.x), (int)roundf(vPlayerPos.y), (int)roundf(vPlayerPos.z) };
         m_vecPath = Find_Path(tStart, tGoal);
         m_iPathIndex = 0;
     }
 
-    // 경로 없으면 직선 이동 (임시 폴백)
     if (m_vecPath.empty())
     {
         m_bIsMoving = true;
@@ -705,7 +693,6 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         return;
     }
 
-    // 경로 따라 이동
     if (m_iPathIndex < (int)m_vecPath.size())
     {
         BlockPos tNext = m_vecPath[m_iPathIndex];
@@ -723,7 +710,7 @@ void CMonster::Update_AI(const _float& fTimeDelta)
             _vec3 vFlatDir = { vMoveDir.x, 0.f, vMoveDir.z };
             D3DXVec3Normalize(&vFlatDir, &vFlatDir);
 
-            _vec3 vNextWorldPos = vMyPos + vFlatDir * m_fMoveSpeed * 0.1f;
+            _vec3    vNextWorldPos = vMyPos + vFlatDir * m_fMoveSpeed * 0.1f;
             BlockPos tNextCheck = {
                 (int)roundf(vNextWorldPos.x),
                 (int)roundf(vNextWorldPos.y) - 1,
@@ -749,18 +736,15 @@ void CMonster::Update_AI(const _float& fTimeDelta)
     }
 }
 
-
 HRESULT CMonster::Add_Component()
 {
     Engine::CComponent* pComponent = nullptr;
 
-    // Transform
     pComponent = m_pTransformCom = dynamic_cast<Engine::CTransform*>
         (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_Transform"));
     if (!pComponent) return E_FAIL;
     m_mapComponent[ID_DYNAMIC].insert({ L"Com_Transform", pComponent });
 
-    // 텍스처
     const _tchar* pTexTag = nullptr;
     switch (m_eType)
     {
@@ -776,7 +760,6 @@ HRESULT CMonster::Add_Component()
     if (!pComponent) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_Texture", pComponent });
 
-    // 스켈레톤 활 관련
     if (m_eType == EMonsterType::SKELETON)
     {
         m_pBowStandbyTex = dynamic_cast<Engine::CTexture*>
@@ -787,43 +770,32 @@ HRESULT CMonster::Add_Component()
             (CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_RcTex"));
     }
 
-    // 몸체
     m_pBodyCom = CMonsterBody::Create(m_pGraphicDev, m_eType);
     if (!m_pBodyCom) return E_FAIL;
 
-    // 몸통 콜라이더
     m_pColliderCom = CCollider::Create(m_pGraphicDev,
-        _vec3(1.0f, 1.8f, 1.0f),
-        _vec3(0.f, 0.9f, 0.f));
+        _vec3(1.0f, 1.8f, 1.0f), _vec3(0.f, 0.9f, 0.f));
     if (!m_pColliderCom) return E_FAIL;
     m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
-    // 공격 콜라이더 - 4종 모두 Com_AtkCollider로 등록
-    // 플레이어가 타입 구분 없이 Com_AtkCollider 하나로 받아감
     if (m_eType == EMonsterType::ZOMBIE || m_eType == EMonsterType::SPIDER)
     {
-        // 근접 공격 콜라이더
         m_pAtkColliderCom = CCollider::Create(m_pGraphicDev,
-            _vec3(1.2f, 0.8f, 1.2f),
-            _vec3(0.f, 0.9f, 0.f));
+            _vec3(1.2f, 0.8f, 1.2f), _vec3(0.f, 0.9f, 0.f));
         if (!m_pAtkColliderCom) return E_FAIL;
         m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
     }
     else if (m_eType == EMonsterType::CREEPER)
     {
-        // 폭발 콜라이더를 AtkCollider로 등록
         m_pExplosionColliderCom = CCollider::Create(m_pGraphicDev,
-            _vec3(3.f, 3.f, 3.f),
-            _vec3(0.f, 0.f, 0.f));
+            _vec3(3.f, 3.f, 3.f), _vec3(0.f, 0.f, 0.f));
         if (!m_pExplosionColliderCom) return E_FAIL;
         m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pExplosionColliderCom });
     }
     else if (m_eType == EMonsterType::SKELETON)
     {
-        // 화살 콜라이더 - Update_Arrow()에서 화살 위치로 매 프레임 갱신
         m_pAtkColliderCom = CCollider::Create(m_pGraphicDev,
-            _vec3(0.3f, 0.3f, 0.3f),
-            _vec3(0.f, 0.f, 0.f));
+            _vec3(0.3f, 0.3f, 0.3f), _vec3(0.f, 0.f, 0.f));
         if (!m_pAtkColliderCom) return E_FAIL;
         m_mapComponent[ID_STATIC].insert({ L"Com_AtkCollider", m_pAtkColliderCom });
     }
@@ -848,7 +820,13 @@ CMonster* CMonster::Create(LPDIRECT3DDEVICE9 pGraphicDev, EMonsterType eType, _v
 
 void CMonster::Free()
 {
-    //======Effect Release======//
+    // 설명 : 폭발 조명이 남아있으면 강제 삭제
+    if (m_pExplosionLight)
+    {
+        delete m_pExplosionLight;
+        m_pExplosionLight = nullptr;
+    }
+
     Safe_Release(m_pDeathEmitter);
 
     for (auto* pArrow : m_vecArrows)
@@ -864,17 +842,15 @@ void CMonster::Free()
 
     CGameObject::Free();
 }
-// A* 메인 - 시작→목표 경로 반환, 경로 없으면 빈 벡터
+
 vector<BlockPos> CMonster::Find_Path(BlockPos tStart, BlockPos tGoal)
 {
-    // F값 오름차순 정렬 (priority_queue는 큰 값이 top이라 역순 비교)
-    auto Compare = [](const AStarNode& a, const AStarNode& b) {return a.fF > b.fF; };
+    auto Compare = [](const AStarNode& a, const AStarNode& b) { return a.fF > b.fF; };
 
-    priority_queue<AStarNode, vector<AStarNode>, decltype(Compare) > openList(Compare);
-    map<BlockPos, float>    mapGCost;   // 각 노드까지의 G값
-    map<BlockPos, BlockPos> mapParent;  // 경로 역추적용 부모
+    priority_queue<AStarNode, vector<AStarNode>, decltype(Compare)> openList(Compare);
+    map<BlockPos, float>    mapGCost;
+    map<BlockPos, BlockPos> mapParent;
 
-    // 시작 노드 추가
     AStarNode tStartNode;
     tStartNode.tPos = tStart;
     tStartNode.fG = 0.f;
@@ -891,7 +867,6 @@ vector<BlockPos> CMonster::Find_Path(BlockPos tStart, BlockPos tGoal)
         AStarNode tCurrent = openList.top();
         openList.pop();
 
-        // 목표 도달 → 역추적으로 경로 완성
         if (tCurrent.tPos.x == tGoal.x &&
             tCurrent.tPos.y == tGoal.y &&
             tCurrent.tPos.z == tGoal.z)
@@ -911,11 +886,8 @@ vector<BlockPos> CMonster::Find_Path(BlockPos tStart, BlockPos tGoal)
             return vecPath;
         }
 
-        // 이웃 노드 탐색
         for (auto& tNeighbor : Get_Neighbors(tCurrent.tPos))
         {
-            // m_fDetectRange 재활용 - 탐색 범위 제한
-            // 전체 맵 탐색 대신 몬스터 주변 DetectRange 칸만 탐색
             if (abs(tNeighbor.x - tStart.x) > (int)m_fDetectRange ||
                 abs(tNeighbor.y - tStart.y) > (int)m_fDetectRange ||
                 abs(tNeighbor.z - tStart.z) > (int)m_fDetectRange)
@@ -925,7 +897,7 @@ vector<BlockPos> CMonster::Find_Path(BlockPos tStart, BlockPos tGoal)
 
             auto iter = mapGCost.find(tNeighbor);
             if (iter != mapGCost.end() && fNewG >= iter->second)
-                continue; // 이미 더 좋은 경로로 방문했으면 스킵
+                continue;
 
             mapGCost[tNeighbor] = fNewG;
             mapParent[tNeighbor] = tCurrent.tPos;
@@ -941,14 +913,13 @@ vector<BlockPos> CMonster::Find_Path(BlockPos tStart, BlockPos tGoal)
         }
     }
 
-    return {}; // 경로 없음 → IDLE 유지
+    return {};
 }
 
-// 발판 있고(y-1 블록) + 몸통/머리 공간 비어있어야 이동 가능
 bool CMonster::IsPassable(BlockPos tPos)
 {
     BlockPos tFoot = { tPos.x, tPos.y - 1, tPos.z };
-    BlockPos tBody = { tPos.x, tPos.y, tPos.z };
+    BlockPos tBody = { tPos.x, tPos.y,     tPos.z };
     BlockPos tHead = { tPos.x, tPos.y - 1, tPos.z };
 
     return CBlockMgr::GetInstance()->HasBlock(tFoot) &&
@@ -968,18 +939,14 @@ vector<BlockPos> CMonster::Get_Neighbors(BlockPos tCurrent)
         int nx = tCurrent.x + dx[i];
         int nz = tCurrent.z + dz[i];
 
-        // 수평 이동
         BlockPos tHoriz = { nx, tCurrent.y,     nz };
         if (IsPassable(tHoriz)) vecNeighbors.push_back(tHoriz);
 
-        // 계단 오르기 (y+1)
         BlockPos tUp = { nx, tCurrent.y + 1, nz };
         if (IsPassable(tUp))    vecNeighbors.push_back(tUp);
 
-        // 계단 내려가기 (y-1)
         BlockPos tDown = { nx, tCurrent.y - 1, nz };
         if (IsPassable(tDown))  vecNeighbors.push_back(tDown);
-
     }
     return vecNeighbors;
 }

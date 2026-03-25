@@ -5,6 +5,7 @@
 #include "CMonsterAnim.h"
 #include "CArrow.h" 
 #include "CBlockMgr.h"
+#include "CExplosionLight.h"
 #include <queue>
 
 struct AStarNode
@@ -65,7 +66,9 @@ private:
 
     Engine::CCollider* m_pColliderCom = nullptr;
     Engine::CCollider* m_pAtkColliderCom = nullptr;
-    Engine::CCollider* m_pExplosionColliderCom = nullptr; // 크리퍼 폭발 범위
+    Engine::CCollider* m_pExplosionColliderCom = nullptr; // 크리퍼 폭발 범위 
+
+    CExplosionLight* m_pExplosionLight = nullptr;
 
     //=========Death Effect===========//
     Engine::CParticleEmitter* m_pDeathEmitter = nullptr;
@@ -85,7 +88,10 @@ private:
     float                   m_fVelocityY = 0.f;
     float                   m_fDeadAngleY = 0.f;
     bool                    m_bOnGround = false;
-    bool                    m_bExploded = false;                // 폭발 1회 처리용
+    bool                    m_bExploded = false;                // 폭발 1회 처리용 
+    // 기존 m_bExploded 아래에 추가
+    bool    m_bExplosionFlash = false;   // 크리퍼 몸 노란 번쩍임 활성화
+    _float  m_fExplosionFlashTimer = 0.f;     // 번쩍임 타이머 (0.3초)
     bool                    m_bDeadDone = false;               // 몬스터 삭제용도 
     int                     m_iHp = 2;
     int                     m_iAtkDamage = 10;
