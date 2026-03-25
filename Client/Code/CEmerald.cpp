@@ -20,12 +20,21 @@ HRESULT CEmerald::Ready_GameObject()
 	if (FAILED(Add_Component()))
 		return E_FAIL;
 
+	Init_Emerald();
+
 	return S_OK;
 }
 
 _int CEmerald::Update_GameObject(const _float& fTimeDelta)
 {
 	_int iExit = CGameObject::Update_GameObject(fTimeDelta);
+
+	Pop_Emerald(fTimeDelta);
+
+	_vec3 vPos;
+	m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+	m_pColliderCom->Update_AABB(vPos);
 
 	CRenderer::GetInstance()->Add_RenderGroup(RENDER_ALPHA, this);
 
@@ -64,8 +73,50 @@ void CEmerald::Render_GameObject()
 	m_pTextureCom->Set_Texture(0);
 	m_pBufferCom->Render_Buffer();
 
+	m_pColliderCom->Render_Collider();
+
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+}
+
+void CEmerald::Init_Emerald()
+{
+	m_bDrop = true;
+
+	_float fAngle = ((float)(rand() % 360)) * D3DX_PI / 180.f;
+
+	_float fSpeed = 3.f + (rand() % 3);
+
+	m_vVelocity.x = cosf(fAngle) * fSpeed;
+	m_vVelocity.z = sinf(fAngle) * fSpeed;
+	m_vVelocity.y = 10.f;
+}
+
+void CEmerald::Pop_Emerald(const _float fTimeDelta)
+{
+	if (m_bDrop)
+	{
+		_vec3 vPos;
+		m_pTransformCom->Get_Info(INFO_POS, &vPos);
+
+		m_vVelocity.y -= 40.f * fTimeDelta;
+
+		vPos += m_vVelocity * fTimeDelta;
+
+		if (vPos.y <= 1.5f)
+		{
+			vPos.y = 1.5f;
+
+			// ¹æ¹ý 1: ±×³É ¸ØÃã
+			m_vVelocity = _vec3(0.f, 0.f, 0.f);
+			m_bDrop = false;
+
+			// ¹æ¹ý 2: »ìÂ¦ ¹Ù¿î½º (¿øÇÏ¸é)
+			// m_vVelocity.y *= -0.3f;
+		}
+
+		m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
+	}
 }
 
 HRESULT CEmerald::Add_Component()
@@ -94,6 +145,11 @@ HRESULT CEmerald::Add_Component()
 		return E_FAIL;
 
 	m_mapComponent[ID_STATIC].insert({ { L"Com_Texture", pComponent } });
+
+	// Collider
+	m_pColliderCom = CCollider::Create(m_pGraphicDev, _vec3(1.5f, 1.5f, 1.5f), _vec3(0.f, 0.f, 0.f));
+
+	m_mapComponent[ID_STATIC].insert({ L"Com_Collider", m_pColliderCom });
 
 
 	return S_OK;
