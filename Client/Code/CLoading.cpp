@@ -97,6 +97,14 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_UpgradeTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/asset_mapnode_locked_top_hover.png"))))
         return E_FAIL;
+    //Ocean Diffuse
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_OceanTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/ocean_diffuse.png"))))
+        return E_FAIL;
+    //Ocean Normal
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_OceanNormalTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/ocean_normal.png"))))
+        return E_FAIL;
 
     // RedStoneGolem
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneGolemBodyTex", Engine::CRedStoneGolemBodyTex::Create(m_pGraphicDev))))

@@ -3,6 +3,8 @@
 #include "CNetworkPlayer.h"
 #include "CDragon.h"
 
+class COcean;
+
 class CNetworkStage : public CScene
 {
 protected:
@@ -26,6 +28,7 @@ private:
 	virtual void Free();
 
 	CDynamicCamera* m_pDynamicCamera = nullptr;
+	COcean* m_pOcean = nullptr;
 	CNetworkPlayer* m_pLocalPlayer = nullptr;  // 로컬 플레이어 참조 (입력 추출용)
 	_vec3           m_vPrevPlayerPos = {};        // 이전 프레임 위치 (방향 계산용)
 	float           m_fInputTimer = 0.f;       // 전송 주기 제어 (20TPS)

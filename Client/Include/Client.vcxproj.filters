@@ -234,6 +234,12 @@
     <ClCompile Include="..\Code\CNetworkMgr.cpp">
       <Filter>04. Network\02. NetworkMgr</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\COcean.cpp">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\COceanBuffer.cpp">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClCompile>
     <ClCompile Include="..\Code\CExplosionLight.cpp">
       <Filter>02. GameObject</Filter>
     </ClCompile>
@@ -480,6 +486,12 @@
     <ClInclude Include="..\Header\COceanTypes.h">
       <Filter>04. Network\03. Ocean</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\COcean.h">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\COceanBuffer.h">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
@@ -649,6 +661,9 @@
     </Filter>
     <Filter Include="04. Network\03. Ocean">
       <UniqueIdentifier>{49f8fc79-e1a2-4ada-9146-430bcae8b0da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04. Network\04. EnderDragon">
+      <UniqueIdentifier>{2f0b53fe-ee26-4945-8f9b-3bfd162a96d0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

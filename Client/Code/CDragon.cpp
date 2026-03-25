@@ -163,6 +163,9 @@ HRESULT CDragon::Create_BoneBuffer(DRAGON_BONE& bone,
 
 void CDragon::Handle_Input(const _float& fTimeDelta)
 {
+	// Day 8: 원격 제어 중이거나, 탑승 중이 아닐 경우 
+	if (m_bNetworkControlled || !Is_Ridden()) return;
+
 	//드래곤 척추 방향으로 이동하게 설정
 	_vec3 vSpineForward = m_Spine[0].vDir;
 	//수평 방향만 담당 - Y값 0.f
@@ -248,6 +251,14 @@ void CDragon::Handle_Input(const _float& fTimeDelta)
 void CDragon::Force_Idle_State()
 {
 	Transition_State(eDragonState::IDLE);
+}
+
+// Day 8: 네트워크 동기화용 — 루트 뼈를 즉시 지정 위치로 이동
+void CDragon::Force_RootPos(const _vec3& vPos)
+{
+	m_Spine[0].vPos = vPos;
+	m_vMoveTarget = vPos;
+	m_vVelocity = _vec3(0.f, 0.f, 0.f);
 }
 
 HRESULT CDragon::Init_SpineChain()
@@ -435,6 +446,15 @@ void CDragon::Render_GameObject()
 	Render_Chain(m_WingR, DRAGON_WING_COUNT);
 
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+}
+
+void CDragon::Set_RootPos(const _vec3 vPos)
+{
+	//시작 위치 고정
+	m_Spine[0].vPos = vPos;
+	//생성 직후 튀는 이동을 방지
+	m_vMoveTarget = vPos;
+	m_vVelocity = _vec3(0.f, 0.f, 0.f);
 }
 
 void CDragon::Solve_CCD(DRAGON_BONE* pChain, _int iCount,
@@ -717,13 +737,14 @@ void CDragon::Transition_State(eDragonState eNext)
 
 void CDragon::Update_IDLE(const _float& fTimeDelta)
 {
-	if (!m_bManualControl)
+	// Day 8: 원격 제어 중이면 순찰 AI 스킵 (Force_RootPos가 위치 관리)
+	if (!m_bManualControl && !m_bNetworkControlled)
 	{
-		m_vMoveTarget = s_PatrolPoints[m_iPatrolIndex];
+		//m_vMoveTarget = s_PatrolPoints[m_iPatrolIndex];
 
-		_float fDist = D3DXVec3Length(&(m_vMoveTarget - m_Spine[0].vPos));
-		if (fDist < 1.f)
-			m_iPatrolIndex = (m_iPatrolIndex + 1) % 4; // m_iPatrolCount 대신 4
+		//_float fDist = D3DXVec3Length(&(m_vMoveTarget - m_Spine[0].vPos));
+		//if (fDist < 1.f)
+		//	m_iPatrolIndex = (m_iPatrolIndex + 1) % 4; // m_iPatrolCount 대신 4
 	}
 	//m_vMoveTarget을 향해서 이동
 	_vec3 vToTarget = m_vMoveTarget - m_Spine[0].vPos;

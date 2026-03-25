@@ -3,6 +3,7 @@
 #include "CProtoMgr.h"
 #include "CPlayerBody.h"
 #include "CTexture.h"
+#include "CCollider.h"
 
 // Remote player: server-driven position, lerp in Update, CPlayerBody rendering.
 class CRemotePlayer : public Engine::CGameObject
@@ -23,7 +24,8 @@ public:
 
     // iSequence: 서버 PlayerState.iLastSequence (-1 이면 강제 갱신)
     void SetTargetState(float fX, float fY, float fZ,
-        float fRotY, int iState, int iSequence = -1, bool bOnDragon = false);
+        float fRotY, int iState, int iSequence = -1, bool bOnDragon = false,
+        int iDragonIdx = -1, float fDragonX = 0.f, float fDragonY = 0.f, float fDragonZ = 0.f);
 
     int         GetPlayerId()      const { return m_iPlayerId; }
     int         GetLastSequence()  const { return m_iLastSequence; }
@@ -31,6 +33,17 @@ public:
     float       GetX()         const { return m_fCurX; }
     float       GetY()         const { return m_fCurY; }
     float       GetZ()         const { return m_fCurZ; }
+
+    bool Is_OnDragon() const { return m_bOnDragon; }
+    int Get_DragonIdx() const { return m_iDragonIdx; }
+    _vec3 Get_DragonPos() const 
+    { 
+        return _vec3(m_fTargetDragonX, m_fTargetDragonY, m_fTargetDragonZ); 
+    }
+
+    CCollider* Get_Collider() const { return m_pColliderCom; }
+    //Day 10 피격 트리거
+    void Set_Hit(); 
 
     static CRemotePlayer* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
@@ -74,6 +87,11 @@ private:
     bool    m_bMoving = false;
     bool    m_bOnDragon = false;    // 탑승 여부 (렌더링 확장용)
 
+    int m_iDragonIdx = -1;
+    float m_fTargetDragonX = 0.f;
+    float m_fTargetDragonY = 0.f;
+    float m_fTargetDragonZ = 0.f;
+
     // ── 렌더링 컴포넌트 ────────────────────────────────────────────────────
     CPlayerBody* m_pBufferCom[PART_END] = {};
     Engine::CTexture* m_pTextureCom = nullptr;
@@ -85,4 +103,11 @@ private:
 
     _vec3   m_vPartScale[PART_END] = {};
     _vec3   m_vPartOffset[PART_END] = {};
+
+    CCollider* m_pColliderCom = nullptr;
+
+    //Day 10 피격 이펙트 타이머
+    bool m_bHit = false;
+    float m_fHitTime = 0.f;
+    static constexpr float m_fHitDuration = 0.5f;
 };

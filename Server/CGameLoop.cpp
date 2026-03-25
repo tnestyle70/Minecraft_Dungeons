@@ -126,6 +126,9 @@ void CGameLoop::BroadcastSnapshot(DWORD dwTick)
         pkt.players[idx].iLastSequence = pS->GetLastSeq();
         pkt.players[idx].bOnDragon = pS->GetOnDragon();
         pkt.players[idx].iDragonIdx = pS->GetDragonIdx();
+        pkt.players[idx].fDragonX = pS->GetDragonX();
+        pkt.players[idx].fDragonY = pS->GetDragonY();
+        pkt.players[idx].fDragonZ = pS->GetDragonZ();
     }
 
     if (pkt.iPlayerCount > 0)

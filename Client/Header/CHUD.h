@@ -5,6 +5,7 @@
 //HUD 플레이어의 생성과 동기화를 시켜서 체력 정보를 업데이트하는 것이 핵심
 
 class CPlayer;
+class CNetworkPlayer;
 
 class CHUD : public CGameObject
 {
@@ -21,7 +22,8 @@ public:
 
 public:
 	void Set_Player(CPlayer* pPlayer) { m_pPlayer = pPlayer; }
-	void Clear_Player() { m_pPlayer = nullptr; }
+	void Set_NetworkPlayer(CNetworkPlayer* pPlayer) { m_pNetworkPlayer = pPlayer; }
+	void Clear_Player() { m_pPlayer = nullptr; m_pNetworkPlayer = nullptr; }
 
 private:
 	HRESULT			Add_Component();
@@ -35,6 +37,7 @@ private:
 	CTexture* m_pEmptyHeart = nullptr;
 
 	CPlayer* m_pPlayer = nullptr;
+	CNetworkPlayer* m_pNetworkPlayer = nullptr;
 	
 	//Empty Heart 위치, 사이즈
 	float m_fX, m_fY = 0.f;

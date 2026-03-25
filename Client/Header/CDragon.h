@@ -48,6 +48,7 @@ public:
 	virtual void Render_GameObject();
 public:
 	//드래곤 제어 Application Programming Interface
+	void Set_RootPos(const _vec3 vPos);
 	void Set_MoveTarget(const _vec3& vTarget) { m_vMoveTarget = vTarget; }
 	_vec3 Get_HeadPos() const { return m_Head.vPos; }
 	_vec3 Get_SpineRoot() const { return m_Spine[0].vPos; }
@@ -59,9 +60,14 @@ public:
 	bool  Is_Ridden()     const { return m_bRidden; }
 	void  Set_Ridden(bool bVal) { m_bRidden = bVal; }
 	void  Force_Idle_State();   // CDragon.cpp에 구현
+	//네트워크 원격 제어 API
+	void  Set_NetworkControlled(bool b) { m_bNetworkControlled = b; }
+	bool  Is_NetworkControlled()  const { return m_bNetworkControlled; }
+	void  Force_RootPos(const _vec3& vPos);
 	
 private:
 	bool m_bRidden = false;
+	bool m_bNetworkControlled = false;
 
 private:
 	//초기화 헬퍼

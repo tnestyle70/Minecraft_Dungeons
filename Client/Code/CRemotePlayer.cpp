@@ -163,6 +163,13 @@ HRESULT CRemotePlayer::Ready_GameObject()
     m_vPartOffset[PART_LLEG] = { 0.26f,  0.45f, 0.00f };
     m_vPartOffset[PART_RLEG] = { -0.26f, 0.45f, 0.00f };
 
+    //PVP 충돌용 콜라이더
+    m_pColliderCom = CCollider::Create(m_pGraphicDev,
+        _vec3(1.0f, 2.5f, 1.0f),   // full dimensions → AABB half: (0.5, 1.25, 0.5)
+        _vec3(0.f, 1.25f, 0.f));   // 발 기준 → 중심이 Y+1.25 (플레이어 중간)
+    if (!m_pColliderCom)
+        return E_FAIL;
+
     return S_OK;
 }
 
@@ -190,7 +197,8 @@ void CRemotePlayer::InitSpawn(int iPlayerId,
 //  SetTargetState  —  S2C_StateSnapshot 수신 시 목표값 갱신
 // =====================================================================
 void CRemotePlayer::SetTargetState(float fX, float fY, float fZ,
-    float fRotY, int iState, int iSequence, bool bOnDragon)
+    float fRotY, int iState, int iSequence, bool bOnDragon,
+    int iDragonIdx, float fDragonX, float fDragonY, float fDragonZ)
 {
     // iSequence != -1: 역전된 오래된 스냅샷이면 무시 (패킷 재정렬 방지)
     if (iSequence != -1 && iSequence <= m_iLastSequence)
@@ -205,6 +213,10 @@ void CRemotePlayer::SetTargetState(float fX, float fY, float fZ,
     m_iTargetState = iState;
     m_bMoving = (iState == 1);
     m_bOnDragon = bOnDragon;
+    m_iDragonIdx = iDragonIdx;
+    m_fTargetDragonX = fDragonX;
+    m_fTargetDragonY = fDragonY;
+    m_fTargetDragonZ = fDragonZ;
 }
 
 // =====================================================================
@@ -227,6 +239,22 @@ _int CRemotePlayer::Update_GameObject(const _float& fTimeDelta)
 
     if (m_bMoving)
         m_fWalkTime += fTimeDelta * 8.f;
+
+    //콜라이더 업데이트
+    if(m_pColliderCom)
+        m_pColliderCom->Update_AABB(_vec3(m_fCurX, m_fCurY, m_fCurZ));
+
+    //Day 10 피격 이펙트 타이머 감소
+    if (m_bHit)
+    {
+        m_fHitTime += fTimeDelta;
+
+        if (m_fHitTime >= m_fHitDuration)
+        {
+            m_bHit = false;
+            m_fHitTime = 0.f;
+       }
+    }
 
     return 0;
 }
@@ -295,6 +323,21 @@ void CRemotePlayer::Render_GameObject()
     const float fMaxAngle = D3DXToRadian(30.f);
     float fSwing = m_bMoving ? sinf(m_fWalkTime) * fMaxAngle : 0.f;
 
+    //Day 10 피격 이벤트 
+    bool bApplyHit = false;
+    if (m_bHit)
+    {
+        float fBlink = sinf(m_fHitTime * D3DX_PI * 8.f);
+
+        if (fBlink > 0.f)
+        {
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
+            m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
+            m_pGraphicDev->SetRenderState(D3DRS_TEXTUREFACTOR, D3DCOLOR_RGBA(255, 0, 0, 255));
+            bApplyHit = true;
+        }
+    }
+
     // ── 파트별 렌더 ────────────────────────────────────────────────────
     Render_Part(PART_HEAD, 0.f, 0.f, 0.f, matRootWorld);
     Render_Part(PART_BODY, 0.f, 0.f, 0.f, matRootWorld);
@@ -302,6 +345,13 @@ void CRemotePlayer::Render_GameObject()
     Render_Part(PART_RARM, -fSwing, 0.f, 0.f, matRootWorld);
     Render_Part(PART_LLEG, -fSwing, 0.f, 0.f, matRootWorld);
     Render_Part(PART_RLEG, fSwing, 0.f, 0.f, matRootWorld);
+
+    //Day 10 피격 이펙트 상태 복구 시키기
+    if (bApplyHit)
+    {
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+        m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+    }
 
     m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 
@@ -382,6 +432,12 @@ void CRemotePlayer::Render_NameTag()
         L"Font_Minecraft", szNick, &vScreen, D3DXCOLOR(1.f, 1.f, 0.f, 1.f));
 }
 
+void CRemotePlayer::Set_Hit()
+{
+    m_bHit = true;
+    m_fHitTime = 0.f;
+}
+
 // =====================================================================
 CRemotePlayer* CRemotePlayer::Create(LPDIRECT3DDEVICE9 pGraphicDev)
 {
@@ -405,6 +461,7 @@ void CRemotePlayer::Free()
         Engine::Safe_Release(m_pArmorBufferCom[i]);
 
     Engine::Safe_Release(m_pArmorTextureCom);
+    Safe_Release(m_pColliderCom);
 
     CGameObject::Free();
 }

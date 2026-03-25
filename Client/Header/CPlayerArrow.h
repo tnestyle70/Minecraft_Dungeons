@@ -51,6 +51,8 @@ public:
     bool Is_Firework() const    { return m_bFirework; }
     void Set_Dead()             { m_bDead = true; }
 
+    CCollider* Get_Collider() const { return m_pColliderCom; }
+
     bool Is_Exploding() const { return m_bExploding; }
     CCollider* Get_ExplodeCollider() const { return m_pExplodeColliderCom; }
 
