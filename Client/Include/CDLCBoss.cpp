@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CDLCBoss.h"
 #include "CManagement.h"
 #include "CRenderer.h" 
@@ -31,7 +31,7 @@ _int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
-    // ÇÃ·¹ÀÌ¾î °ø°İ Äİ¶óÀÌ´õ Ãæµ¹ Ã¼Å©
+    // í”Œë ˆì´ì–´ ê³µê²© ì½œë¼ì´ë” ì¶©ëŒ ì²´í¬
     if (m_pColliderCom && m_pTransformCom && m_iHp > 0)
     {
         _vec3 vPos;
@@ -52,12 +52,39 @@ _int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
+    // í™”ì‚´ í”¼ê²© ì²´í¬
+    CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+    if (pPlayer)
+    {
+        for (auto& pArrow : pPlayer->Get_Arrows())
+        {
+            if (pArrow->Is_Dead()) continue;
+            CCollider* pArrowCollider = dynamic_cast<CCollider*>(
+                pArrow->Get_Component(ID_STATIC, L"Com_Collider"));
+            if (!pArrowCollider) continue;
+            if (m_pColliderCom && m_pColliderCom->IsColliding(pArrowCollider->Get_AABB()))
+            {
+                if (pArrow->Is_Firework())
+                {
+                    pArrow->Trigger_Explode();
+                    Take_Damage((int)(pPlayer->Get_BowDmg() * 3.f));
+                }
+                else
+                {
+                    Take_Damage((int)pPlayer->Get_BowDmg());
+                    pArrow->Set_Dead();
+                }
+                break;
+            }
+        }
+    }
+
     return iExit;
 }
 
 void CDLCBoss::LateUpdate_GameObject(const _float& fTimeDelta)
 {
-    // HP > 0 ÀÏ¶§¸¸ AI ¾÷µ¥ÀÌÆ®
+    // HP > 0 ì¼ë•Œë§Œ AI ì—…ë°ì´íŠ¸
     if (m_iHp > 0)
         Update_AI(fTimeDelta);
 
@@ -66,7 +93,7 @@ void CDLCBoss::LateUpdate_GameObject(const _float& fTimeDelta)
 
 void CDLCBoss::Take_Damage(int iDamage)
 {
-    // HP °¨¼Ò¸¸ Ã³¸® - ³ª¸ÓÁö´Â ÆÄ»ı Å¬·¡½º¿¡¼­
+    // HP ê°ì†Œë§Œ ì²˜ë¦¬ - ë‚˜ë¨¸ì§€ëŠ” íŒŒìƒ í´ë˜ìŠ¤ì—ì„œ
     m_iHp -= iDamage;
     if (m_iHp < 0) m_iHp = 0;
 }

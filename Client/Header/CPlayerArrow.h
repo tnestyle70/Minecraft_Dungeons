@@ -44,7 +44,7 @@ public:
     static CPlayerArrow* Create(LPDIRECT3DDEVICE9 pGraphicDev,
         const _vec3& vPos,
         const _vec3& vDir,
-        float fCharge);
+        float fDamage);
 
     float Get_Damage() const { return m_fDamage; }
     void Set_Firework(bool b)   { m_bFirework = b; }

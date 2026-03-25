@@ -162,11 +162,11 @@ void CPlayerArrow::Render_GameObject()
 }
 
 CPlayerArrow* CPlayerArrow::Create(LPDIRECT3DDEVICE9 pGraphicDev,
-    const _vec3& vPos, const _vec3& vDir, float fCharge)
+    const _vec3& vPos, const _vec3& vDir, float fDamage)
 {
     CPlayerArrow* pArrow = new CPlayerArrow(pGraphicDev);
     pArrow->m_vDir = vDir;
-    pArrow->m_fDamage = 10.f + 15.f * fCharge;
+    pArrow->m_fDamage = fDamage;
 
     if (FAILED(pArrow->Ready_GameObject()))
     {

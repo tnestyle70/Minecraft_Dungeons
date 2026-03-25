@@ -23,7 +23,7 @@ public:
 
     // iSequence: 서버 PlayerState.iLastSequence (-1 이면 강제 갱신)
     void SetTargetState(float fX, float fY, float fZ,
-        float fRotY, int iState, int iSequence = -1);
+        float fRotY, int iState, int iSequence = -1, bool bOnDragon = false);
 
     int         GetPlayerId()      const { return m_iPlayerId; }
     int         GetLastSequence()  const { return m_iLastSequence; }
@@ -72,6 +72,7 @@ private:
 
     float   m_fWalkTime = 0.f;
     bool    m_bMoving = false;
+    bool    m_bOnDragon = false;    // 탑승 여부 (렌더링 확장용)
 
     // ── 렌더링 컴포넌트 ────────────────────────────────────────────────────
     CPlayerBody* m_pBufferCom[PART_END] = {};

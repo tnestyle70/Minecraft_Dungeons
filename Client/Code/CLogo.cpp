@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "CLogo.h"
 #include "CBackGround.h"
 #include "CProtoMgr.h"
@@ -40,21 +40,21 @@ _int CLogo::Update_Scene(const _float& fTimeDelta)
     bool bF1 = CDInputMgr::GetInstance()->Get_DIKeyState(DIK_F1);
     bool bF2 = CDInputMgr::GetInstance()->Get_DIKeyState(DIK_F2);
 
-    //¿¡µðÅÍ ¸ðµå·Î º¯°æ
+    //ì—ë””í„° ëª¨ë“œë¡œ ë³€ê²½
     if (bF1 && !m_bF1Toggle)
     {
         if (!m_pEditor)
         {
-            //ÃÖÃÊ ¿¡µðÅÍ »ý¼º Ä«¸Þ¶ó 
+            //ìµœì´ˆ ì—ë””í„° ìƒì„± ì¹´ë©”ë¼ 
             m_pEditor = CEditor::Create(m_pGraphicDev);
             if (!m_pEditor)
                 return -1;
         }
-        //Ã³À½ »ý¼º ÀÌÈÄ Åä±Û¸¸ Àû¿ë
+        //ì²˜ìŒ ìƒì„± ì´í›„ í† ê¸€ë§Œ ì ìš©
         m_pEditor->SetEditorMode(!m_pEditor->IsEditorMode());
     }
 
-    // ¿ÀºêÁ§Æ® ¿¡µðÅÍ º¯°æ
+    // ì˜¤ë¸Œì íŠ¸ ì—ë””í„° ë³€ê²½
     if (bF2 && !m_bF2Toggle)
     {
         if (!m_pObjectEditor)
@@ -80,7 +80,7 @@ _int CLogo::Update_Scene(const _float& fTimeDelta)
         return 0;
     }
 
-    //·Î°í ¾À ¾÷µ¥ÀÌÆ®
+    //ë¡œê³  ì”¬ ì—…ë°ì´íŠ¸
     _int iExit = Engine::CScene::Update_Scene(fTimeDelta);
 
     if (GetAsyncKeyState(VK_RETURN))
@@ -132,7 +132,7 @@ HRESULT CLogo::Ready_Environment_Layer(const _tchar* pLayerTag)
     if (nullptr == pLayer)
         return E_FAIL;
 
-    // ¿ÀºêÁ§Æ® Ãß°¡
+    // ì˜¤ë¸Œì íŠ¸ ì¶”ê°€
     CGameObject* pGameObject = nullptr;
 
     // back ground
@@ -154,8 +154,7 @@ HRESULT CLogo::Ready_Prototype()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_MainMenuTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/MainMenu_Screen2.png"))))
         return E_FAIL;
-    
-    //·Îµù¾À µî·Ï
+
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SquidCoastLoadingTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Logo/Loading_Screen_Squid_Coast.png"))))
         return E_FAIL;

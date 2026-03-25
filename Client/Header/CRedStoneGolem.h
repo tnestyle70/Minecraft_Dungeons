@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CGameObject.h"
 #include "CProtoMgr.h"
 #include "CRedStoneGolemPart.h"
@@ -103,6 +103,8 @@ private:
 
 public:
 	static CRedStoneGolem* Create(LPDIRECT3DDEVICE9 pGraphicDev);
+
+	float Get_Atk() const { return m_fAtk; }
 
 private:
 	virtual void Free();

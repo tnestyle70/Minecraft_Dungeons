@@ -144,13 +144,13 @@ HRESULT CStage::Ready_GameLogic_Layer(const _tchar* pLayerTag)
     CGameObject* pGameObject = nullptr;
 
     // Terrain
-    pGameObject = CTerrain::Create(m_pGraphicDev);
+    //pGameObject = CTerrain::Create(m_pGraphicDev);
 
-    if (nullptr == pGameObject)
-        return E_FAIL;
+    //if (nullptr == pGameObject)
+    //    return E_FAIL;
 
-    if (FAILED(pLayer->Add_GameObject(L"Terrain", pGameObject)))
-        return E_FAIL;
+    //if (FAILED(pLayer->Add_GameObject(L"Terrain", pGameObject)))
+    //    return E_FAIL;
 
     // player
     pGameObject = CPlayer::Create(m_pGraphicDev);

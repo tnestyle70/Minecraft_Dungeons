@@ -477,6 +477,9 @@
     <ClInclude Include="..\Header\CExplosionLight.h">
       <Filter>02. GameObject</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\COceanTypes.h">
+      <Filter>04. Network\03. Ocean</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />

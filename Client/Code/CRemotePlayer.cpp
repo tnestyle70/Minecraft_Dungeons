@@ -190,7 +190,7 @@ void CRemotePlayer::InitSpawn(int iPlayerId,
 //  SetTargetState  —  S2C_StateSnapshot 수신 시 목표값 갱신
 // =====================================================================
 void CRemotePlayer::SetTargetState(float fX, float fY, float fZ,
-    float fRotY, int iState, int iSequence)
+    float fRotY, int iState, int iSequence, bool bOnDragon)
 {
     // iSequence != -1: 역전된 오래된 스냅샷이면 무시 (패킷 재정렬 방지)
     if (iSequence != -1 && iSequence <= m_iLastSequence)
@@ -204,6 +204,7 @@ void CRemotePlayer::SetTargetState(float fX, float fY, float fZ,
     m_fTargetRotY = fRotY;
     m_iTargetState = iState;
     m_bMoving = (iState == 1);
+    m_bOnDragon = bOnDragon;
 }
 
 // =====================================================================

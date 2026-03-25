@@ -637,7 +637,27 @@ void CNetworkPlayer::Key_Input(const _float& fTimeDelta)
 		}
 	}
 	m_bGKeyPrev = bGCur;
-	if (m_bRiding) return;   // 탑승 중 일반 입력 전부 스킵
+
+	// 탑승 중 WASD → 드래곤 이동 목표 제어
+	if (m_bRiding && m_pMountedDragon)
+	{
+		_vec3 vDragonPos = m_pMountedDragon->Get_SpineRoot();
+		_vec3 vTarget = vDragonPos;
+		bool  bInput = false;
+
+		if (GetAsyncKeyState('W') & 0x8000) { vTarget.z += 5.f; bInput = true; }
+		if (GetAsyncKeyState('S') & 0x8000) { vTarget.z -= 5.f; bInput = true; }
+		if (GetAsyncKeyState('A') & 0x8000) { vTarget.x -= 5.f; bInput = true; }
+		if (GetAsyncKeyState('D') & 0x8000) { vTarget.x += 5.f; bInput = true; }
+		if (GetAsyncKeyState('Q') & 0x8000) { vTarget.y += 5.f; bInput = true; } // 고도 상승
+		if (GetAsyncKeyState('E') & 0x8000) { vTarget.y -= 5.f; bInput = true; } // 고도 하강
+
+		if (bInput)
+			m_pMountedDragon->Set_MoveTarget(vTarget);
+
+		m_bMoving = bInput;
+		return;
+	}
 
 	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);

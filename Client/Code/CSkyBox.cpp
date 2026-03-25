@@ -22,7 +22,7 @@ HRESULT CSkyBox::Ready_GameObject()
 	if (FAILED(Add_Component()))
 		return E_FAIL;
 
-	m_pTransformCom->m_vScale = { 40.f, 40.f, 40.f };
+	m_pTransformCom->m_vScale = { 300.f, 300.f, 300.f };
 
 	return S_OK;
 }
@@ -54,7 +54,7 @@ void CSkyBox::Render_GameObject()
 	m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 	m_pGraphicDev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
 
-	m_pTextureCom->Set_Texture(3);
+	m_pTextureCom->Set_Texture(0);
 
 	m_pBufferCom->Render_Buffer();
 
