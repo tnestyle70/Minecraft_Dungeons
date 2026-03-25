@@ -198,6 +198,12 @@ void CServer::RecvThread()
                 case C2S_INPUT:
                     HandleInput(pSession, reinterpret_cast<const PKT_C2S_Input*>(pHdr));
                     break;
+                case C2S_ATTACK:
+                    HandleAttack(pSession, reinterpret_cast<const PKT_C2S_Attack*>(pHdr));
+                    break;
+                case C2S_DAMAGE:
+                    HandleDamage(pSession, reinterpret_cast<const PKT_C2S_Damage*>(pHdr));
+                    break;
                 default:
                     LOG_WARN("Session %d unknown packet type: %d", pSession->GetSessionId(), pHdr->wType);
                     break;
@@ -277,7 +283,8 @@ void CServer::HandleLogin(CSession* pSession, const PKT_C2S_Login* pPkt)
 void CServer::HandleInput(CSession* pSession, const PKT_C2S_Input* pPkt)
 {
     if (!pSession->IsLoggedIn()) return;
-    //클라이언트가 서버로 보낸 패킷의 정보를 확인해서 해당 정보를 신뢰 후 위치 반영
+
+    // 탑승 중이면 Y도 클라 값 신뢰 (드래곤 고도 반영), 아닌 경우 서버 Y 유지
     if (pPkt->bOnDragon)
         pSession->SetPosition(pPkt->fX, pPkt->fY, pPkt->fZ);
     else
@@ -286,7 +293,54 @@ void CServer::HandleInput(CSession* pSession, const PKT_C2S_Input* pPkt)
     pSession->SetInput(pPkt->fDirX, pPkt->fDirZ, pPkt->fRotY);
     pSession->SetLastSeq(pPkt->iSequence);
     pSession->SetOnDragon(pPkt->bOnDragon, pPkt->iDragonIdx);
+    if (pPkt->bOnDragon)
+        pSession->SetDragonPos(pPkt->fDragonX, pPkt->fDragonY, pPkt->fDragonZ);
+    // #region agent log
+    if (pPkt->bOnDragon)
+    {
+        FILE* fp = nullptr;
+        if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+        {
+            fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H3\",\"location\":\"Server/CServer.cpp:289\",\"message\":\"handle_input_on_dragon\",\"data\":{\"sessionId\":%d,\"seq\":%d,\"dragonIdx\":%d,\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"timestamp\":%llu}\n",
+                pSession->GetSessionId(), pPkt->iSequence, pPkt->iDragonIdx, pPkt->fX, pPkt->fY, pPkt->fZ, (unsigned long long)GetTickCount64());
+            fclose(fp);
+        }
+    }
+    // #endregion
     CSessionMgr::GetInstance()->AddRecvCount();
+}
+
+//발사자 제외 전체 브로드캐스트
+void CServer::HandleAttack(CSession* pSession, const PKT_C2S_Attack* pPkt)
+{
+    if (!pSession->IsLoggedIn()) return;
+
+    PKT_S2C_Attack out = {};
+    FillHeader(out, S2C_ATTACK);
+    out.iPlayerId = pSession->GetPlayerId();
+    out.fPosX = pPkt->fPosX;
+    out.fPosY = pPkt->fPosY;
+    out.fPosZ = pPkt->fPosZ;
+    out.fDirX = pPkt->fDirX;
+    out.fDirY = pPkt->fDirY;
+    out.fDirZ = pPkt->fDirZ;
+    out.fCharge = pPkt->fCharge;
+
+    //발사자 제외 전원 BroadCast
+    CSessionMgr::GetInstance()->BroadcastToLoggedIn(&out, sizeof(out), pSession->GetSessionId());
+}
+
+void CServer::HandleDamage(CSession * pSession, const PKT_C2S_Damage * pPkt)
+{
+    if (!pSession->IsLoggedIn()) return;
+
+    PKT_S2C_Damage out = {};
+    FillHeader(out, S2C_DAMAGE);
+    out.iTargetPlayerId = pPkt->iTargetPlayerId;
+    out.fDamage = pPkt->fDamage;
+    out.iAttackerPlayerId = pSession->GetPlayerId();
+
+    CSessionMgr::GetInstance()->BroadcastToLoggedIn(&out, sizeof(out));
 }
 
 // =====================================================================

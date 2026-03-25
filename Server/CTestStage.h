@@ -40,7 +40,7 @@ public:
     int  GetStageId() const { return m_iStageId; }
 
 private:
-    static constexpr int MAX_SPAWN = 4;
+    static constexpr int MAX_SPAWN = 50;
 
     // 빈 맵 기준 고정 좌표 — 서로 10유닛 간격
     //

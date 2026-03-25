@@ -1,8 +1,11 @@
 #include "pch.h"
 #include "CNetworkMgr.h"
 #include "CRemotePlayer.h"
+#include "CPlayerArrow.h"   // Day 9: 네트워크 화살 시각 객체
+#include "CNetworkPlayer.h" // Day 9: 로컬 플레이어 HP 갱신
 #include <cstring>
 #include <cstdio>
+#include <algorithm>
 
 CNetworkMgr* CNetworkMgr::m_pInstance = nullptr;
 
@@ -110,6 +113,12 @@ void CNetworkMgr::Disconnect()
     }
     m_mapRemote.clear();
 
+    // Day 9: 네트워크 화살 전체 해제
+    for (auto* p : m_vecNetArrows)
+        if (p) p->Release();
+    m_vecNetArrows.clear();
+    m_pLocalPlayer = nullptr;
+
     WSACleanup();
     printf("[NET] Disconnected\n");
 }
@@ -130,6 +139,18 @@ void CNetworkMgr::Update(float fTimeDelta)
         if (pRemote)
             pRemote->Update_GameObject(fTimeDelta);
     }
+
+    // Day 9: 네트워크 화살 업데이트 + Dead 정리
+    for (auto* p : m_vecNetArrows)
+        if (p) p->Update_GameObject(fTimeDelta);
+
+    m_vecNetArrows.erase(
+        std::remove_if(m_vecNetArrows.begin(), m_vecNetArrows.end(),
+            [](CPlayerArrow* p) {
+                if (p && p->Is_Dead() && !p->Is_Exploding()) { p->Release(); return true; }
+                return false;
+            }),
+        m_vecNetArrows.end());
 }
 
 void CNetworkMgr::LateUpdate(float fTimeDelta)
@@ -148,17 +169,25 @@ void CNetworkMgr::Render()
         if (pRemote)
             pRemote->Render_GameObject();
     }
+
+    // Day 9: 원격 발사 화살 시각 렌더
+    for (auto* pArrow : m_vecNetArrows)
+    {
+        if (pArrow)
+            pArrow->Render_GameObject();
+    }
 }
 
 // =====================================================================
 //  SendInput  —  Day 3 에서 CPlayer 입력 연동 시 호출
 // =====================================================================
 void CNetworkMgr::SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
-    float fX, float fY, float fZ, bool bOnDragon, int iDragonIdx)
+    float fX, float fY, float fZ, bool bOnDragon, int iDragonIdx,
+    float fDragonX, float fDragonY, float fDragonZ)
 {
     if (!m_bConnected || m_iMyPlayerId == -1)
         return;
-    //전송할 패킷 구조체의 정보
+
     PKT_C2S_Input pkt = {};
     FillHeader(pkt, C2S_INPUT);
     pkt.iSequence = ++m_iSequence;
@@ -172,6 +201,22 @@ void CNetworkMgr::SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
     pkt.fZ = fZ;
     pkt.bOnDragon = bOnDragon;
     pkt.iDragonIdx = iDragonIdx;
+    pkt.fDragonX = fDragonX;
+    pkt.fDragonY = fDragonY;
+    pkt.fDragonZ = fDragonZ;
+
+    // #region agent log
+    if (bOnDragon)
+    {
+        FILE* fp = nullptr;
+        if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+        {
+            fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H2\",\"location\":\"Client/Code/CNetworkMgr.cpp:173\",\"message\":\"send_input_on_dragon\",\"data\":{\"seq\":%d,\"dragonIdx\":%d,\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"timestamp\":%llu}\n",
+                pkt.iSequence, pkt.iDragonIdx, pkt.fX, pkt.fY, pkt.fZ, (unsigned long long)GetTickCount64());
+            fclose(fp);
+        }
+    }
+    // #endregion
 
     Send(&pkt, sizeof(pkt));
 }
@@ -248,6 +293,12 @@ void CNetworkMgr::ProcessPacket(const PKT_HEADER* pHdr)
         break;
     case S2C_STATE_SNAPSHOT:
         On_Snapshot(reinterpret_cast<const PKT_S2C_StateSnapshot*>(pHdr));
+        break;
+    case S2C_ATTACK:
+        On_Attack(reinterpret_cast<const PKT_S2C_Attack*>(pHdr));
+        break;
+    case S2C_DAMAGE:
+        On_Damage(reinterpret_cast<const PKT_S2C_Damage*>(pHdr));
         break;
     default:
         printf("[NET] Unknown packet type: %d\n", pHdr->wType);
@@ -361,8 +412,127 @@ void CNetworkMgr::On_Snapshot(const PKT_S2C_StateSnapshot* pPkt)
         {
             // iLastSequence 전달 → 역전된 오래된 스냅샷 자동 무시
             it->second->SetTargetState(st.fX, st.fY, st.fZ, st.fRotY,
-                st.iState, st.iLastSequence, st.bOnDragon);
+                st.iState, st.iLastSequence, st.bOnDragon,
+                st.iDragonIdx, st.fDragonX, st.fDragonY, st.fDragonZ);
         }
+    }
+}
+
+// =====================================================================
+//  Send  —  내부 전송 헬퍼
+// =====================================================================
+// =====================================================================
+//  SendAttack  —  Day 9: 화살 발사 이벤트 전송
+// =====================================================================
+void CNetworkMgr::SendAttack(float fPosX, float fPosY, float fPosZ,
+    float fDirX, float fDirY, float fDirZ, float fCharge, bool bFirework)
+{
+    if (!m_bConnected || m_iMyPlayerId == -1)
+        return;
+
+    PKT_C2S_Attack pkt = {};
+    FillHeader(pkt, C2S_ATTACK);
+    pkt.fPosX = fPosX;  pkt.fPosY = fPosY;  pkt.fPosZ = fPosZ;
+    pkt.fDirX = fDirX;  pkt.fDirY = fDirY;  pkt.fDirZ = fDirZ;
+    pkt.fCharge = fCharge;
+    pkt.bFirework = bFirework;
+
+    // #region agent log
+    {
+        FILE* fp = nullptr;
+        if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+        {
+            fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H1\",\"location\":\"Client/Code/CNetworkMgr.cpp:430\",\"message\":\"send_attack\",\"data\":{\"pos\":[%.3f,%.3f,%.3f],\"dir\":[%.3f,%.3f,%.3f],\"charge\":%.3f,\"firework\":%d},\"timestamp\":%llu}\n",
+                pkt.fPosX, pkt.fPosY, pkt.fPosZ, pkt.fDirX, pkt.fDirY, pkt.fDirZ, pkt.fCharge, pkt.bFirework ? 1 : 0, (unsigned long long)GetTickCount64());
+            fclose(fp);
+        }
+    }
+    // #endregion
+
+    Send(&pkt, sizeof(pkt));
+}
+
+// =====================================================================
+//  SendDamage  —  Day 9: PVP 피해 통보 전송
+// =====================================================================
+void CNetworkMgr::SendDamage(int iTargetPlayerId, float fDamage)
+{
+    if (!m_bConnected || m_iMyPlayerId == -1)
+        return;
+
+    PKT_C2S_Damage pkt = {};
+    FillHeader(pkt, C2S_DAMAGE);
+    pkt.iTargetPlayerId = iTargetPlayerId;
+    pkt.fDamage = fDamage;
+
+    Send(&pkt, sizeof(pkt));
+}
+
+// =====================================================================
+//  On_Attack  —  Day 9: 원격 화살 시각 객체 생성
+// =====================================================================
+void CNetworkMgr::On_Attack(const PKT_S2C_Attack* pPkt)
+{
+    // 자신의 공격은 이미 로컬에서 생성됨 → 스킵
+    if (pPkt->iPlayerId == m_iMyPlayerId) return;
+
+    _vec3 vPos = { pPkt->fPosX, pPkt->fPosY, pPkt->fPosZ };
+    _vec3 vDir = { pPkt->fDirX, pPkt->fDirY, pPkt->fDirZ };
+
+    CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, vDir, pPkt->fCharge);
+    if (pArrow)
+    {
+        pArrow->Set_Firework(pPkt->bFirework);
+        m_vecNetArrows.push_back(pArrow);
+
+        // #region agent log
+        {
+            FILE* fp = nullptr;
+            if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+            {
+                fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H3\",\"location\":\"Client/Code/CNetworkMgr.cpp:468\",\"message\":\"recv_attack_spawn_arrow\",\"data\":{\"attacker\":%d,\"charge\":%.3f,\"firework\":%d,\"netArrowCount\":%d},\"timestamp\":%llu}\n",
+                    pPkt->iPlayerId, pPkt->fCharge, pPkt->bFirework ? 1 : 0, (int)m_vecNetArrows.size(), (unsigned long long)GetTickCount64());
+                fclose(fp);
+            }
+        }
+        // #endregion
+    }
+}
+
+// =====================================================================
+//  On_Damage  —  Day 9: 내가 피격됐을 때 HP 갱신
+// =====================================================================
+void CNetworkMgr::On_Damage(const PKT_S2C_Damage* pPkt)
+{
+    if (pPkt->iTargetPlayerId == m_iMyPlayerId)
+    {
+        // ── 내가 피격됨 → HP 갱신 + 로컬 피격 이펙트 ──────────────────
+        if (!m_pLocalPlayer) return;
+
+        m_pLocalPlayer->Hit(pPkt->fDamage);
+        float fNewHp = m_pLocalPlayer->Get_Hp();
+
+        printf("[NET] PVP damage received: %.1f HP  (attacker=%d, remaining=%.1f)\n",
+            pPkt->fDamage, pPkt->iAttackerPlayerId, fNewHp);
+
+        // #region agent log
+        {
+            FILE* fp = nullptr;
+            if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+            {
+                fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H5\",\"location\":\"Client/Code/CNetworkMgr.cpp:486\",\"message\":\"apply_damage\",\"data\":{\"attacker\":%d,\"damage\":%.3f,\"remainingHp\":%.3f},\"timestamp\":%llu}\n",
+                    pPkt->iAttackerPlayerId, pPkt->fDamage, fNewHp, (unsigned long long)GetTickCount64());
+                fclose(fp);
+            }
+        }
+        // #endregion
+    }
+    else
+    {
+        // ── Day 10: 원격 플레이어 피격 → 빨간 플래시 이펙트 ───────────
+        auto it = m_mapRemote.find(pPkt->iTargetPlayerId);
+        if (it != m_mapRemote.end() && it->second)
+            it->second->Set_Hit();
     }
 }
 

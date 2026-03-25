@@ -2,6 +2,7 @@
 #include "CHUD.h"
 #include "CRenderer.h"
 #include "CPlayer.h"
+#include "CNetworkPlayer.h"
 
 CHUD::CHUD(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CGameObject(pGraphicDev)
@@ -47,7 +48,7 @@ void CHUD::LateUpdate_GameObject(const _float& fTimeDelta)
 
 void CHUD::Render_GameObject()
 {
-	if (!m_pPlayer)
+	if (!m_pPlayer && !m_pNetworkPlayer)
 		return;
 	//플레이어 체력 연동
 	if (m_pPlayer)
@@ -55,6 +56,12 @@ void CHUD::Render_GameObject()
 		m_iHP = m_pPlayer->Get_Hp();
 		m_iMaxHP = m_pPlayer->Get_MaxHp();
 	}
+	else if (m_pNetworkPlayer)
+	{
+		m_iHP = m_pNetworkPlayer->Get_Hp();
+		m_iMaxHP = m_pNetworkPlayer->Get_MaxHp();
+	}
+
 	
 	//체력 비율에 따른 데미지 비율, 즉 Empty Heart 렌더 비율 설정
 	float fRatio = (m_iMaxHP > 0) ? (float)m_iHP / (float)m_iMaxHP : 0.f;

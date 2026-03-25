@@ -4,8 +4,8 @@
 #include <windows.h>
 
 #define PROTOCOL_VERSION 1
-#define MAX_PLAYERS 10
-#define SESSION_TIMEOUT_MS 15000  // 15초 타임아웃 (C2S_Input 20TPS 정상 동작 확인 후 복구)
+#define MAX_PLAYERS 50
+#define SESSION_TIMEOUT_MS 15000  // 15s timeout (after C2S_Input 20TPS verified)
 
 enum PACKET_TYPE : WORD
 {
@@ -13,11 +13,15 @@ enum PACKET_TYPE : WORD
 
     C2S_LOGIN = 1,
     C2S_INPUT = 2,
+    C2S_ATTACK = 4,   // Day 9: attack event (arrow)
+    C2S_DAMAGE = 5,   // Day 9: PVP damage notify
 
     S2C_LOGIN_ACK = 101,
     S2C_SPAWN = 102,
     S2C_STATE_SNAPSHOT = 103,
     S2C_DESPAWN = 104,
+    S2C_ATTACK = 106, // Day 9: attack relay
+    S2C_DAMAGE = 107, // Day 9: damage relay
 };
 
 #pragma pack(push, 1)
@@ -69,11 +73,12 @@ struct PKT_C2S_Input
     float fRotY;
     bool bMoving;
     DWORD dwTimestamp;
-    float fX;   // 클라이언트 실제 위치 (서버 위치 보정용)
+    float fX;   // client position (server correction)
     float fY;
     float fZ;
-    bool  bOnDragon;    // 드래곤 탑승 여부
-    int   iDragonIdx;   // 탑승한 드래곤 인덱스 (0~3, 미탑승 시 -1)
+    bool  bOnDragon;    // on-dragon flag
+    int   iDragonIdx;   // dragon index (0~3, -1 if none)
+    float fDragonX, fDragonY, fDragonZ;  // Day 8: dragon root position
 };
 
 struct PlayerState
@@ -83,8 +88,9 @@ struct PlayerState
     float fRotY;
     int  iState;
     int  iLastSequence;
-    bool bOnDragon;     // 드래곤 탑승 여부
-    int  iDragonIdx;    // 탑승한 드래곤 인덱스 (0~3, 미탑승 시 -1)
+    bool  bOnDragon;    // on-dragon flag
+    int   iDragonIdx;   // dragon index (0~3, -1 if none)
+    float fDragonX, fDragonY, fDragonZ;  // Day 8: dragon root position
 };
 
 struct PKT_S2C_StateSnapshot
@@ -99,6 +105,42 @@ struct PKT_S2C_Despawn
 {
     PKT_HEADER header;
     int iPlayerId;
+};
+
+// Day 9: attack sync
+struct PKT_C2S_Attack
+{
+    PKT_HEADER header;
+    float fPosX, fPosY, fPosZ;   // 발사 위치
+    float fDirX, fDirY, fDirZ;   // 정규화된 방향
+    float fCharge;                // charge ratio (0.0~1.0)
+    bool  bFirework;              // firework arrow flag
+};
+
+struct PKT_S2C_Attack
+{
+    PKT_HEADER header;
+    int   iPlayerId;              // attacker id
+    float fPosX, fPosY, fPosZ;
+    float fDirX, fDirY, fDirZ;
+    float fCharge;
+    bool  bFirework;
+};
+
+// Day 9: PVP damage sync
+struct PKT_C2S_Damage
+{
+    PKT_HEADER header;
+    int   iTargetPlayerId;        // target id
+    float fDamage;
+};
+
+struct PKT_S2C_Damage
+{
+    PKT_HEADER header;
+    int   iTargetPlayerId;
+    int   iAttackerPlayerId;
+    float fDamage;
 };
 
 #pragma pack(pop)

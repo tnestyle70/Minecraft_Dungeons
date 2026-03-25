@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CNetworkPlayer.h"
+#include "CNetworkMgr.h"    // Day 9: SendAttack 호출
 #include "CRenderer.h"
 #include "CManagement.h"
 #include "CBlockMgr.h"
@@ -12,6 +13,7 @@
 #include "CRedStoneGolem.h"
 #include "CAncientGuardian.h"
 #include "CCursorMgr.h"
+#include <cstdio>
 
 CNetworkPlayer::CNetworkPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -54,7 +56,7 @@ HRESULT CNetworkPlayer::Ready_GameObject()
 
 	m_eArmorType = ARMOR_BARDSGARD;
 
-#pragma region 파트별 크기, 오프셋
+#pragma region 
 	m_vPartScale[PART_HEAD] = { 0.40f, 0.40f, 0.40f };
 	m_vPartScale[PART_BODY] = { 0.50f, 0.50f, 0.25f };
 	m_vPartScale[PART_LARM] = { 0.20f, 0.60f, 0.20f };
@@ -627,6 +629,16 @@ void CNetworkPlayer::Key_Input(const _float& fTimeDelta)
 				m_bRiding = true;
 				m_fVelocityY = 0.f;
 				m_bOnGround = false;
+				// #region agent log
+				{
+					FILE* fp = nullptr;
+					if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+					{
+						fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H1\",\"location\":\"Client/Code/CNetworkPlayer.cpp:623\",\"message\":\"mount_toggle\",\"data\":{\"mounted\":true},\"timestamp\":%llu}\n", (unsigned long long)GetTickCount64());
+						fclose(fp);
+					}
+				}
+				// #endregion
 			}
 		}
 		else
@@ -634,30 +646,22 @@ void CNetworkPlayer::Key_Input(const _float& fTimeDelta)
 			if (m_pMountedDragon) m_pMountedDragon->Set_Ridden(false);
 			m_pMountedDragon = nullptr;
 			m_bRiding = false;
+			// #region agent log
+			{
+				FILE* fp = nullptr;
+				if (_wfopen_s(&fp, L"debug-9b3cff.log", L"a") == 0 && fp)
+				{
+					fprintf(fp, "{\"sessionId\":\"9b3cff\",\"runId\":\"pre-fix\",\"hypothesisId\":\"H1\",\"location\":\"Client/Code/CNetworkPlayer.cpp:634\",\"message\":\"mount_toggle\",\"data\":{\"mounted\":false},\"timestamp\":%llu}\n", (unsigned long long)GetTickCount64());
+					fclose(fp);
+				}
+			}
+			// #endregion
 		}
 	}
 	m_bGKeyPrev = bGCur;
 
-	// 탑승 중 WASD → 드래곤 이동 목표 제어
-	if (m_bRiding && m_pMountedDragon)
-	{
-		_vec3 vDragonPos = m_pMountedDragon->Get_SpineRoot();
-		_vec3 vTarget = vDragonPos;
-		bool  bInput = false;
-
-		if (GetAsyncKeyState('W') & 0x8000) { vTarget.z += 5.f; bInput = true; }
-		if (GetAsyncKeyState('S') & 0x8000) { vTarget.z -= 5.f; bInput = true; }
-		if (GetAsyncKeyState('A') & 0x8000) { vTarget.x -= 5.f; bInput = true; }
-		if (GetAsyncKeyState('D') & 0x8000) { vTarget.x += 5.f; bInput = true; }
-		if (GetAsyncKeyState('Q') & 0x8000) { vTarget.y += 5.f; bInput = true; } // 고도 상승
-		if (GetAsyncKeyState('E') & 0x8000) { vTarget.y -= 5.f; bInput = true; } // 고도 하강
-
-		if (bInput)
-			m_pMountedDragon->Set_MoveTarget(vTarget);
-
-		m_bMoving = bInput;
-		return;
-	}
+	// 탑승 중 드래곤 입력은 CDragon::Handle_Input(방향키)만 사용한다.
+	// 여기서는 WASD/QE를 통한 드래곤 직접 제어를 의도적으로 비활성화한다.
 
 	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
@@ -737,6 +741,11 @@ void CNetworkPlayer::Key_Input(const _float& fTimeDelta)
 				pArrow->Set_Firework(m_bFireworkArrow);
 				m_vecArrows.push_back(pArrow);
 			}
+			// Day 9: 공격 이벤트를 서버에 전송 → 다른 클라이언트에 화살 시각 객체 생성
+			CNetworkMgr::GetInstance()->SendAttack(
+				vPos.x, vPos.y, vPos.z,
+				m_vBowDir.x, m_vBowDir.y, m_vBowDir.z,
+				fCharge, m_bFireworkArrow);
 			m_fCharge = 0.f;
 			m_bCharging = false;
 			m_bFireworkArrow = false;
@@ -1299,7 +1308,7 @@ void CNetworkPlayer::Render_Bow()
 	m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 }
 
-void CNetworkPlayer::Set_DragonList(CDragon * *ppDragons, int iCount)
+void CNetworkPlayer::Set_DragonList(CDragon** ppDragons, int iCount)
 {
 	m_iDragonCount = min(iCount, 4);
 	for (int i = 0; i < m_iDragonCount; ++i)
@@ -1446,14 +1455,14 @@ void CNetworkPlayer::Resolve_BlockCollision()
 	}
 }
 
-void CNetworkPlayer::Hit()
+void CNetworkPlayer::Hit(float fDamage)
 {
 	if (m_bHit)  // 이미 피격 중이면 무시
 		return;
 
 	m_bHit = true;
 	m_fHitTime = 0.f;
-	m_fHp -= 10.f;
+	m_fHp -= fDamage;
 	if (m_fHp < 0.f) m_fHp = 0.f;
 }
 

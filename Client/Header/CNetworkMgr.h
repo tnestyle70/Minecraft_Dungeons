@@ -6,9 +6,12 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #include <map>
+#include <vector>
 #include "../../Shared/PacketDef.h"
 
 class CRemotePlayer;
+class CPlayerArrow;   // Day 9: 네트워크 화살 시각 객체
+class CNetworkPlayer; // Day 9: 로컬 플레이어 HP 갱신용
 
 // =====================================================================
 //  CNetworkMgr  —  네트워크 싱글턴 매니저
@@ -47,15 +50,29 @@ public:
     // ── 송신 ──────────────────────────────────────────────────────────
     // Day 3 에서 CPlayer 입력 연동 시 호출
     void SendInput(float fDirX, float fDirZ, float fRotY, bool bMoving,
-        float fX, float fY, float fZ, bool bOnDragon = false, int iDragonIdx = -1);
+        float fX, float fY, float fZ,
+        bool bOnDragon = false, int iDragonIdx = -1,
+        float fDragonX = 0.f, float fDragonY = 0.f, float fDragonZ = 0.f);
+
+    // Day 9: 공격 / 피해 전송
+    void SendAttack(float fPosX, float fPosY, float fPosZ,
+        float fDirX, float fDirY, float fDirZ,
+        float fCharge, bool bFirework);
+    void SendDamage(int iTargetPlayerId, float fDamage);
 
     // ── 상태 조회 ─────────────────────────────────────────────────────
     int  GetMyPlayerId()  const { return m_iMyPlayerId; }
     bool IsLoggedIn()     const { return m_iMyPlayerId != -1; }
 
     // ImGui 디버그 패널용
-    int                                    GetRemoteCount()   const { return static_cast<int>(m_mapRemote.size()); }
+    int    GetRemoteCount()   const { return static_cast<int>(m_mapRemote.size()); }
     const std::map<int, CRemotePlayer*>& GetRemotePlayers() const { return m_mapRemote; }
+
+    // Day 8: 드래곤 위치 동기화용 — CNetworkStage에서 dragon 제어에 사용
+    const std::map<int, CRemotePlayer*>& GetRemoteMap() const { return m_mapRemote; }
+
+    // Day 9: 로컬 플레이어 등록 (피격 HP 갱신용)
+    void SetLocalPlayer(CNetworkPlayer* pPlayer) { m_pLocalPlayer = pPlayer; }
 
 private:
     // ── 수신 / 파싱 ───────────────────────────────────────────────────
@@ -66,6 +83,8 @@ private:
     void On_Spawn(const PKT_S2C_Spawn* pPkt);
     void On_Despawn(const PKT_S2C_Despawn* pPkt);
     void On_Snapshot(const PKT_S2C_StateSnapshot* pPkt);
+    void On_Attack(const PKT_S2C_Attack* pPkt);   // Day 9
+    void On_Damage(const PKT_S2C_Damage* pPkt);   // Day 9
 
     // ── 소켓 / 버퍼 ───────────────────────────────────────────────────
     bool Send(const void* pData, int iSize);
@@ -83,5 +102,9 @@ private:
 
     LPDIRECT3DDEVICE9             m_pGraphicDev = nullptr;
     std::map<int, CRemotePlayer*> m_mapRemote;  // playerId → CRemotePlayer*
+
+    // Day 9: 네트워크 화살 (원격 플레이어가 발사한 시각 전용 화살)
+    std::vector<CPlayerArrow*>    m_vecNetArrows;
+    CNetworkPlayer* m_pLocalPlayer = nullptr;  // 피격 HP 갱신용
 };
 

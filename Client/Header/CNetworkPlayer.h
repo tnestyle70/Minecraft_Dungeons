@@ -208,7 +208,7 @@ private: //중력 적용과 충돌시 위치값 보정
 public:
 	static CNetworkPlayer* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
-	void Hit();
+	void Hit(float fDamage = 10.f);
 
 private:
 	virtual void Free();

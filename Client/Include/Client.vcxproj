@@ -198,6 +198,8 @@
     <ClInclude Include="..\Header\CNetworkStage.h" />
     <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
+    <ClInclude Include="..\Header\COcean.h" />
+    <ClInclude Include="..\Header\COceanBuffer.h" />
     <ClInclude Include="..\Header\COceanTypes.h" />
     <ClInclude Include="..\Header\CPathFinding.h" />
     <ClInclude Include="..\Header\CPlayer.h" />
@@ -282,6 +284,8 @@
     <ClCompile Include="..\Code\CNetworkStage.cpp" />
     <ClCompile Include="..\Code\CObjectEditor.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
+    <ClCompile Include="..\Code\COcean.cpp" />
+    <ClCompile Include="..\Code\COceanBuffer.cpp" />
     <ClCompile Include="..\Code\CPathFinding.cpp" />
     <ClCompile Include="..\Code\CPlayer.cpp" />
     <ClCompile Include="..\Code\CPlayerArrow.cpp" />

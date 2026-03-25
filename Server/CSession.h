@@ -48,7 +48,12 @@ public:
     }
     bool GetOnDragon()  const { return m_bOnDragon; }
     int  GetDragonIdx() const { return m_iDragonIdx; }
+    float GetDragonX() const { return m_fDragonX; }
+    float GetDragonY() const { return m_fDragonY; }
+    float GetDragonZ() const { return m_fDragonZ; }
     void SetOnDragon(bool b, int idx) { m_bOnDragon = b; m_iDragonIdx = idx; }
+    void SetDragonPos(float x, float y, float z) { m_fDragonX = x, m_fDragonY = y, m_fDragonZ = z; }
+
     void Disconnect();
 
 private:
@@ -75,5 +80,9 @@ private:
 
     // 드래곤 탑승 상태
     bool  m_bOnDragon = false;
-    int   m_iDragonIdx = -1;
+    float fDragonX = false;
+    int m_iDragonIdx = -1;
+    float m_fDragonX = 0.f;
+    float m_fDragonY = 0.f;
+    float m_fDragonZ = 0.f;
 };

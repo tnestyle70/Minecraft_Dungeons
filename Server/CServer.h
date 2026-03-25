@@ -25,6 +25,8 @@ private:
     void RecvThread();
     void HandleLogin (CSession* pSession, const PKT_C2S_Login*  pPkt);
     void HandleInput (CSession* pSession, const PKT_C2S_Input*  pPkt);
+    void HandleAttack(CSession* pSession, const PKT_C2S_Attack* pPkt); // Day 9
+    void HandleDamage(CSession* pSession, const PKT_C2S_Damage* pPkt); // Day 9
 
     // 세션 종료 공통 처리: 스폰 해제 + Despawn 브로드캐스트 + OnDisconnect
     void HandleDisconnect(int iSessId, int iPlayerId, const char* szNickname);
