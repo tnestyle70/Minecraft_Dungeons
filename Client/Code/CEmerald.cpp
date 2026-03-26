@@ -150,7 +150,7 @@ void CEmerald::Chase_Player(const _float fTimeDelta)
 	}
 	else
 	{
-		m_pTransformCom->Chase_Target(&vPlayerPos, 20.f, fTimeDelta);
+		m_pTransformCom->Chase_Target(&vPlayerPos, 30.f, fTimeDelta);
 	}
 }
 
