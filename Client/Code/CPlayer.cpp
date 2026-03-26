@@ -11,6 +11,7 @@
 #include "CMonsterMgr.h"
 #include "CRedStoneGolem.h"
 #include "CAncientGuardian.h"
+#include "CSoundMgr.h"
 
 CPlayer::CPlayer(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -145,21 +146,21 @@ _int CPlayer::Update_GameObject(const _float& fTimeDelta)
 	if (m_bMoving)
 		m_fWalkTime += fTimeDelta * 8.f;
 
-	//======이동시 파티클 이펙트==========//
-	if (m_bMoving && m_pFootStepEmitter)
+	//발걸음 사운드
+	if (m_bMoving)
 	{
-		_vec3 vPos, vLook;
-		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-		D3DXVec3Normalize(&vLook, &vLook);
-
-		// 지나간 자리 = 플레이어 뒤쪽
-		vPos.x += vLook.x * 0.5f;
-		vPos.z += vLook.z * 0.5f;
-		// vPos.y = 발 아래
-
-		m_pFootStepEmitter->Set_Position(vPos);
+		m_fStepTimer += fTimeDelta;
+		if (m_fStepTimer >= m_fStepInterval)
+		{
+			m_fStepTimer = 0.f;
+			int iIdx = rand() % 6 + 1;
+			TCHAR szKey[MAX_PATH];
+			wsprintf(szKey, L"Player/__cutfast_convert_sfx_player_stepStone-%03d_soundWave.wav", iIdx);
+			CSoundMgr::GetInstance()->PlayEffect(szKey, 0.5f);
+		}
 	}
+	else
+		m_fStepTimer = 0.f;
 
 	// 피격
 	if (m_bHit)
@@ -633,6 +634,14 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 	{
 		if (bRClick && m_fBowCooldown <= 0.f)
 		{
+			//시위 당기기 사운드
+			if (!m_bCharging)
+			{
+				int iIdx = rand() % 3 + 1;
+				TCHAR szKey[MAX_PATH];
+				wsprintf(szKey, L"Player/sfx_item_CrossBowLoadTwang-%03d.wav", iIdx);
+				CSoundMgr::GetInstance()->PlayEffect(szKey, 1.f);
+			}
 			m_bCharging = true;
 			m_fCharge += fTimeDelta;
 			if (m_fCharge > m_fMaxCharge)
@@ -692,6 +701,13 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			m_pTransformCom->Get_Info(INFO_POS, &vPos);
 			vPos.y += 1.0f;
 			m_fLastChargeRatio = m_fCharge / m_fMaxCharge;
+
+			//화살 발사 사운드
+			int iIdx = rand() % 3 + 1;
+			TCHAR szKey[MAX_PATH];
+			wsprintf(szKey, L"Player/sfx_item_bowShoot-%03d_soundWave.wav", iIdx);
+			CSoundMgr::GetInstance()->PlayEffect(szKey, 1.f);
+
 			CPlayerArrow* pArrow = CPlayerArrow::Create(m_pGraphicDev, vPos, m_vBowDir, Get_BowDmg());
 			if (pArrow)
 			{
@@ -813,6 +829,12 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 						m_fAtkTime = 0.f;
 					m_fComboTimer = m_fComboWindow;
 					m_bHasTarget = false;
+
+					// 타격사운드
+					int iIdx = rand() % 3 + 2;  
+					TCHAR szKey[MAX_PATH];
+					wsprintf(szKey, L"Player/__cutfast_convert_sfx_misc_swordHit-%03d_soundWave.wav", iIdx);
+					CSoundMgr::GetInstance()->PlayEffect(szKey, 1.f);
 				}
 				else
 				{
@@ -858,6 +880,11 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 						m_fAtkTime = 0.f;
 						m_fComboTimer = m_fComboWindow;
 						m_bHasTarget = false;
+						//타격 사운드
+						int iIdx = rand() % 3 + 2;
+						TCHAR szKey[MAX_PATH];
+						wsprintf(szKey, L"Player/__cutfast_convert_sfx_misc_swordHit-%03d_soundWave.wav", iIdx);
+						CSoundMgr::GetInstance()->PlayEffect(szKey, 1.f);
 					}
 					else
 					{
