@@ -1,4 +1,4 @@
-#include "CSoundMgr.h"
+﻿#include "CSoundMgr.h"
 
 IMPLEMENT_SINGLETON(CSoundMgr)
 
@@ -163,7 +163,7 @@ void CSoundMgr::Free()
         delete[] pair.first;		// TCHAR* 키 메모리 해제
         pair.second->release();		// FMOD Sound 해제
     }
-    m_mapSound.clear();
+    m_mapSound.clear(); 
 
     // 시스템 해제 (close → release 순서 중요)
     if (m_pSystem)

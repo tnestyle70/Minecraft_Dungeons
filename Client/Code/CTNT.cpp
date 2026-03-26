@@ -95,8 +95,6 @@ _int CTNT::Update_GameObject(const _float& fTimeDelta)
         m_fFuseTimer -= fTimeDelta;
         if (m_fFuseTimer <= 0.f)
         {
-            CParticleMgr::GetInstance()->Add_Emitter(
-                CParticleEmitter::Create(m_pGraphicDev, PARTICLE_FIREWORK, vPos, nullptr));
             m_pExplodeColliderCom->Update_AABB(vPos);
             m_bExploding = true;
             m_fExplodeTimer = 0.3f;

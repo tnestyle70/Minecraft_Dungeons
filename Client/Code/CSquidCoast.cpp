@@ -203,15 +203,6 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	//Effect
-	CParticleMgr::GetInstance()->Add_Emitter(
-		CParticleEmitter::Create(m_pGraphicDev,
-			PARTICLE_FIREWORK, _vec3(0.f, 2.f, 0.f), nullptr)
-	);
-
-	CParticleMgr::GetInstance()->Add_Emitter(
-		CParticleEmitter::Create(m_pGraphicDev,
-			PARTICLE_HIT, _vec3(5.f, 2.f, 0.f), nullptr)
-	);
 
 	//SkyBox 추가
 	pGameObject = CSkyBox::Create(m_pGraphicDev);
