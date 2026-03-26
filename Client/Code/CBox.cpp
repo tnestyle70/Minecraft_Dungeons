@@ -3,6 +3,7 @@
 #include "CRenderer.h"
 #include "CManagement.h"
 #include "CEnvironmentMgr.h"
+#include "CSoundMgr.h"
 
 CBox::CBox(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -63,8 +64,16 @@ _int CBox::Update_GameObject(const _float& fTimeDelta)
 
 	for (auto& pEmerald : m_vecEmerald)
 	{
-		pEmerald->Update_GameObject(fTimeDelta);
+		_int iExit = pEmerald->Update_GameObject(fTimeDelta);
+		if (iExit == -1)
+			Safe_Release(pEmerald);
 	}
+
+	// 루프 끝난 후 nullptr된 것들 제거
+	m_vecEmerald.erase(
+		remove(m_vecEmerald.begin(), m_vecEmerald.end(), nullptr),
+		m_vecEmerald.end()
+	);
 
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
@@ -114,6 +123,8 @@ void CBox::Open_Box()
 
 	m_bIsOpening = true;
 	m_fAnimTime = 0.f;
+
+	CSoundMgr::GetInstance()->PlayEffect(L"Box/sfx_prop_chestWoodOpen-003_soundWave.wav", 0.6f);
 }
 
 HRESULT CBox::Add_Component()

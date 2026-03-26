@@ -7,6 +7,7 @@
 #include "CMonsterMgr.h"
 #include "CPlayer.h"
 #include "CCollider.h"
+#include "CSoundMgr.h"
 
 CAncientGuardian::CAncientGuardian(LPDIRECT3DDEVICE9 pGraphicDev)
     : CDLCBoss(pGraphicDev)
@@ -23,8 +24,10 @@ HRESULT CAncientGuardian::Ready_GameObject()
         return E_FAIL;
 
     // AG 보스 개별 체력 설정
-    m_iHp = 300;
-    m_iMaxHp = 300;
+    m_iHp = 1;
+    m_iMaxHp = 1; 
+
+   
 
     return S_OK;
 }
@@ -32,6 +35,9 @@ HRESULT CAncientGuardian::Ready_GameObject()
 _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CDLCBoss::Update_GameObject(fTimeDelta);
+
+    _vec3 vPos;
+    m_pTransformCom->Get_Info(INFO_POS, &vPos);
 
     if (!m_pBodyCom) return iExit;
     m_pBodyCom->Update_Body(fTimeDelta, false, false);
@@ -56,10 +62,13 @@ _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
         if (vPos.y < -10.f)
         {
             CDamageMgr::GetInstance()->Clear_Guardian();
-            m_bDeadDone = true;
         }
-           
     }
+
+    // CAGAnim의 DeadDone 상태를 읽어서 삭제 트리거
+    CAGAnim* pAnim = m_pBodyCom->Get_Anim();
+    if (pAnim && pAnim->Is_Dead())
+        m_bDeadDone = true;
 
     CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
 
@@ -68,7 +77,7 @@ _int CAncientGuardian::Update_GameObject(const _float& fTimeDelta)
 
 void CAncientGuardian::LateUpdate_GameObject(const _float& fTimeDelta)
 {
-    Update_AI(fTimeDelta);
+    
     CDLCBoss::LateUpdate_GameObject(fTimeDelta);
 }
 
@@ -107,7 +116,13 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     if (m_iHp <= 0)
     {
         if (m_pBodyCom->Get_Anim())
+        {
+           
+            if (m_pBodyCom->Get_Anim()->Get_State() != EAGState::DEAD)
+                CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_DEAD.wav", 0.8f);
             m_pBodyCom->Get_Anim()->Set_State(EAGState::DEAD);
+        }
+        Update_Biomines(fTimeDelta);
         return;
     }
 
@@ -130,6 +145,12 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     {
     case EPufferFishState::IDLE:
         m_fHoverTime += fTimeDelta;
+        m_fIdleSoundTimer += fTimeDelta;
+        if (m_fIdleSoundTimer >= m_fIdleSoundInterval)
+        {
+            m_fIdleSoundTimer = 0.f;
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_IDLE.wav", 0.6f);
+        }
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 20.f;
         {
             float fTargetY = 12.5f + sinf(m_fHoverTime * 1.5f) * 2.5f;
@@ -354,7 +375,8 @@ void CAncientGuardian::Update_Reposition(const _float& fTimeDelta)
 }
 
 void CAncientGuardian::Fire_Beam()
-{
+{ 
+    CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_Attack1.wav", 0.6f);
     if (!m_pTransformCom) return;
 
     _vec3 vMyPos, vLook;

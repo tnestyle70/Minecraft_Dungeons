@@ -59,7 +59,7 @@ HRESULT CSquidCoast::Ready_Scene()
 	CCMiniMap::GetInstance()->Ready_MiniMap(m_pGraphicDev);
 	Ready_StageData(L"../Bin/Data/Stage1.dat");
 
-	CSoundMgr::GetInstance()->PlayBGM(L"BGM/bgm_Test.wav", 0.5f);
+	
 	Ready_ObjectData("../Bin/Data/Stage1Object.dat");
 
 	return S_OK;
@@ -206,15 +206,6 @@ HRESULT CSquidCoast::Ready_Environment_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	//Effect
-	CParticleMgr::GetInstance()->Add_Emitter(
-		CParticleEmitter::Create(m_pGraphicDev,
-			PARTICLE_FIREWORK, _vec3(0.f, 2.f, 0.f), nullptr)
-	);
-
-	CParticleMgr::GetInstance()->Add_Emitter(
-		CParticleEmitter::Create(m_pGraphicDev,
-			PARTICLE_HIT, _vec3(5.f, 2.f, 0.f), nullptr)
-	);
 
 	//SkyBox 추가
 	pGameObject = CSkyBox::Create(m_pGraphicDev);
@@ -335,7 +326,7 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 	m_mapLayer.insert({ pLayerTag, pLayer });
 
 	//Ancient Guardian
-	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 219.f));
+	pGameObject = CAncientGuardian::Create(m_pGraphicDev, _vec3(42.f, 9.f, 229.f));
 	if (!pGameObject)
 		return E_FAIL;
 
@@ -526,13 +517,13 @@ void CSquidCoast::Free()
 	CMonsterMgr::GetInstance()->Clear();
 	CParticleMgr::GetInstance()->Clear_Emitters();
 	CBlockMgr::GetInstance()->ClearBlocks(); 
-	CCMiniMap::GetInstance()->DestroyInstance();
+	
 
 	CMonsterMgr::GetInstance()->Clear();
 	CTriggerBoxMgr::GetInstance()->Clear();
 	CIronBarMgr::GetInstance()->Clear();
 
-	CSoundMgr::GetInstance()->StopSound(SOUND_BGM);
+	
 
 	CScene::Free();
 }

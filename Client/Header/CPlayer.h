@@ -66,7 +66,10 @@ private:
 	_float m_fMoveSpeed = 10.f;
 
 	_float m_fBowCooldown = 0.f;
+
 	static constexpr float m_fBowCoolMax = 0.1f;
+
+	//_float m_fBowCoolMax = 1.f;
 
 	ARMOR_TYPE m_eArmorType = ARMOR_NONE;
 	_matrix m_matPartWorld[PART_END];
@@ -97,16 +100,18 @@ private:
 	vector<CTNT*> m_vecTNTs;
 	
 	//활 발사 모션
-	Engine::CTexture* m_pBowTexture[4] = {};  // 0=standby, 1~3=pulling
+	Engine::CTexture* m_pBowTexture[4] = {};  // 0=대기, 1~3=당기기
 	Engine::CRcTex* m_pBowBufferCom = nullptr;
-
-
 
 	Engine::CCollider* m_pAtkColliderCom = nullptr; //공격 콜라이더
 	_bool m_bAtkColliderActive = false;
 
 	//공격 이펙트
 	LPDIRECT3DTEXTURE9 m_pAttackTexture = nullptr;
+
+	//사운드용 발걸음
+	float m_fStepTimer = 0.f;
+	static constexpr float m_fStepInterval = 0.35f;
 
 public:
 	//플레이어 정보 Get / Set

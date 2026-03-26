@@ -7,6 +7,7 @@
 #include "CFontMgr.h"
 #include "CDamageMgr.h"
 #include "CMonsterMgr.h"
+#include "CSoundMgr.h"
 
 CRedStoneGolem::CRedStoneGolem(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -348,6 +349,27 @@ void CRedStoneGolem::Anim_Walk()
 {
 	const _float fCycleSpeed = 5.f;
 	const _float fAngle = m_fAnimTime * fCycleSpeed;
+
+	float left = sinf(fAngle);
+	float right = sinf(fAngle + D3DX_PI);
+
+	// Left Step
+	if (left > 0.95f && !m_bLeftStep)
+	{
+		CSoundMgr::GetInstance()->PlayEffect(L"Golem/sfx_mob_redstoneCubeWalk-001_soundWave.wav", 0.8f);
+		m_bLeftStep = true;
+	}
+	if (left < 0.f)
+		m_bLeftStep = false;
+
+	// Right Step
+	if (right > 0.95f && !m_bRightStep)
+	{
+		CSoundMgr::GetInstance()->PlayEffect(L"Golem/sfx_mob_redstoneCubeWalk-001_soundWave.wav", 0.8f);
+		m_bRightStep = true;
+	}
+	if (right < 0.f)
+		m_bRightStep = false;
 
 	m_pParts[GOLEM_LLEG]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle) * 25.f);
 	m_pParts[GOLEM_RLEG]->Get_Transform()->Set_Rotation(ROT_X, sinf(fAngle + D3DX_PI) * 25.f);
@@ -930,6 +952,8 @@ void CRedStoneGolem::Take_Damage(_float fDamage)
 	}
 	else
 	{
+		CSoundMgr::GetInstance()->PlayEffect(L"Golem/sfx_mob_redstoneGolemChest-001_soundWave.wav", 0.6f);
+
 		Change_State(GOLEM_STATE_HIT);
 	}
 }

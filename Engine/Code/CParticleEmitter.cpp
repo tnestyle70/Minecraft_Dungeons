@@ -456,6 +456,20 @@ CParticleEmitter* CParticleEmitter::Create(LPDIRECT3DDEVICE9 pGraphicDev,
         desc.bLoop = true;
         desc.fGravity = 0.f;
         break;
+        //TNT
+    case PARTICLE_DYNAMITE:
+        desc.vEmitDir = D3DXVECTOR3(0.f, 1.f, 0.f);
+        desc.fSpreadAngle = D3DX_PI * 0.5f;
+        desc.fMinSpeed = 2.f;      desc.fMaxSpeed = 5.f;
+        desc.fMinLifeTime = 0.4f;  desc.fMaxLifeTime = 0.8f;
+        desc.fMinSize = 40.f;      desc.fMaxSize = 80.f;
+        desc.colorStart = D3DXCOLOR(1.f, 0.f, 0.f, 0.9f);
+        desc.colorEnd = D3DXCOLOR(1.f, 0.5f, 0.f, 0.f);  
+        desc.iMaxParticles = 30;
+        desc.fEmitRate = 0.f;
+        desc.bLoop = false;
+        desc.fGravity = 0.5f;
+        break;
 
     default:
         break;

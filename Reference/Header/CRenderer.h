@@ -20,6 +20,7 @@ public:
 	void		Clear_RenderGroup();
 	
 public:
+	void		Render_SkyBox(LPDIRECT3DDEVICE9& pGraphicDev);
 	void		Render_Priority(LPDIRECT3DDEVICE9& pGraphicDev);
 	void		Render_NonAlpha(LPDIRECT3DDEVICE9& pGraphicDev);
 	void		Render_Alpha(LPDIRECT3DDEVICE9& pGraphicDev);

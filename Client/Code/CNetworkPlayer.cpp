@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CNetworkPlayer.h"
 #include "CNetworkMgr.h"    // Day 9: SendAttack 호출
 #include "CRenderer.h"
@@ -72,28 +72,6 @@ HRESULT CNetworkPlayer::Ready_GameObject()
 	m_vPartOffset[PART_RLEG] = { -0.26f, 0.45f, 0.00f };
 #pragma endregion
 
-	//====Effect Emitter Connect=========//
-	LPDIRECT3DTEXTURE9 pEffectTexture = nullptr;
-	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/FootPrint_Small.png", &pEffectTexture);
-
-	m_pFootStepEmitter = CParticleEmitter::Create(
-		m_pGraphicDev, PARTICLE_FOOTSTEP, _vec3(0.f, 0.f, 0.f), pEffectTexture);
-
-	CParticleMgr::GetInstance()->Add_Emitter(m_pFootStepEmitter);
-
-	Safe_Release(pEffectTexture);
-
-	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/Attack.png", &m_pAttackTexture);
-
-	m_pAttackEmitter = CParticleEmitter::Create(
-		m_pGraphicDev, PARTICLE_ATTACK, _vec3(0.f, 0.f, 0.f), pEffectTexture);
-
-	CParticleMgr::GetInstance()->Add_Emitter(m_pAttackEmitter);
-
-	Safe_Release(m_pAttackEmitter);
-
 	return S_OK;
 }
 
@@ -145,22 +123,6 @@ _int CNetworkPlayer::Update_GameObject(const _float& fTimeDelta)
 	// 이동
 	if (m_bMoving)
 		m_fWalkTime += fTimeDelta * 8.f;
-
-	//======이동시 파티클 이펙트==========//
-	if (m_bMoving && m_pFootStepEmitter)
-	{
-		_vec3 vPos, vLook;
-		m_pTransformCom->Get_Info(INFO_POS, &vPos);
-		m_pTransformCom->Get_Info(INFO_LOOK, &vLook);
-		D3DXVec3Normalize(&vLook, &vLook);
-
-		// 지나간 자리 = 플레이어 뒤쪽
-		vPos.x += vLook.x * 0.5f;
-		vPos.z += vLook.z * 0.5f;
-		// vPos.y = 발 아래
-
-		m_pFootStepEmitter->Set_Position(vPos);
-	}
 
 	// 피격
 	if (m_bHit)

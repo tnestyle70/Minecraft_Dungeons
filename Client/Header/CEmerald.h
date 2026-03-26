@@ -17,6 +17,7 @@ public:
 private:
 	void Init_Emerald();
 	void Pop_Emerald(const _float fTimeDelta);
+	void Chase_Player(const _float fTimeDelta);
 
 private:
 	HRESULT	Add_Component();
@@ -29,6 +30,9 @@ private:
 
 	_vec3 m_vVelocity;
 	_bool m_bDrop = false;
+	_bool m_bChase = false;
+	_bool m_bDead = false;
+	_bool m_bFirstPop = true;
 
 public:
 	static CEmerald* Create(LPDIRECT3DDEVICE9 pGraphicDev);

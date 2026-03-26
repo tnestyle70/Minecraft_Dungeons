@@ -12,6 +12,7 @@
 #include "CPlayerArrow.h"
 #include "CTNT.h"
 #include "CExplosionLight.h"
+#include "CSoundMgr.h"
 
 CMonster::CMonster(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -146,7 +147,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
     if (m_eType == EMonsterType::CREEPER && !m_bExploded)
     {
         if (pAnim && pAnim->Get_State() == EMonsterState::ATTACK
-            && pAnim->Get_StateTime() >= 2.f)
+            && pAnim->Get_StateTime() >= 5.f)
         {
             _vec3 vPos;
             m_pTransformCom->Get_Info(INFO_POS, &vPos);
@@ -159,6 +160,7 @@ _int CMonster::Update_GameObject(const _float& fTimeDelta)
             // 설명 : 크리퍼 몸 노란 번쩍임 시작
             m_bExplosionFlash = true;
             m_fExplosionFlashTimer = 0.f;
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/explode.wav", 1.f);
         }
     }
 
@@ -531,10 +533,39 @@ void CMonster::Take_Damage(int iDamage)
     {
         m_iHp = 0;
         pAnim->Set_State(EMonsterState::DEAD);
+
+        switch (m_eType)
+        {
+        case EMonsterType::ZOMBIE:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/zombieDead.wav", 0.7f);
+            break;
+        case EMonsterType::SPIDER:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/spiderDeath.wav", 0.7f);
+            break;
+        case EMonsterType::SKELETON:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/skeletonDeath.wav", 0.7f);
+            break;
+        }
     }
     else
     {
         pAnim->Set_State(EMonsterState::HIT);
+
+        switch (m_eType)
+        {
+        case EMonsterType::ZOMBIE:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/zombieHit.wav", 0.7f);
+            break;
+        case EMonsterType::SKELETON:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/skeletonHurt.wav", 0.7f);
+            break;
+        case EMonsterType::CREEPER:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/Creeper_HIT.wav", 0.7f);
+            break;
+        case EMonsterType::SPIDER:
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/spiderHIT.wav", 0.7f);
+            break;
+        }
     }
 }
 
@@ -636,11 +667,114 @@ void CMonster::Update_AI(const _float& fTimeDelta)
     if (pAnim->Get_State() == EMonsterState::DEAD) return;
     if (pAnim->Get_State() == EMonsterState::HIT)  return;
 
+    // 설명 : Idle 사운드 타이머
+    m_fIdleSoundTimer += fTimeDelta;
+    if (m_fIdleSoundTimer >= m_fIdleSoundInterval)
+    {
+        m_fIdleSoundTimer = 0.f;
+        if (pAnim->Get_State() == EMonsterState::IDLE)
+        {
+            switch (m_eType)
+            {
+            case EMonsterType::ZOMBIE:
+                CSoundMgr::GetInstance()->PlayEffect(L"Monster/zombieIdle.wav", 0.5f);
+                break;
+            case EMonsterType::SPIDER:
+                CSoundMgr::GetInstance()->PlayEffect(L"Monster/spiderIdle.wav", 0.5f);
+                break;
+            case EMonsterType::SKELETON:
+                CSoundMgr::GetInstance()->PlayEffect(L"Monster/skeletonIdle.wav", 0.5f);
+                break;
+            }
+        }
+    }
+
     _vec3 vLookDir = vPlayerPos - vMyPos;
     vLookDir.y = 0.f;
     D3DXVec3Normalize(&vLookDir, &vLookDir);
     m_pTransformCom->m_vAngle.y = D3DXToDegree(atan2f(vLookDir.x, vLookDir.z));
 
+    // 설명 : 크리퍼는 감지 즉시 ATTACK 상태 + 계속 이동
+    if (m_eType == EMonsterType::CREEPER)
+    {
+        if (fDist > m_fDetectRange)
+        {
+            m_bIsMoving = false;
+            m_vecPath.clear();
+            m_iPathIndex = 0;
+            pAnim->Set_State(EMonsterState::IDLE);
+            return;
+        }
+
+        // 설명 : 감지 범위 안이면 바로 ATTACK 상태로 깜빡이면서 이동
+        pAnim->Set_State(EMonsterState::ATTACK);
+
+        // 설명 : 폭발 범위 안이면 이동 중단
+        if (fDist <= m_fAttackRange)
+        {
+            m_bIsMoving = false;
+            m_vecPath.clear();
+            m_iPathIndex = 0;
+            return;
+        }
+
+        // 설명 : 아직 멀면 플레이어 쪽으로 계속 이동
+        m_bIsMoving = true;
+
+        m_fPathTimer += fTimeDelta;
+        if (m_fPathTimer >= m_fPathInterval || m_vecPath.empty())
+        {
+            m_fPathTimer = 0.f;
+            BlockPos tStart = { (int)roundf(vMyPos.x),     (int)roundf(vMyPos.y),     (int)roundf(vMyPos.z) };
+            BlockPos tGoal = { (int)roundf(vPlayerPos.x), (int)roundf(vPlayerPos.y), (int)roundf(vPlayerPos.z) };
+            m_vecPath = Find_Path(tStart, tGoal);
+            m_iPathIndex = 0;
+        }
+
+        if (!m_vecPath.empty() && m_iPathIndex < (int)m_vecPath.size())
+        {
+            BlockPos tNext = m_vecPath[m_iPathIndex];
+            _vec3    vNextPos = { (float)tNext.x, (float)tNext.y, (float)tNext.z };
+            _vec3    vMoveDir = vNextPos - vMyPos;
+            float    fNodeDist = D3DXVec3Length(&vMoveDir);
+
+            if (fNodeDist < 0.3f)
+            {
+                m_iPathIndex++;
+            }
+            else
+            {
+                _vec3 vFlatDir = { vMoveDir.x, 0.f, vMoveDir.z };
+                D3DXVec3Normalize(&vFlatDir, &vFlatDir);
+
+                _vec3    vNextWorldPos = vMyPos + vFlatDir * m_fMoveSpeed * 0.1f;
+                BlockPos tNextCheck = {
+                    (int)roundf(vNextWorldPos.x),
+                    (int)roundf(vNextWorldPos.y) - 1,
+                    (int)roundf(vNextWorldPos.z)
+                };
+
+                if (!CBlockMgr::GetInstance()->HasBlock(tNextCheck))
+                {
+                    m_vecPath.clear();
+                    m_iPathIndex = 0;
+                    m_bIsMoving = false;
+                    return;
+                }
+
+                m_bIsMoving = true;
+                m_pTransformCom->Move_Pos(&vFlatDir, m_fMoveSpeed, fTimeDelta);
+            }
+        }
+        else
+        {
+            m_bIsMoving = true;
+            m_pTransformCom->Move_Pos(&vLookDir, m_fMoveSpeed, fTimeDelta);
+        }
+        return;
+    }
+
+    // 설명 : 스켈레톤
     if (m_eType == EMonsterType::SKELETON)
     {
         if (fDist <= m_fDetectRange)
@@ -656,6 +790,7 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         return;
     }
 
+    // 설명 : 좀비 / 스파이더
     if (fDist > m_fDetectRange)
     {
         m_bIsMoving = false;

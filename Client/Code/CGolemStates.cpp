@@ -3,6 +3,7 @@
 #include "CRedStoneGolem.h"
 #include "CPlayer.h"
 #include "CMonsterMgr.h"
+#include "CSoundMgr.h"
 
 // ====================== IDLE ======================
 void CGolemState_Idle::Enter(CRedStoneGolem* pGolem)
@@ -50,6 +51,8 @@ void CGolemState_Attack::Update(CRedStoneGolem* pGolem, const _float& fTimeDelta
 
             if (pPlayer)
                 pPlayer->Hit(pGolem->Get_Atk());
+
+            CSoundMgr::GetInstance()->PlayEffect(L"Golem/sfx_mob_redstoneGolemAttack-001_soundWave.wav", 0.6f);
         }
 
         m_bHit = true;
@@ -121,6 +124,8 @@ void CGolemState_Hit::Exit(CRedStoneGolem* pGolem)
 // ====================== DEAD ======================
 void CGolemState_Dead::Enter(CRedStoneGolem* pGolem)
 {
+    CSoundMgr::GetInstance()->PlayEffect(L"Golem/sfx_mob_redstoneGolemDeathHeavy-001_soundWave.wav", 0.6f);
+
     pGolem->Reset_Pose();
     pGolem->Set_AnimTime(0.f);
 }

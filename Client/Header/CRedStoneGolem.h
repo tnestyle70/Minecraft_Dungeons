@@ -89,6 +89,8 @@ private:
 	_vec3 m_vDeadStartPos;
 	_bool m_bDeadInit = false;
 	_bool m_bDeadFinished = false;
+	_bool m_bLeftStep = false;
+	_bool m_bRightStep = false;
 
 	_float m_fAnimTime;
 

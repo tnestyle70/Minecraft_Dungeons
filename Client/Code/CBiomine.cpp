@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CBiomine.h"
 #include "CRenderer.h"
+#include "CSoundMgr.h"
 
 CBiomine::CBiomine(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -209,7 +210,9 @@ void CBiomine::Explode()
     m_pExplosionColliderCom->Update_AABB(vPos);
 
    
-    m_pExplosionLight = new CExplosionLight(m_pGraphicDev, vPos);
+    m_pExplosionLight = new CExplosionLight(m_pGraphicDev, vPos); 
+
+    CSoundMgr::GetInstance()->PlayEffect(L"Monster/explode.wav", 0.8f);
 }
 
 CBiomine* CBiomine::Create(LPDIRECT3DDEVICE9 pGraphicDev,

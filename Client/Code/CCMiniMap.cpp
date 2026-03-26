@@ -14,21 +14,26 @@ CCMiniMap::~CCMiniMap()
 
 HRESULT CCMiniMap::Ready_MiniMap(LPDIRECT3DDEVICE9 pGraphicDev)
 {
-    if (m_pGraphicDev)
-        return S_OK;
+    m_bCacheBuilt = false;
+    m_vecBatchVerts.clear();
 
-    m_pGraphicDev = pGraphicDev;
-    m_pGraphicDev->AddRef();
+    if (!m_pGraphicDev)
+    {
+        m_pGraphicDev = pGraphicDev;
+        m_pGraphicDev->AddRef();
+    }
 
     return S_OK;
 }
 
-void CCMiniMap::Update(const _float& fTimeDelta)
+void CCMiniMap::Build_Cache()
 {
+    m_vecBatchVerts.clear();
+
     const auto& mapBlocks = CBlockMgr::GetInstance()->Get_Blocks();
     if (mapBlocks.empty()) return;
 
-    // 1. ¸ÕÀú Æò±Õ À§Ä¡ °è»ê
+    // í‰ê·  ì¢Œí‘œ ê³„ì‚° (ë„ˆë¬´ ë¨¼ ë¸”ë¡ í•„í„°ë§ìš©)
     float fAvgX = 0.f, fAvgZ = 0.f;
     for (auto& pair : mapBlocks)
     {
@@ -38,17 +43,15 @@ void CCMiniMap::Update(const _float& fTimeDelta)
     fAvgX /= (float)mapBlocks.size();
     fAvgZ /= (float)mapBlocks.size();
 
-    // 2. Æò±Õ¿¡¼­ ³Ê¹« ¸Ö¸® ÀÖ´Â ºí·Ï Á¦¿ÜÇÏ°í ¹üÀ§ °è»ê
-    // Æò±Õ¿¡¼­ 200Ä­ ÀÌ³» ºí·Ï¸¸ »ç¿ë
-    static constexpr float fMaxDist = 200.f;
-
+    static constexpr float fMaxDist = 400.f;
     bool bFirst = true;
+
+    // min/max ê³„ì‚°
     for (auto& pair : mapBlocks)
     {
         float fX = (float)pair.first.x;
         float fZ = (float)pair.first.z;
 
-        // Æò±Õ¿¡¼­ ³Ê¹« ¸Ö¸é ½ºÅµ
         if (fabsf(fX - fAvgX) > fMaxDist) continue;
         if (fabsf(fZ - fAvgZ) > fMaxDist) continue;
 
@@ -67,33 +70,77 @@ void CCMiniMap::Update(const _float& fTimeDelta)
         }
     }
 
-    if (bFirst) return; // À¯È¿ÇÑ ºí·Ï ¾øÀ½
+    if (bFirst) return;
 
     float fRangeX = m_fMaxX - m_fMinX;
     float fRangeZ = m_fMaxZ - m_fMinZ;
     if (fRangeX <= 0.f) fRangeX = 1.f;
     if (fRangeZ <= 0.f) fRangeZ = 1.f;
 
-    float fScaleX = m_fMapWidth / fRangeX;
+    float fScaleX = m_fMapWidth  / fRangeX;
     float fScaleZ = m_fMapHeight / fRangeZ;
-    m_fScale = min(fScaleX, fScaleZ);
-    m_fScale *= 0.6f;
+    m_fScale = min(fScaleX, fScaleZ) * 0.6f;
 
-    float fUsedW = fRangeX * m_fScale;
-    float fUsedH = fRangeZ * m_fScale;
+    float fTileSize = max(2.f, m_fScale);
+    DWORD dwColor   = D3DCOLOR_ARGB(200, 150, 150, 150);
 
-    m_fCenterOffX = (m_fMapWidth - fUsedW) * 0.5f;
-    m_fCenterOffY = (m_fMapHeight - fUsedH) * 0.5f;
+    // ë¸”ë¡ë§ˆë‹¤ ë²„í…ìŠ¤ ë¯¸ë¦¬ ê³„ì‚° (TRIANGLELIST: ì‚¬ê°í˜• 1ê°œ = ë²„í…ìŠ¤ 6ê°œ)
+    for (auto& pair : mapBlocks)
+    {
+        float fWX = (float)pair.first.x;
+        float fWZ = (float)pair.first.z;
+
+        if (fabsf(fWX - fAvgX) > fMaxDist) continue;
+        if (fabsf(fWZ - fAvgZ) > fMaxDist) continue;
+
+        float fSX, fSY;
+        World_To_MiniMap(fWX, fWZ, fSX, fSY);
+
+        float fX = fSX, fY = fSY, fW = fTileSize, fH = fTileSize;
+
+        m_vecBatchVerts.push_back({ fX,      fY,      0.f, 1.f, dwColor });
+        m_vecBatchVerts.push_back({ fX + fW, fY,      0.f, 1.f, dwColor });
+        m_vecBatchVerts.push_back({ fX,      fY + fH, 0.f, 1.f, dwColor });
+        m_vecBatchVerts.push_back({ fX + fW, fY,      0.f, 1.f, dwColor });
+        m_vecBatchVerts.push_back({ fX + fW, fY + fH, 0.f, 1.f, dwColor });
+        m_vecBatchVerts.push_back({ fX,      fY + fH, 0.f, 1.f, dwColor });
+    }
+
+    m_bCacheBuilt = true;
+}
+
+void CCMiniMap::Update(const _float& fTimeDelta)
+{
+    if (!m_bCacheBuilt)
+        Build_Cache();
 }
 
 void CCMiniMap::Render()
 {
     if (!m_pGraphicDev) return;
+    if (!m_bCacheBuilt) return;
 
-    DWORD dwLighting, dwZEnable, dwAlpha;
+    DWORD dwLighting = 0, dwZEnable = 0, dwAlpha = 0;
+    DWORD dwSrcBlend = 0, dwDstBlend = 0, dwFVF = 0;
+    DWORD dwScissor = 0;
+
     m_pGraphicDev->GetRenderState(D3DRS_LIGHTING, &dwLighting);
     m_pGraphicDev->GetRenderState(D3DRS_ZENABLE, &dwZEnable);
     m_pGraphicDev->GetRenderState(D3DRS_ALPHABLENDENABLE, &dwAlpha);
+    m_pGraphicDev->GetRenderState(D3DRS_SRCBLEND, &dwSrcBlend);
+    m_pGraphicDev->GetRenderState(D3DRS_DESTBLEND, &dwDstBlend);
+    m_pGraphicDev->GetFVF(&dwFVF);
+    m_pGraphicDev->GetRenderState(D3DRS_SCISSORTESTENABLE, &dwScissor);
+
+    // ì„¤ëª… : ë¯¸ë‹ˆë§µ ì˜ì—­ ë°–ì€ ë Œë” ì•ˆ í•¨ â†’ ìž˜ë¦¼ ë°©ì§€
+    RECT tScissor = {
+        (LONG)m_fMapX,
+        (LONG)m_fMapY,
+        (LONG)(m_fMapX + m_fMapWidth),
+        (LONG)(m_fMapY + m_fMapHeight)
+    };
+    m_pGraphicDev->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+    m_pGraphicDev->SetScissorRect(&tScissor);
 
     m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, FALSE);
     m_pGraphicDev->SetRenderState(D3DRS_ZENABLE, FALSE);
@@ -107,9 +154,14 @@ void CCMiniMap::Render()
     Render_Tiles();
     Render_Player();
 
+    // ì„¤ëª… : ë Œë” ìƒíƒœ ì „ë¶€ ì›ë³µ
     m_pGraphicDev->SetRenderState(D3DRS_LIGHTING, dwLighting);
     m_pGraphicDev->SetRenderState(D3DRS_ZENABLE, dwZEnable);
     m_pGraphicDev->SetRenderState(D3DRS_ALPHABLENDENABLE, dwAlpha);
+    m_pGraphicDev->SetRenderState(D3DRS_SRCBLEND, dwSrcBlend);
+    m_pGraphicDev->SetRenderState(D3DRS_DESTBLEND, dwDstBlend);
+    m_pGraphicDev->SetFVF(dwFVF);
+    m_pGraphicDev->SetRenderState(D3DRS_SCISSORTESTENABLE, dwScissor);
 }
 
 void CCMiniMap::Render_Background()
@@ -120,23 +172,14 @@ void CCMiniMap::Render_Background()
 
 void CCMiniMap::Render_Tiles()
 {
-    const auto& mapBlocks = CBlockMgr::GetInstance()->Get_Blocks();
-    if (mapBlocks.empty()) return;
+    if (m_vecBatchVerts.empty()) return;
 
-    // Å¸ÀÏ 1Ä­ = m_fScale ÇÈ¼¿ (ÃÖ¼Ò 2ÇÈ¼¿ º¸Àå)
-    float fTileSize = max(2.f, m_fScale);
-
-    for (auto& pair : mapBlocks)
-    {
-        float fWorldX = (float)pair.first.x;
-        float fWorldZ = (float)pair.first.z;
-
-        float fScreenX, fScreenY;
-        World_To_MiniMap(fWorldX, fWorldZ, fScreenX, fScreenY);
-
-        Draw_Rect(fScreenX, fScreenY, fTileSize, fTileSize,
-            D3DCOLOR_ARGB(200, 150, 150, 150));
-    }
+    // ìºì‹±ëœ ë²„í…ìŠ¤ ì „ì²´ë¥¼ DrawCall 1ë²ˆìœ¼ë¡œ ì²˜ë¦¬
+    m_pGraphicDev->DrawPrimitiveUP(
+        D3DPT_TRIANGLELIST,
+        (UINT)m_vecBatchVerts.size() / 3,
+        m_vecBatchVerts.data(),
+        sizeof(MapVertex));
 }
 
 void CCMiniMap::Render_Player()
@@ -152,7 +195,6 @@ void CCMiniMap::Render_Player()
     float fScreenX, fScreenY;
     World_To_MiniMap(vPlayerPos.x, vPlayerPos.z, fScreenX, fScreenY);
 
-    // »¡°£ Á¡ (5x5 ÇÈ¼¿)
     Draw_Rect(fScreenX - 2.5f, fScreenY - 2.5f, 5.f, 5.f,
         D3DCOLOR_ARGB(255, 255, 0, 0));
 }
@@ -168,12 +210,10 @@ void CCMiniMap::World_To_MiniMap(float fWorldX, float fWorldZ,
     float fNormX = (fWorldX - m_fMinX) / fRangeX;
     float fNormZ = 1.f - ((fWorldZ - m_fMinZ) / fRangeZ);
 
-    // ¹Ì´Ï¸Ê Áß¾ÓÀ» ±âÁØÀ¸·Î Å¸ÀÏ À§Ä¡ °è»ê
-    float fMidX = m_fMapX + m_fMapWidth * 0.5f;
-    float fMidY = m_fMapY + m_fMapHeight * 0.5f;
-
-    float fHalfW = (fRangeX * m_fScale) * 0.5f;
-    float fHalfH = (fRangeZ * m_fScale) * 0.5f;
+    float fMidX   = m_fMapX + m_fMapWidth  * 0.5f;
+    float fMidY   = m_fMapY + m_fMapHeight * 0.5f;
+    float fHalfW  = (fRangeX * m_fScale) * 0.5f;
+    float fHalfH  = (fRangeZ * m_fScale) * 0.5f;
 
     fOutX = fMidX - fHalfW + fNormX * fRangeX * m_fScale;
     fOutY = fMidY - fHalfH + fNormZ * fRangeZ * m_fScale;
@@ -181,9 +221,7 @@ void CCMiniMap::World_To_MiniMap(float fWorldX, float fWorldZ,
 
 void CCMiniMap::Draw_Rect(float fX, float fY, float fW, float fH, DWORD dwColor)
 {
-    struct Vertex { float x, y, z, rhw; DWORD color; };
-
-    Vertex verts[4] =
+    MapVertex verts[4] =
     {
         { fX,      fY,      0.f, 1.f, dwColor },
         { fX + fW, fY,      0.f, 1.f, dwColor },
@@ -191,10 +229,11 @@ void CCMiniMap::Draw_Rect(float fX, float fY, float fW, float fH, DWORD dwColor)
         { fX + fW, fY + fH, 0.f, 1.f, dwColor },
     };
 
-    m_pGraphicDev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, verts, sizeof(Vertex));
+    m_pGraphicDev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, verts, sizeof(MapVertex));
 }
 
 void CCMiniMap::Free()
 {
+    m_vecBatchVerts.clear();
     Safe_Release(m_pGraphicDev);
 }

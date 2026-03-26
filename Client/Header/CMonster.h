@@ -76,7 +76,11 @@ private:
     //스켈레톤 활
     Engine::CRcTex* m_pBowBufferCom = nullptr;
     Engine::CTexture* m_pBowStandbyTex = nullptr;
-    Engine::CTexture* m_pBowPullingTex = nullptr;
+    Engine::CTexture* m_pBowPullingTex = nullptr; 
+
+    float m_fIdleSoundTimer = 0.f;
+    static constexpr float m_fIdleSoundInterval = 4.f; // 4초마다 Idle 사운드
+
 
     vector<CArrow*>         m_vecArrows;
     bool                    m_bFired = false;

@@ -6,10 +6,10 @@
 
 enum class EPufferFishState
 {
-    IDLE,        // ��� - �÷��̾� ���� ����
-    ORBIT,       // �÷��̾� �ֺ� ��ȸ - ���� ���� �߻�
-    CHARGE,      // �÷��̾ ���� ���� - ���̿����� ���� ����
-    REPOSITION,  // �߰� - ���� �� ���ڸ� ����, �÷��̾� õõ�� �ٶ�
+    IDLE,        
+    ORBIT,       
+    CHARGE,      
+    REPOSITION,  
 };
 
 class CAncientGuardian : public CDLCBoss
@@ -24,7 +24,8 @@ public:
 public:
     EPufferFishState             Get_State()    { return m_eState; }
     const vector<CBeam*>&        Get_Beams()    const { return m_vecBeams; }
-    const vector<CBiomine*>&     Get_Biomines() const { return m_vecBiomines; }
+    const vector<CBiomine*>&     Get_Biomines() const { return m_vecBiomines; } 
+    virtual bool Is_Dead() override { return m_bDeadDone; }
 protected:
     virtual HRESULT Add_Component()                     override; 
     virtual void    Update_AI(const _float& fTimeDelta) override; 
@@ -65,6 +66,9 @@ private:
 
     float m_fRepoTimer = 0.f;    
     float m_fRepoMax = 1.5f;     
+
+    float m_fIdleSoundTimer = 0.f;
+    static constexpr float m_fIdleSoundInterval = 5.f;
 
 
     EPufferFishState m_eState = EPufferFishState::IDLE;

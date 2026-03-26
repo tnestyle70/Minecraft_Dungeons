@@ -4,6 +4,7 @@
 #include "CTransform.h"
 #include "CTexture.h"
 #include "CCubeBodyTex.h"
+#include "CExplosionLight.h"
 
 class CTNT : public CGameObject
 {
@@ -25,7 +26,8 @@ public:
 private:
     Engine::CTransform* m_pTransformCom = nullptr;
     Engine::CTexture* m_pTopTex = nullptr;
-    CCollider* m_pColliderCom = nullptr;
+    CCollider* m_pColliderCom = nullptr; 
+    CExplosionLight* m_pExplosionLight = nullptr;
 
     bool  m_bDead = false;
     bool  m_bPickedUp = false;

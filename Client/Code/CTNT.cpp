@@ -5,6 +5,8 @@
 #include "CBlockMgr.h"
 #include "CParticleMgr.h"
 #include "CParticleEmitter.h"
+#include "CSoundMgr.h"
+#include "CExplosionLight.h"
 
 CTNT::CTNT(LPDIRECT3DDEVICE9 pGraphicDev)
     : CGameObject(pGraphicDev)
@@ -65,6 +67,21 @@ HRESULT CTNT::Add_Component()
 
 _int CTNT::Update_GameObject(const _float& fTimeDelta)
 {
+    // 설명 : 조명 업데이트
+    if (m_pExplosionLight)
+    {
+        m_pExplosionLight->Update(fTimeDelta);
+        if (m_pExplosionLight->Is_Done())
+        {
+            delete m_pExplosionLight;
+            m_pExplosionLight = nullptr;
+        }
+    }
+
+    // 설명 : 조명이 살아있는 동안은 Dead여도 렌더 그룹에 추가
+    if (m_pExplosionLight)
+        CRenderer::GetInstance()->Add_RenderGroup(RENDER_NONALPHA, this);
+
     if (m_bDead)
         return 0;
 
@@ -75,12 +92,10 @@ _int CTNT::Update_GameObject(const _float& fTimeDelta)
 
     if (m_bThrown)
     {
-        // 중력
         m_vVelocity.y += m_fGravity * fTimeDelta;
         vPos += m_vVelocity * fTimeDelta;
         m_pTransformCom->Set_Pos(vPos.x, vPos.y, vPos.z);
 
-        // 바닥 착지 체크
         BlockPos tBlockPos = { (int)vPos.x, (int)(vPos.y - 0.5f), (int)vPos.z };
         if (CBlockMgr::GetInstance()->HasBlock(tBlockPos))
         {
@@ -95,16 +110,17 @@ _int CTNT::Update_GameObject(const _float& fTimeDelta)
         m_fFuseTimer -= fTimeDelta;
         if (m_fFuseTimer <= 0.f)
         {
-            CParticleMgr::GetInstance()->Add_Emitter(
-                CParticleEmitter::Create(m_pGraphicDev, PARTICLE_FIREWORK, vPos, nullptr));
             m_pExplodeColliderCom->Update_AABB(vPos);
             m_bExploding = true;
             m_fExplodeTimer = 0.3f;
             m_bDead = true;
+
+            // 설명 : 폭발 조명 + 사운드
+            m_pExplosionLight = new CExplosionLight(m_pGraphicDev, vPos);
+            CSoundMgr::GetInstance()->PlayEffect(L"Monster/explode.wav", 1.f);
             return 0;
         }
 
-        // 폭발 타이머
         if (m_bExploding)
         {
             m_fExplodeTimer -= fTimeDelta;
@@ -125,9 +141,12 @@ void CTNT::LateUpdate_GameObject(const _float& fTimeDelta)
 
 void CTNT::Render_GameObject()
 {
+    // 설명 : 폭발 플래시는 Dead 여부 무관하게 렌더
+    if (m_pExplosionLight)
+        m_pExplosionLight->Render();
+
     if (m_bDead) return;
 
-    // 깜빡임
     if (m_bFusing)
     {
         float fBlinkRate = 2.f + (1.f - m_fFuseTimer / m_fMaxFuseTime) * 10.f;
@@ -143,31 +162,14 @@ void CTNT::Render_GameObject()
     _vec3 vPos;
     m_pTransformCom->Get_Info(INFO_POS, &vPos);
 
-    _matrix matScale, matRot, matTrans, matWorld;
-    D3DXMatrixScaling(&matScale, 1.f, 1.f, 1.f);
-    D3DXMatrixTranslation(&matTrans, vPos.x, vPos.y, vPos.z);
-
-    _matrix matOffset;
-
-     matWorld = *m_pTransformCom->Get_World();
+    _matrix matWorld = *m_pTransformCom->Get_World();
     m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
-
     m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
-    // Side 4면
     m_pTopTex->Set_Texture(0);
     m_pTopCubeCom->Render_Buffer();
 
-  //  // Top
-  //  m_pTopTex->Set_Texture(0);
-  //  m_pTopCubeCom->Render_Buffer();
-  //
-  //  // Bottom
-  //  m_pBottomTex->Set_Texture(0);
-  //  m_pBottomCubeCom->Render_Buffer();
-
     m_pGraphicDev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     m_pGraphicDev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
 
@@ -197,5 +199,12 @@ CTNT* CTNT::Create(LPDIRECT3DDEVICE9 pGraphicDev, _vec3 vPos)
 
 void CTNT::Free()
 {
+    // 설명 : 폭발 조명 강제 삭제
+    if (m_pExplosionLight)
+    {
+        delete m_pExplosionLight;
+        m_pExplosionLight = nullptr;
+    }
+
     CGameObject::Free();
 }

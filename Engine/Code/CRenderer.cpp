@@ -22,6 +22,7 @@ void CRenderer::Add_RenderGroup(RENDERID eID, CGameObject* pGameObject)
 
 void CRenderer::Render_GameObject(LPDIRECT3DDEVICE9& pGraphicDev)
 {
+	Render_SkyBox(pGraphicDev);
 	Render_Priority(pGraphicDev);
 	//if (m_BlockRenderCallback)
 	//	m_BlockRenderCallback();
@@ -32,6 +33,12 @@ void CRenderer::Render_GameObject(LPDIRECT3DDEVICE9& pGraphicDev)
 	Render_UI(pGraphicDev);
 
 	Clear_RenderGroup();
+}
+
+void CRenderer::Render_SkyBox(LPDIRECT3DDEVICE9& pGraphicDev)
+{
+	for (auto& pObj : m_RenderGroup[RENDER_SKYBOX])
+		pObj->Render_GameObject();
 }
 
 void CRenderer::Render_Priority(LPDIRECT3DDEVICE9& pGraphicDev)
