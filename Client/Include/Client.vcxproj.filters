@@ -249,6 +249,15 @@
     <ClCompile Include="..\Code\CScreenFX.cpp">
       <Filter>04. Network\05. Shader</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CCrystal.cpp">
+      <Filter>02. GameObject\11. Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CCrystalPart.cpp">
+      <Filter>02. GameObject\11. Environment</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CNPC.cpp">
+      <Filter>02. GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -503,6 +512,15 @@
     </ClInclude>
     <ClInclude Include="..\Header\CScreenFX.h">
       <Filter>04. Network\05. Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCrystal.h">
+      <Filter>02. GameObject\11. Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CCrystalPart.h">
+      <Filter>02. GameObject\11. Environment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CNPC.h">
+      <Filter>02. GameObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

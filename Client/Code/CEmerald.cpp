@@ -97,7 +97,7 @@ void CEmerald::Init_Emerald()
 
 	m_vVelocity.x = cosf(fAngle) * fSpeed;
 	m_vVelocity.z = sinf(fAngle) * fSpeed;
-	m_vVelocity.y = 10.f;
+	m_vVelocity.y = 15.f;
 }
 
 void CEmerald::Pop_Emerald(const _float fTimeDelta)

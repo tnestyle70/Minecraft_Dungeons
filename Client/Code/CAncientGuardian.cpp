@@ -117,7 +117,6 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
     {
         if (m_pBodyCom->Get_Anim())
         {
-           
             if (m_pBodyCom->Get_Anim()->Get_State() != EAGState::DEAD)
                 CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_DEAD.wav", 0.8f);
             m_pBodyCom->Get_Anim()->Set_State(EAGState::DEAD);
@@ -131,8 +130,9 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
             ID_DYNAMIC, L"GameLogic_Layer", L"Player", L"Com_Transform"));
     if (!pPlayerTrans) return;
 
-    _vec3 vMyPos, vPlayerPos;
-    m_pTransformCom->Get_Info(INFO_POS, &vMyPos);
+    // 설명 : m_vInfo[INFO_POS] 직접 접근 → Set_Pos 즉시 반영
+    _vec3 vMyPos = m_pTransformCom->m_vInfo[INFO_POS];
+    _vec3 vPlayerPos;
     pPlayerTrans->Get_Info(INFO_POS, &vPlayerPos);
 
     _vec3 vDir = vPlayerPos - vMyPos;
@@ -149,14 +149,19 @@ void CAncientGuardian::Update_AI(const _float& fTimeDelta)
         if (m_fIdleSoundTimer >= m_fIdleSoundInterval)
         {
             m_fIdleSoundTimer = 0.f;
-            CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_IDLE.wav", 0.6f);
+            if (fDist <= m_fDetectRange * 10.f)
+            {
+                CSoundMgr::GetInstance()->PlayEffect(L"Monster/AG_IDLE.wav", 0.6f);
+            }
+           
         }
         m_pTransformCom->m_vAngle.x = sinf(m_fHoverTime * 1.5f) * 20.f;
         {
-            float fTargetY = 12.5f + sinf(m_fHoverTime * 1.5f) * 2.5f;
+            // 설명 : m_vInfo 직접 접근으로 첫 프레임 위치 보존
+            float fTargetY = 17.5f + sinf(m_fHoverTime * 1.5f) * 2.5f;
             vMyPos.y += (fTargetY - vMyPos.y) * 3.f * fTimeDelta;
-            if (vMyPos.y < 10.f) vMyPos.y = 10.f;
-            if (vMyPos.y > 15.f) vMyPos.y = 15.f;
+            if (vMyPos.y < 15.f) vMyPos.y = 15.f;
+            if (vMyPos.y > 20.f) vMyPos.y = 20.f;
         }
         m_pTransformCom->Set_Pos(vMyPos.x, vMyPos.y, vMyPos.z);
         if (fDist < m_fDetectRange)

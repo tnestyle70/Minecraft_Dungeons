@@ -193,7 +193,7 @@ void CBox::Box_Animation()
 
 		_int iRand;
 
-		iRand = 3 + rand() % 2;
+		iRand = 5 + rand() % 3;
 
 		for (_int i = 0; i < iRand; ++i)
 		{

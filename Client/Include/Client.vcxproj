@@ -163,6 +163,8 @@
     <ClInclude Include="..\Header\CBoxPart.h" />
     <ClInclude Include="..\Header\CCamp.h" />
     <ClInclude Include="..\Header\CCMiniMap.h" />
+    <ClInclude Include="..\Header\CCrystal.h" />
+    <ClInclude Include="..\Header\CCrystalPart.h" />
     <ClInclude Include="..\Header\CCursorMgr.h" />
     <ClInclude Include="..\Header\CDamageMgr.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="..\Header\CNetworkMgr.h" />
     <ClInclude Include="..\Header\CNetworkPlayer.h" />
     <ClInclude Include="..\Header\CNetworkStage.h" />
+    <ClInclude Include="..\Header\CNPC.h" />
     <ClInclude Include="..\Header\CObjectEditor.h" />
     <ClInclude Include="..\Header\CObsidian.h" />
     <ClInclude Include="..\Header\COcean.h" />
@@ -255,6 +258,8 @@
     <ClCompile Include="..\Code\CBoxPart.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
     <ClCompile Include="..\Code\CCMiniMap.cpp" />
+    <ClCompile Include="..\Code\CCrystal.cpp" />
+    <ClCompile Include="..\Code\CCrystalPart.cpp" />
     <ClCompile Include="..\Code\CCursorMgr.cpp" />
     <ClCompile Include="..\Code\CDamageMgr.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />
@@ -287,6 +292,7 @@
     <ClCompile Include="..\Code\CNetworkMgr.cpp" />
     <ClCompile Include="..\Code\CNetworkPlayer.cpp" />
     <ClCompile Include="..\Code\CNetworkStage.cpp" />
+    <ClCompile Include="..\Code\CNPC.cpp" />
     <ClCompile Include="..\Code\CObjectEditor.cpp" />
     <ClCompile Include="..\Code\CObsidian.cpp" />
     <ClCompile Include="..\Code\COcean.cpp" />

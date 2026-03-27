@@ -97,12 +97,13 @@ private:
 	_bool m_bOnGround;
 	_float m_fVelocityY;
 
-	_bool m_bHitCool = false;
-	_float m_fHitCoolTime = 0.f;
+	_bool m_bMeleeCol = false;
 
 	_float m_fMaxHp;
 	_float m_fHp;
 	_float m_fAtk;
+
+	_bool m_bMeleeCol = false;
 
 public:
 	static CRedStoneGolem* Create(LPDIRECT3DDEVICE9 pGraphicDev);

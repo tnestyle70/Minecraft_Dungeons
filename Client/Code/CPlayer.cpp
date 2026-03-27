@@ -72,25 +72,6 @@ HRESULT CPlayer::Ready_GameObject()
 	m_vPartOffset[PART_RLEG] = { -0.26f, 0.45f, 0.00f };
 #pragma endregion
 
-	//====Effect Emitter Connect=========//
-	LPDIRECT3DTEXTURE9 pEffectTexture = nullptr;
-	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/FootPrint_Small.png", &pEffectTexture);
-
-	m_pFootStepEmitter = CParticleEmitter::Create(
-		m_pGraphicDev, PARTICLE_FOOTSTEP, _vec3(0.f, 0.f, 0.f), pEffectTexture);
-
-	CParticleMgr::GetInstance()->Add_Emitter(m_pFootStepEmitter);
-
-	Safe_Release(pEffectTexture);
-
-	D3DXCreateTextureFromFile(m_pGraphicDev,
-		L"../Bin/Resource/Texture/Effect/Attack.png", &m_pAttackTexture);
-
-	m_pAttackEmitter = CParticleEmitter::Create(
-		m_pGraphicDev, PARTICLE_ATTACK, _vec3(0.f, 0.f, 0.f), pEffectTexture);
-
-	CParticleMgr::GetInstance()->Add_Emitter(m_pAttackEmitter);
 
 	Safe_Release(m_pAttackEmitter);
 
@@ -1148,6 +1129,8 @@ void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
 	{
 		if (fRatio < 0.3f)
 		{
+			m_pAtkColliderCom->Update_AABB(_vec3(0.f, -9999.f, 0.f));
+			m_bAtkColliderActive = false;
 			float t = fRatio / 0.3f;
 			fAtkX = D3DXToRadian(-90.f * t);
 			fAtkY = D3DXToRadian(5.f * fDir * t);
@@ -1155,6 +1138,7 @@ void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
 		}
 		else
 		{
+			m_bAtkColliderActive = true;
 			float t = (fRatio - 0.3f) / 0.7f;
 			fAtkX = D3DXToRadian(-90.f);
 			fAtkY = D3DXToRadian(25.f * fDir + 180.f * fDir * t);
@@ -1165,6 +1149,8 @@ void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
 	{
 		if (fRatio < 0.3f)
 		{
+			m_pAtkColliderCom->Update_AABB(_vec3(0.f, -9999.f, 0.f));
+			m_bAtkColliderActive = false;
 			float t = fRatio / 0.3f;
 			fAtkX = D3DXToRadian(-90.f * t);
 			fAtkY = D3DXToRadian(25.f * fDir * t);
@@ -1172,6 +1158,7 @@ void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
 		}
 		else
 		{
+			m_bAtkColliderActive = true;
 			float t = (fRatio - 0.3f) / 0.7f;
 			fAtkX = D3DXToRadian(-90.f);
 			fAtkY = D3DXToRadian(180.f * fDir + 100.f * fDir * t);
@@ -1180,6 +1167,7 @@ void CPlayer::Calc_AttackMotion(float& fAtkX, float& fAtkY, float& fTorsoY)
 	}
 	else if (m_iComboStep == 3)
 	{
+		m_bAtkColliderActive = true;
 		fAtkX = D3DXToRadian(90.f * fRatio);
 		fAtkY = 0.f;
 		fTorsoY = 0.f;
@@ -1291,7 +1279,7 @@ void CPlayer::Render_Bow()
 
 void CPlayer::Attack_Collision()
 {
-	if (m_iComboStep > 0)
+	if (m_iComboStep > 0 && m_bAtkColliderActive)
 	{
 		_vec3 vPos, vLook;
 		m_pTransformCom->Get_Info(INFO_POS, &vPos);
@@ -1300,11 +1288,6 @@ void CPlayer::Attack_Collision()
 		_vec3 vAtkPos = vPos - vLook * 0.8f;
 		vAtkPos.y += 0.9f;
 		m_pAtkColliderCom->Update_AABB(vAtkPos);
-		m_bAtkColliderActive = true;
-	}
-	else
-	{
-		m_bAtkColliderActive = false;
 	}
 }
 

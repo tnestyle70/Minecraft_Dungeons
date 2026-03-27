@@ -67,16 +67,6 @@ _int CRedStoneGolem::Update_GameObject(const _float& fTimeDelta)
 
 	m_fAnimTime += fTimeDelta;
 
-	if (m_bHitCool)
-	{
-		m_fHitCoolTime += fTimeDelta;
-
-		if (m_fHitCoolTime >= 0.3f)
-		{
-			m_bHitCool = false;
-		}
-	}
-
 	Check_Hit();
 
 	// 상태가 알아서 거리 체크, 애니메이션, 이동을 처리
@@ -885,10 +875,28 @@ _bool CRedStoneGolem::Check_AttackHit()
 
 void CRedStoneGolem::Check_Hit()
 {
-	if (m_bHitCool)
-		return;
-
 	CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
+
+	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(
+		CManagement::GetInstance()->Get_Component(
+			ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider"));
+
+	AABB tPlayerAABB = pPlayerCollider->Get_AABB();
+
+	_bool bNowColliding = false;
+
+	if (pPlayer && pPlayer->Get_AtkColliderActive())
+	{
+		if (m_pColliderCom->IsColliding(tPlayerAABB))
+		{
+			bNowColliding = true;
+
+			if (!m_bMeleeCol)
+				Take_Damage(pPlayer->Get_MeleeDmg());
+		}
+	}
+
+	m_bMeleeCol = bNowColliding;
 
 	for (auto& pArrow : pPlayer->Get_Arrows())
 	{
@@ -906,41 +914,44 @@ void CRedStoneGolem::Check_Hit()
 			{
 				pArrow->Trigger_Explode();
 				Take_Damage(pPlayer->Get_BowDmg() * 3.f);
-
-				m_bHitCool = true;
-				m_fHitCoolTime = 0.f;
 			}
 			else
 			{
 				Take_Damage(pPlayer->Get_BowDmg());
 				pArrow->Set_Dead();
-				m_bHitCool = true;
-				m_fHitCoolTime = 0.f;
 			}
 			break;
 		}
 	}
 
 	if (!pPlayer || !pPlayer->Get_AtkColliderActive())
+	{
+		m_bMeleeCol = false;
 		return;
+	}
 
 	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(
 		CManagement::GetInstance()->Get_Component(
 			ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider"));
+	if (!pPlayerCollider) return;
 
 	AABB tPlayerAABB = pPlayerCollider->Get_AABB();
+	bool bNowColliding = m_pColliderCom->IsColliding(tPlayerAABB);
 
-	if (m_pColliderCom->IsColliding(tPlayerAABB))
+	if (bNowColliding && !m_bMeleeCol)
 	{
 		Take_Damage(pPlayer->Get_MeleeDmg());
-
 		m_bHitCool = true;
 		m_fHitCoolTime = 0.f;
 	}
+	m_bMeleeCol = bNowColliding;
 }
 
 void CRedStoneGolem::Take_Damage(_float fDamage)
 {
+	if (m_fHp <= 0.f)
+		return;
+
 	m_fHp -= fDamage;
 	_vec3 vPos;
 	m_pTransformCom->Get_Info(INFO_POS, &vPos);
