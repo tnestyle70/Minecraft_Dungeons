@@ -97,8 +97,7 @@ private:
 	_bool m_bOnGround;
 	_float m_fVelocityY;
 
-	_bool m_bHitCool = false;
-	_float m_fHitCoolTime = 0.f;
+	_bool m_bMeleeCol = false;
 
 	_float m_fMaxHp;
 	_float m_fHp;

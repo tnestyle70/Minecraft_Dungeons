@@ -163,6 +163,8 @@
     <ClInclude Include="..\Header\CBoxPart.h" />
     <ClInclude Include="..\Header\CCamp.h" />
     <ClInclude Include="..\Header\CCMiniMap.h" />
+    <ClInclude Include="..\Header\CCrystal.h" />
+    <ClInclude Include="..\Header\CCrystalPart.h" />
     <ClInclude Include="..\Header\CCursorMgr.h" />
     <ClInclude Include="..\Header\CDamageMgr.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
@@ -254,6 +256,8 @@
     <ClCompile Include="..\Code\CBoxPart.cpp" />
     <ClCompile Include="..\Code\CCamp.cpp" />
     <ClCompile Include="..\Code\CCMiniMap.cpp" />
+    <ClCompile Include="..\Code\CCrystal.cpp" />
+    <ClCompile Include="..\Code\CCrystalPart.cpp" />
     <ClCompile Include="..\Code\CCursorMgr.cpp" />
     <ClCompile Include="..\Code\CDamageMgr.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />
