@@ -8,12 +8,12 @@
 #include "CDamageMgr.h"
 
 CDLCBoss::CDLCBoss(LPDIRECT3DDEVICE9 pGraphicDev)
-    : CGameObject(pGraphicDev) 
+    : CGameObject(pGraphicDev)
 {
 }
 
 CDLCBoss::CDLCBoss(const CGameObject& rhs)
-    : CGameObject(rhs) 
+    : CGameObject(rhs)
 {
 }
 
@@ -32,7 +32,7 @@ _int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
 {
     _int iExit = CGameObject::Update_GameObject(fTimeDelta);
 
-    // 플레이어 공격 콜라이더 충돌 체크
+    
     if (m_pColliderCom && m_pTransformCom && m_iHp > 0)
     {
         _vec3 vPos;
@@ -53,7 +53,7 @@ _int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
         }
     }
 
-    // 화살 피격 체크
+   
     CPlayer* pPlayer = CMonsterMgr::GetInstance()->Get_Player();
     if (pPlayer)
     {
@@ -85,16 +85,15 @@ _int CDLCBoss::Update_GameObject(const _float& fTimeDelta)
 
 void CDLCBoss::LateUpdate_GameObject(const _float& fTimeDelta)
 {
-    // HP > 0 일때만 AI 업데이트
-    if (m_iHp > 0)
-        Update_AI(fTimeDelta);
+  
+    Update_AI(fTimeDelta);
 
     CGameObject::LateUpdate_GameObject(fTimeDelta);
 }
 
 void CDLCBoss::Take_Damage(int iDamage)
 {
-    // HP 감소만 처리 - 나머지는 파생 클래스에서
+   
     m_iHp -= iDamage;
     _vec3 vPos;
     m_pTransformCom->Get_Info(INFO_POS, &vPos);
@@ -102,7 +101,7 @@ void CDLCBoss::Take_Damage(int iDamage)
     if (m_iHp < 0) m_iHp = 0;
 }
 void CDLCBoss::Free()
-{ 
+{
     Safe_Release(m_pColliderCom);
     Safe_Release(m_pAtkColliderCom);
     CGameObject::Free();

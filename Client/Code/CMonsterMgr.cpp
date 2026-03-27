@@ -125,13 +125,21 @@ void CMonsterMgr::CheckCursorHover()
 	//Guardian, Golem
 	if (m_pGuardian)
 	{
-		CCollider* pGuardianCollider = m_pGuardian->Get_Collider();
-		if (pGuardianCollider)
+		
+		if (m_pGuardian->Is_Dead())
 		{
-			if (pGuardianCollider->IntersectRay(vRayOrigin, vRayDir))
+			m_pGuardian = nullptr;
+		}
+		else
+		{
+			CCollider* pGuardianCollider = m_pGuardian->Get_Collider();
+			if (pGuardianCollider)
 			{
-				CCursorMgr::GetInstance()->SetCursorState(eCursorState::ENEMY_HOVER);
-				bHover = true;
+				if (pGuardianCollider->IntersectRay(vRayOrigin, vRayDir))
+				{
+					CCursorMgr::GetInstance()->SetCursorState(eCursorState::ENEMY_HOVER);
+					bHover = true;
+				}
 			}
 		}
 	}

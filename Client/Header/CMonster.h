@@ -93,7 +93,7 @@ private:
     float                   m_fDeadAngleY = 0.f;
     bool                    m_bOnGround = false;
     bool                    m_bExploded = false;                // 폭발 1회 처리용 
-    // 기존 m_bExploded 아래에 추가
+  
     bool    m_bExplosionFlash = false;   // 크리퍼 몸 노란 번쩍임 활성화
     _float  m_fExplosionFlashTimer = 0.f;     // 번쩍임 타이머 (0.3초)
     bool                    m_bDeadDone = false;               // 몬스터 삭제용도 
