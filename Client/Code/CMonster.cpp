@@ -674,18 +674,22 @@ void CMonster::Update_AI(const _float& fTimeDelta)
         m_fIdleSoundTimer = 0.f;
         if (pAnim->Get_State() == EMonsterState::IDLE)
         {
-            switch (m_eType)
+            if (fDist <= m_fDetectRange * 10.f)
             {
-            case EMonsterType::ZOMBIE:
-                CSoundMgr::GetInstance()->PlayEffect(L"Monster/zombieIdle.wav", 0.5f);
-                break;
-            case EMonsterType::SPIDER:
-                CSoundMgr::GetInstance()->PlayEffect(L"Monster/spiderIdle.wav", 0.5f);
-                break;
-            case EMonsterType::SKELETON:
-                CSoundMgr::GetInstance()->PlayEffect(L"Monster/skeletonIdle.wav", 0.5f);
-                break;
+                switch (m_eType)
+                {
+                case EMonsterType::ZOMBIE:
+                    CSoundMgr::GetInstance()->PlayEffect(L"Monster/zombieIdle.wav", 0.5f);
+                    break;
+                case EMonsterType::SPIDER:
+                    CSoundMgr::GetInstance()->PlayEffect(L"Monster/spiderIdle.wav", 0.5f);
+                    break;
+                case EMonsterType::SKELETON:
+                    CSoundMgr::GetInstance()->PlayEffect(L"Monster/skeletonIdle.wav", 0.5f);
+                    break;
+                }
             }
+            
         }
     }
 
