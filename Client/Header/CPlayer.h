@@ -5,6 +5,7 @@
 #include "CPlayerArrow.h"
 #include "CTNT.h"
 #include "CEquipSlot.h"
+#include "CNPC.h"
 
 class CMonster;
 class CRedStoneGolem;
@@ -144,6 +145,10 @@ public:
 
 	void Equip(eEquipType eType);
 	void UnEquip(eEquipType eType);
+
+	//NPC 추가함수
+	void Add_NPC(CNPC* pNPC) { m_vecNPCs.push_back(pNPC); }
+
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
 	CPlayerBody* m_pArmorBufferCom[PART_END] = {};
@@ -194,6 +199,9 @@ private:
 
 	_bool m_bSwordEquipped = true;
 	_bool m_bBowEquipped = false;
+
+	private:
+		vector<CNPC*> m_vecNPCs; // NPC
 
 private:
 	//피격

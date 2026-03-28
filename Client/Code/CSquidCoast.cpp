@@ -32,6 +32,8 @@
 #include "CSkyBox.h"
 #include "CObjectEditor.h"
 #include "CSoundMgr.h"
+#include "CNPC.h"
+#include "CDialogueBox.h"
 
 CSquidCoast::CSquidCoast(LPDIRECT3DDEVICE9 pGraphicDev)
 	:CScene(pGraphicDev)
@@ -240,6 +242,27 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 		return E_FAIL;
 
 	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
+
+	// NPC	
+	// DialogueBox
+	CDialogueBox* pDialogueBox = CDialogueBox::Create(m_pGraphicDev);
+	if (!pDialogueBox) return E_FAIL;
+	if (FAILED(pLayer->Add_GameObject(L"DialogueBox", pDialogueBox)))
+		return E_FAIL;
+
+	pGameObject = CNPC::Create(m_pGraphicDev, _vec3(5.f, 2.f, 5.f));
+	if (!pGameObject)
+		return E_FAIL;
+
+	if (FAILED(pLayer->Add_GameObject(L"NPC", pGameObject)))
+		return E_FAIL;
+
+	CNPC* pNPC = dynamic_cast<CNPC*>(pGameObject);
+	if (pNPC && pPlayer)
+	{
+		pPlayer->Add_NPC(pNPC);
+		pNPC->Set_DialogueBox(pDialogueBox);
+	}
 
 	//Inventory 세팅
 	if (CInventoryMgr::GetInstance()->Ready_InventoryMgr(m_pGraphicDev))

@@ -258,6 +258,9 @@
     <ClCompile Include="..\Code\CNPC.cpp">
       <Filter>02. GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CDialogueBox.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -521,6 +524,9 @@
     </ClInclude>
     <ClInclude Include="..\Header\CNPC.h">
       <Filter>02. GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CDialogueBox.h">
+      <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

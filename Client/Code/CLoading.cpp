@@ -224,6 +224,14 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BowPulling2",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/Player/bow_pulling_2.png"))))
         return E_FAIL;
+    //NPC
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_NPCTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/NPC/T_Knight_Skin.png"))))
+        return E_FAIL;
+    //대화창
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_DialogueBoxTexture",
+        CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/NPC/NPCDialogue.png"))))
+        return E_FAIL;
 
     //=======UI=========//
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_HUDTexture",

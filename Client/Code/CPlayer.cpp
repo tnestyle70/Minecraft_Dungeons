@@ -751,27 +751,57 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 			pBox->Open_Box();
 			break;
 		}
+		//NPC 상호작용
+		for (auto& pNPC : m_vecNPCs)
+		{
+			if (!pNPC)
+				continue;
+
+			_vec3 vNPCPos;
+			pNPC->Get_Transform()->Get_Info(INFO_POS, &vNPCPos);
+
+			_vec3 vPlayerDiff = vNPCPos - vPos;
+			vPlayerDiff.y = 0.f;
+			if (D3DXVec3Length(&vPlayerDiff) >= 3.f)
+				continue;
+
+			_vec3 vPickDiff = vPickPos - vNPCPos;
+			vPickDiff.y = 0.f;
+			if (D3DXVec3Length(&vPickDiff) >= 3.f)
+				continue;
+
+			pNPC->Interact();
+
+			//범위밖으로 나가면 대화창 사라지기.
+			break;
+		}
 
 		// 2. TNT 줍기
 		if (!m_pHeldTNT)
 		{
 			for (auto& pTNT : m_vecTNTs)
 			{
-				if (pTNT->Is_Dead() || pTNT->Is_PickedUp()) continue;
+				if (pTNT->Is_Dead() || pTNT->Is_PickedUp())
+					continue;
+
 				Engine::CTransform* pTrans = dynamic_cast<Engine::CTransform*>
 					(pTNT->Get_Component(ID_DYNAMIC, L"Com_Transform"));
+
 				if (!pTrans)
 					continue;
 				_vec3 vTNTPos;
 				pTrans->Get_Info(INFO_POS, &vTNTPos);
 				_vec3 vPlayerDiff = vTNTPos - vPos;
 				vPlayerDiff.y = 0.f;
+
 				if (D3DXVec3Length(&vPlayerDiff) >= 2.f)
 					continue;
+
 				_vec3 vPickDiff = vPickPos - vTNTPos;
 				vPickDiff.y = 0.f;
 				if (D3DXVec3Length(&vPickDiff) >= 2.f)
 					continue;
+
 				pTNT->PickUp();
 				m_pHeldTNT = pTNT;
 				break;

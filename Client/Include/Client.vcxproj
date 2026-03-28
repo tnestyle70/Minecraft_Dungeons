@@ -167,6 +167,7 @@
     <ClInclude Include="..\Header\CCrystalPart.h" />
     <ClInclude Include="..\Header\CCursorMgr.h" />
     <ClInclude Include="..\Header\CDamageMgr.h" />
+    <ClInclude Include="..\Header\CDialogueBox.h" />
     <ClInclude Include="..\Header\CDLCBoss.h" />
     <ClInclude Include="..\Header\CDragon.h" />
     <ClInclude Include="..\Header\CDynamicCamera.h" />
@@ -262,6 +263,7 @@
     <ClCompile Include="..\Code\CCrystalPart.cpp" />
     <ClCompile Include="..\Code\CCursorMgr.cpp" />
     <ClCompile Include="..\Code\CDamageMgr.cpp" />
+    <ClCompile Include="..\Code\CDialogueBox.cpp" />
     <ClCompile Include="..\Code\CDragon.cpp" />
     <ClCompile Include="..\Code\CDynamicCamera.cpp" />
     <ClCompile Include="..\Code\CEditor.cpp" />
