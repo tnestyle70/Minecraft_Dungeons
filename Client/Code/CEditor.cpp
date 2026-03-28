@@ -385,7 +385,10 @@ void CEditor::Render_BlockPalette()
 		{"Sand##block",       "Sand",       BLOCK_SAND},
 		{"Bedrock##block",    "Bedrock",    BLOCK_BEDROCK},
 		{"Obsidian##block",   "Obsidian",   BLOCK_OBSIDIAN},
-		{"StoneBrick##block", "StoneBrick", BLOCK_STONEBRICK}
+		{"StoneBrick##block", "StoneBrick", BLOCK_STONEBRICK},
+		{"Lava##block",         "Lava",         BLOCK_LAVA},
+        {"PlankAcacia##block",  "PlankAcacia",  BLOCK_PLANKS_ACACIA},
+        {"PlankSpruce##block",  "PlankSpruce",  BLOCK_PLANKS_SPRUCE},
 	};
 	constexpr int iCount = (int)(sizeof(palette) / sizeof(palette[0]));
 
@@ -1699,7 +1702,20 @@ HRESULT CEditor::Ready_ProtoType()
 		return E_FAIL;
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_Calculator",
 		Engine::CCalculator::Create(m_pGraphicDev))))
+		return E_FAIL; 
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_LavaTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE,
+			L"../Bin/Resource/Texture/blocks/lava.dds"))))
 		return E_FAIL;
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlankAcaciaTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE,
+			L"../Bin/Resource/Texture/blocks/planks_acacia.dds"))))
+		return E_FAIL;
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlankSpruceTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE,
+			L"../Bin/Resource/Texture/blocks/planks_spruce.dds"))))
+		return E_FAIL;
+
 
 	return 0;
 }
