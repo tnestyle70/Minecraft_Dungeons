@@ -923,28 +923,6 @@ void CRedStoneGolem::Check_Hit()
 			break;
 		}
 	}
-
-	if (!pPlayer || !pPlayer->Get_AtkColliderActive())
-	{
-		m_bMeleeCol = false;
-		return;
-	}
-
-	CCollider* pPlayerCollider = dynamic_cast<CCollider*>(
-		CManagement::GetInstance()->Get_Component(
-			ID_STATIC, L"GameLogic_Layer", L"Player", L"Com_AtkCollider"));
-	if (!pPlayerCollider) return;
-
-	AABB tPlayerAABB = pPlayerCollider->Get_AABB();
-	bool bNowColliding = m_pColliderCom->IsColliding(tPlayerAABB);
-
-	if (bNowColliding && !m_bMeleeCol)
-	{
-		Take_Damage(pPlayer->Get_MeleeDmg());
-		m_bHitCool = true;
-		m_fHitCoolTime = 0.f;
-	}
-	m_bMeleeCol = bNowColliding;
 }
 
 void CRedStoneGolem::Take_Damage(_float fDamage)
