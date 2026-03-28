@@ -159,6 +159,12 @@ const _tchar* CBlock::GetTextureName()
 		return L"Proto_OakLeavesTexture";
 	case BLOCK_CHERRY_LEAVES:
 		return L"Proto_CherryLeavesTexture";
+	case BLOCK_LAVA:
+		return L"Proto_LavaTexture";
+	case BLOCK_PLANKS_ACACIA:
+		return L"Proto_PlankAcaciaTexture";
+	case BLOCK_PLANKS_SPRUCE:
+		return L"Proto_PlankSpruceTexture";
 	default:
 		break;
 	}

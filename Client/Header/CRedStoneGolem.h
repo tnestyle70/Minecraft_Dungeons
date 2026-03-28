@@ -103,8 +103,6 @@ private:
 	_float m_fHp;
 	_float m_fAtk;
 
-	_bool m_bMeleeCol = false;
-
 public:
 	static CRedStoneGolem* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 
