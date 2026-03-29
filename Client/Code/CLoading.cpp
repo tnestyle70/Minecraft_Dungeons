@@ -81,6 +81,10 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_SmallUniqueSlotHoverTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/small_unique_slot.png"))))
         return E_FAIL;
+    //Inventory Background
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_InventoryBackgroundTexture",
+        Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Inventory_Background.png"))))
+        return E_FAIL;
     //Bow
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_ArrowLoadedBowTexture",
         Engine::CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/UI_0/Arrow_Loaded_Crossbow.png"))))
@@ -351,7 +355,14 @@ _uint CLoading::Loading_SquidCoast()
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_PlankSpruceTexture",
         CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/planks_spruce.dds"))))
         return E_FAIL;
-
+    //RedStone
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneTexture",
+        CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/RedStone_Block.dds"))))
+        return E_FAIL;
+    //OakWood
+    if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_OakWoodTexture",
+        CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/Oak_Wood.dds"))))
+        return E_FAIL;
     //블럭 텍스쳐 아틀라스
     if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_BlockAtlasTexture",
         CTexture::Create(m_pGraphicDev, TEX_NORMAL, L"../Bin/Resource/Texture/blocks/minecraft_block_atlas_4x4.png"))))

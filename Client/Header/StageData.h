@@ -39,3 +39,16 @@ struct IronBarData
 		return z < other.z;
 	}
 };
+
+struct JumpingTrapData
+{
+	int x, y, z;
+	int iTriggerID;
+
+	bool operator<(const JumpingTrapData& other) const
+	{
+		if (x != other.x) return x < other.x;
+		if (y != other.y) return y < other.y;
+		return z < other.z;
+	}
+};

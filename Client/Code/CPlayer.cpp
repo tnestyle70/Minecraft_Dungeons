@@ -598,6 +598,11 @@ void CPlayer::Key_Input(const _float& fTimeDelta)
 	// 화살 / TNT 던지기
 	bool bRClick = (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
 
+	if (GetAsyncKeyState('7') & 0x8000)
+	{
+		LaunchByTrap(30.f);
+	}
+	
 	if (m_pHeldTNT)
 	{
 		if (bRClick)
@@ -1345,6 +1350,13 @@ void CPlayer::UnEquip(eEquipType eType)
 	case eEquipType::RANGED:   m_bBowEquipped = false;              
 		break;
 	}
+}
+
+void CPlayer::LaunchByTrap(_float fForce)
+{
+	//m_fVelocityY = fForce;
+	m_fVelocityY = 30.f;
+	m_bOnGround = false;
 }
 
 void CPlayer::Apply_Gravity(const _float& fTimeDelta)

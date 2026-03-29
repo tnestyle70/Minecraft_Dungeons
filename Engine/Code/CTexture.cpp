@@ -63,7 +63,7 @@ void CTexture::Set_Texture(const _uint& iIndex)
 {
     if (m_vecTexture.size() <= iIndex)
         return;
-
+    //GPU에게 다음에 그려질 텍스쳐 설정 -> 이후 그리기 명령 DrawPrimitive에서 해당 이미지를 참조하게 만듦
     m_pGraphicDev->SetTexture(0, m_vecTexture[iIndex]);
 }
 

@@ -24,7 +24,7 @@ HRESULT CBlockMgr::Ready_BlockMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 
 	m_pTexture = dynamic_cast<CTexture*>(
 		CProtoMgr::GetInstance()->Clone_Prototype(L"Proto_BlockAtlasTexture"));
-
+	
 	if (!m_pTexture)
 	{
 		MSG_BOX("Atlas Create Failed");
@@ -41,6 +41,16 @@ HRESULT CBlockMgr::Ready_Textures()
 
 void CBlockMgr::Update(const _float& fTimeDelta)
 {
+	// dirty 체크 → rebuild
+	if (m_bDirty)
+	{
+		if (m_eRenderMode == RENDER_BATCH)
+			RebuildBatchMesh();
+		else if (m_eRenderMode == RENDER_QUADTREE)
+			BuildQuadTree();
+		m_bDirty = false;
+	}
+
 	for (auto& pair : m_mapBlocks)
 		pair.second->Update_GameObject(fTimeDelta);
 }
@@ -49,7 +59,7 @@ void CBlockMgr::Render()
 {
 	switch (m_eRenderMode)
 	{
-	case RENDER_EDITOR:   Render_Editor();    break;
+	case RENDER_EDITOR:   Render_Stage();    break;
 	case RENDER_BATCH:    Render_Stage();     break;
 	case RENDER_QUADTREE: Render_QuadTree(); break;
 	default: break;
@@ -365,6 +375,8 @@ void CBlockMgr::AddBlock(int x, int y, int z, eBlockType eType)
 		return;
 
 	m_mapBlocks.insert({ tPos, pBlock });
+
+	m_bDirty = true;
 }
 
 void CBlockMgr::RemoveBlock(const _vec3& vPos)
@@ -387,6 +399,8 @@ void CBlockMgr::RemoveBlockByPos(const BlockPos& pos)
 
 	Safe_Release(iter->second);
 	m_mapBlocks.erase(iter);
+
+	m_bDirty = true;
 }
 
 void CBlockMgr::ClearBlocks()
@@ -397,6 +411,8 @@ void CBlockMgr::ClearBlocks()
 				Safe_Release(pair.second);
 		});
 	m_mapBlocks.clear();
+
+	m_bDirty = true;
 }
 
 HRESULT CBlockMgr::SaveBlocks(FILE* pFile)

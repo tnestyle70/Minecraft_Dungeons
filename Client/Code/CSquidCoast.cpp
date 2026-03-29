@@ -10,6 +10,7 @@
 #include "CTriggerBoxMgr.h"
 #include "CIronBarMgr.h"
 #include "CMonsterMgr.h"
+#include "CJumpingTrapMgr.h"
 #include "CDynamicCamera.h"
 #include "CSceneChanger.h"
 #include "CRenderer.h"
@@ -85,6 +86,8 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 	CIronBarMgr::GetInstance()->Update(fTimeDelta);
 
 	CMonsterMgr::GetInstance()->Update(fTimeDelta);
+	
+	CJumpingTarpMgr::GetInstance()->Update(fTimeDelta);
 
 	CParticleMgr::GetInstance()->Update(fTimeDelta);
 
@@ -114,6 +117,7 @@ _int CSquidCoast::Update_Scene(const _float& fTimeDelta)
 		CTriggerBoxMgr::GetInstance()->Clear();
 		CIronBarMgr::GetInstance()->Clear();
 		CMonsterMgr::GetInstance()->Clear();
+		CJumpingTarpMgr::GetInstance()->Clear();
 		CParticleMgr::GetInstance()->Clear_Emitters();
 		CInventoryMgr::GetInstance()->Clear_Player();
 		CDamageMgr::GetInstance()->Clear_Boss();
@@ -151,6 +155,8 @@ void CSquidCoast::LateUpdate_Scene(const _float& fTimeDelta)
 	CIronBarMgr::GetInstance()->LateUpdate(fTimeDelta);
 
 	CMonsterMgr::GetInstance()->LateUpdate(fTimeDelta);
+
+	CJumpingTarpMgr::GetInstance()->Update(fTimeDelta);
 }
 
 void CSquidCoast::Render_Scene()
@@ -237,11 +243,14 @@ HRESULT CSquidCoast::Ready_GameLogic_Layer(const _tchar* pLayerTag)
 
 	if (!pGameObject)
 		return E_FAIL;
-
+	
 	if (FAILED(pLayer->Add_GameObject(L"Player", pGameObject)))
 		return E_FAIL;
 
 	CPlayer* pPlayer = dynamic_cast<CPlayer*>(pGameObject);
+
+	//JumpingTrap
+	CJumpingTarpMgr::GetInstance()->Set_Player(pPlayer);
 
 	// NPC	
 	// DialogueBox
@@ -435,7 +444,6 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 		CGameObject* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
 		if (pIronBar)
 			CIronBarMgr::GetInstance()->AddIronBar(pIronBar, tData.iTriggerID);
-			//m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"IronBar", pIronBar);
 	}
 	
 	// 4. 트리거박스
@@ -449,7 +457,19 @@ HRESULT CSquidCoast::Ready_StageData(const _tchar* szPath)
 		CGameObject* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos, tData.iTriggerID ,(eTriggerBoxType)tData.iTriggerBoxType);
 		if (pTriggerBox)
 			CTriggerBoxMgr::GetInstance()->AddTriggerBox(pTriggerBox);
-			//m_mapLayer[L"GameLogic_Layer"]->Add_GameObject(L"TriggerBox", pTriggerBox);
+	}
+
+	//5. 점핑 트랩
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		JumpingTrapData tData;
+		fread(&tData, sizeof(JumpingTrapData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+
+		CGameObject* pJumpingTrap = CJumpingTrap::Create(m_pGraphicDev, vPos);
+		if (pJumpingTrap)
+			CJumpingTarpMgr::GetInstance()->Add_JumpingTrap(pJumpingTrap, tData.iTriggerID);
 	}
 
 	fclose(pFile);

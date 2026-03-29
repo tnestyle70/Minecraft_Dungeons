@@ -13,6 +13,7 @@
 #include "CMonsterMgr.h"
 #include "CIronBarMgr.h"
 #include "CTriggerBoxMgr.h"
+#include "CJumpingTrapMgr.h"
 #include "CInventoryMgr.h"
 #include "CCursorMgr.h"
 #include "CDamageMgr.h"
@@ -237,6 +238,7 @@ void CMainApp::Free()
     CMonsterMgr::GetInstance()->DestroyInstance();
     CIronBarMgr::GetInstance()->DestroyInstance();
     CTriggerBoxMgr::GetInstance()->DestroyInstance();
+    CJumpingTarpMgr::GetInstance()->DestroyInstance();
     CParticleMgr::GetInstance()->DestroyInstance();
     CBlockMgr::GetInstance()->DestroyInstance();
     CInventoryMgr::GetInstance()->DestroyInstance();

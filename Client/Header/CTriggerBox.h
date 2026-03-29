@@ -8,6 +8,7 @@ enum eTriggerBoxType
 	TRIGGER_IRONBAR = 0,
 	TRIGGER_MONSTER,
 	TRIGGER_SCENECHANGE,
+	TRIGGER_JUMPINGTRAP,
 	TRIGGER_END
 };
 
@@ -34,6 +35,7 @@ private:
 	void Trigger_Ironbar();
 	void Trigger_Monster();
 	void Trigger_SceneChange();
+	void Trigger_JumpingTrap();
 private:
 	CTransform* m_pTransformCom = nullptr;
 	CCollider* m_pColliderCom = nullptr;

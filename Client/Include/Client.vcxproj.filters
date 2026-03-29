@@ -270,6 +270,15 @@
     <ClCompile Include="..\Code\CDialogueBox.cpp">
       <Filter>02. GameObject\12. UI</Filter>
     </ClCompile>
+    <ClCompile Include="..\Code\CInventoryBackground.cpp">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CJumpingTrapMgr.cpp">
+      <Filter>01. Scene\03. Editor\08. JumpingTrapMgr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Code\CJumpingTrap.cpp">
+      <Filter>01. Scene\03. Editor\08. JumpingTrapMgr\00. JumpingTrap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Header\StageData.h" />
@@ -546,6 +555,15 @@
     <ClInclude Include="..\Header\CDialogueBox.h">
       <Filter>02. GameObject\12. UI</Filter>
     </ClInclude>
+    <ClInclude Include="..\Header\CInventoryBackground.h">
+      <Filter>02. GameObject\12. UI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CJumpingTrapMgr.h">
+      <Filter>01. Scene\03. Editor\08. JumpingTrapMgr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Header\CJumpingTrap.h">
+      <Filter>01. Scene\03. Editor\08. JumpingTrapMgr\00. JumpingTrap</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
@@ -733,6 +751,12 @@
     </Filter>
     <Filter Include="01. Scene\01. Stage\07. GB\04. Network\05. Shader">
       <UniqueIdentifier>{859f4db2-0a82-4991-bcc0-68a20518ac4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\08. JumpingTrapMgr">
+      <UniqueIdentifier>{eb831442-48a6-4857-b815-3d68729e6a58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01. Scene\03. Editor\08. JumpingTrapMgr\00. JumpingTrap">
+      <UniqueIdentifier>{8c369960-3d3a-4764-be1a-6051e00e8204}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

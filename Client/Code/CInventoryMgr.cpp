@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CInventoryMgr.h"
 #include "CPlayer.h"
+#include "CInventoryBackground.h"
 
 IMPLEMENT_SINGLETON(CInventoryMgr)
 
@@ -80,6 +81,10 @@ HRESULT CInventoryMgr::Ready_InventoryMgr(LPDIRECT3DDEVICE9 pGraphicDev)
 		m_arrItemPanel[i] = CItemPanel::Create(m_pGraphicDev, (eEquipType)i);
 		m_arrItemPanel[i]->Set_Selected(false);
 	}
+
+	//배경
+	m_pInventoryBG = CInventoryBackground::Create(m_pGraphicDev,
+		0.f, 0.f, 1280.f, 720.f);
 	
 	return S_OK;
 }
@@ -94,6 +99,9 @@ _int CInventoryMgr::Update(const _float& fTimeDelta)
 
 	// 활성화됐을 때만 Update
 	if (!m_bActive) return 0;
+
+	//배경 업데이트
+	//m_pInventoryBG->Update_GameObject(fTimeDelta);
 
 	//맵 버튼 업데이트
 
@@ -128,6 +136,8 @@ void CInventoryMgr::LateUpdate(const _float& fTimeDelta)
 {
 	if (!m_bActive)
 		return;
+	//BackGround
+	//m_pInventoryBG->LateUpdate_GameObject(fTimeDelta);
 	//Slot
 	for (auto& pSlot : m_vecSlots[(int)m_eTab])
 		pSlot->LateUpdate_GameObject(fTimeDelta);
@@ -153,6 +163,10 @@ void CInventoryMgr::Render()
 {
 	if (!m_bActive)
 		return;
+	//BackGround
+	//GPU에게 다음에 그려질 텍스쳐 설정 GPU의 0번 소켓에 사용자가 지정한 텍스쳐 m_vecTexture[index]의 주소가 지정
+	//위에서 저장한 텍스쳐로 DrawPrimitive 호출시 실질적으로 그리기
+	//m_pInventoryBG->Render_GameObject();
 	//Slot
 	for (auto& pSlot : m_vecSlots[(int)m_eTab])
 		pSlot->Render_GameObject();

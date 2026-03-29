@@ -7,6 +7,7 @@
 #include "CItemPanel.h"
 
 class CPlayer;
+class CInventoryBackground;
 
 struct TabButton
 {
@@ -65,7 +66,9 @@ private:
 	CEquipSlot* m_pEquipSlot = nullptr;
 	//플레이어 
 	CPlayer* m_pPlayer = nullptr;
-
+	//인벤토리 배경
+	CInventoryBackground* m_pInventoryBG = nullptr;
+	
 private:
 	LPDIRECT3DDEVICE9 m_pGraphicDev = nullptr;
 

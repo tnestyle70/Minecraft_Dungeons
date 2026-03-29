@@ -32,6 +32,12 @@ HRESULT CBlock::Ready_GameObject(const _vec3& vPos, eBlockType eType)
 			m_pTransformCom->Set_Pos(vPos.x, vPos.y + 2.f, vPos.z);
 			break;
 		}
+		case BLOCK_JUMPINGTRAP:
+		{
+			m_pTransformCom->m_vScale = { 5.f, 0.5f, 5.f };
+			m_pTransformCom->Set_Pos(vPos.x, vPos.y + 2.f, vPos.z);
+			break;
+		}
 		default:
 		{
 			m_pTransformCom->m_vScale = { 1.f, 1.f, 1.f };
@@ -153,6 +159,8 @@ const _tchar* CBlock::GetTextureName()
 		return L"Proto_StoneBrickTexture";
 	case BLOCK_IRONBAR:
 		return L"Proto_StoneBrickTexture";
+	case BLOCK_JUMPINGTRAP:
+		return L"Proto_SandTexture";
 	case BLOCK_OAK:
 		return L"Proto_OakTexture";
 	case BLOCK_OAK_LEAVES:
@@ -165,6 +173,10 @@ const _tchar* CBlock::GetTextureName()
 		return L"Proto_PlankAcaciaTexture";
 	case BLOCK_PLANKS_SPRUCE:
 		return L"Proto_PlankSpruceTexture";
+	case BLOCK_OAKWOOD:
+		return L"Proto_OakWoodTexture";
+	case BLOCK_REDSTONE:
+		return L"Proto_RedStoneTexture";
 	default:
 		break;
 	}
@@ -181,6 +193,9 @@ _vec3 CBlock::GetColliderSize(eBlockType eType)
 	case BLOCK_IRONBAR:
 		vSize = { 0.15f, 5.f, 0.15f };
 		break;
+	case BLOCK_JUMPINGTRAP:
+		vSize = { 5.f, 0.15f, 5.f };
+		break;
 	default:
 		vSize = { 1.f, 1.f, 1.f };
 		break;
@@ -196,6 +211,9 @@ _vec3 CBlock::GetColliderOffset(eBlockType eType)
 	switch (eType)
 	{
 	case BLOCK_IRONBAR:
+		vOffset = { 0.f, 2.f, 0.f };
+		break;
+	case BLOCK_JUMPINGTRAP:
 		vOffset = { 0.f, 2.f, 0.f };
 		break;
 	default:

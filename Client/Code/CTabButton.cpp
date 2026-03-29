@@ -46,6 +46,11 @@ void CTabButton::Render_GameObject()
 
     m_pGraphicDev->SetTransform(D3DTS_WORLD, &matWorld);
 
+    //Set_Texture
+    //GPU의 텍스쳐 스테이지에 해당 이미지를 올려둠, 모든 도형에는 해당 텍스쳐로 그려짐
+    //Vertex Texture에서 설정한 texture UV 값을 통해서 
+    //GPU는 설정된 텍스쳐의 어디서부터 어디까지를 그릴지를 결정해서 렌더링한다
+
     switch (m_eState)
     {
     case eSlotState::DEFAULT: 

@@ -72,6 +72,8 @@ void CTriggerBoxMgr::AddTriggerBox(CGameObject* pGameObject)
 
 void CTriggerBoxMgr::Clear()
 {
+	CCollider* m_pPlayerCollider = nullptr;
+
 	for (auto& pTriggerBox : m_vecTriggerBox)
 	{
 		Safe_Release(pTriggerBox);
@@ -81,6 +83,8 @@ void CTriggerBoxMgr::Clear()
 
 void CTriggerBoxMgr::Free()
 {
+	CCollider* m_pPlayerCollider = nullptr;
+
 	for (auto& pTriggerBox : m_vecTriggerBox)
 	{
 		Safe_Release(pTriggerBox);

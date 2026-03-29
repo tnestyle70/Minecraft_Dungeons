@@ -4,6 +4,7 @@
 #include "CManagement.h"
 #include "CIronBarMgr.h"
 #include "CMonsterMgr.h"
+#include "CJumpingTrapMgr.h"
 
 CTriggerBox::CTriggerBox(LPDIRECT3DDEVICE9 pGraphicDev)
 	: CGameObject(pGraphicDev)
@@ -75,6 +76,9 @@ void CTriggerBox::CheckCollide(CCollider* pCollider)
 		case TRIGGER_SCENECHANGE:
 			Trigger_SceneChange();
 			break;
+		case TRIGGER_JUMPINGTRAP:
+			Trigger_JumpingTrap();
+			break;
 		case TRIGGER_END:
 			break;
 		default:
@@ -134,6 +138,11 @@ void CTriggerBox::Trigger_SceneChange()
 {
 	//다음 스테이지로 넘어갈 수 있도록 플래그 설정 TriggerBoxMgr에서 읽어가기
 	m_bSceneChanged = true;
+}
+
+void CTriggerBox::Trigger_JumpingTrap()
+{
+	CJumpingTarpMgr::GetInstance()->Activate(m_iTriggerID);
 }
 
 CTriggerBox* CTriggerBox::Create(LPDIRECT3DDEVICE9 pGraphicDev, 

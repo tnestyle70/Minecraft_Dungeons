@@ -86,6 +86,8 @@ private:
     CTexture* m_pTexture = nullptr;
     CBatchBuffer* m_pBatchBuffer = nullptr;
     eRenderMode            m_eRenderMode = eRenderMode::RENDER_EDITOR;
+    //Dirty 플래그
+    bool m_bDirty = false;
 private:
     virtual void Free();
 };

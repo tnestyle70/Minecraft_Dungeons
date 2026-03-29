@@ -72,11 +72,15 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 
 	_int iExit = CScene::Update_Scene(fTimeDelta);
 
+	CBlockMgr::GetInstance()->Update(fTimeDelta);
+
 	for (auto& pair : m_mapTriggerBoxes)
 		pair.second->Update_GameObject(fTimeDelta);
 	for (auto& pair : m_mapMonsters)
 		pair.second->Update_GameObject(fTimeDelta);
 	for (auto& pair : m_mapIronBars)
+		pair.second->Update_GameObject(fTimeDelta);
+	for (auto& pair : m_mapJumpingTraps)
 		pair.second->Update_GameObject(fTimeDelta);
 
 	//CParticleMgr::GetInstance()->Update(fTimeDelta);
@@ -94,6 +98,9 @@ _int CEditor::Update_Scene(const _float& fTimeDelta)
 		break;
 	case MODE_TRIGGERBOX:
 		UpdateTriggerBoxMode();
+		break;
+	case MODE_JUMPINGTRAP:
+		UpdateJumpingTrapMode();
 		break;
 	case MODE_PARTICLE:
 		UpdateParticleMode();
@@ -129,10 +136,9 @@ void CEditor::Render_Scene()
 	Render_Inspector();
 	Render_Viewport();
 }
-
+//Scene 깡통
 void CEditor::Render_UI()
 {
-
 }
 
 HRESULT CEditor::Ready_Environment_Layer(const _tchar* pLayerTag)
@@ -220,8 +226,14 @@ void CEditor::SwitchStage(eStageType eNewStage)
 	if (FAILED(LoadStageData(GetStagePath(m_eCurrentStage))))
 	{
 		CBlockMgr::GetInstance()->ClearBlocks();
+		for (auto& pair : m_mapMonsters)     Safe_Release(pair.second);
+		for (auto& pair : m_mapIronBars)     Safe_Release(pair.second);
+		for (auto& pair : m_mapTriggerBoxes) Safe_Release(pair.second);
+		for (auto& pair : m_mapJumpingTraps) Safe_Release(pair.second);
 		m_mapMonsters.clear();
 		m_mapIronBars.clear();
+		m_mapTriggerBoxes.clear();
+		m_mapJumpingTraps.clear();
 	}
 }
 
@@ -275,6 +287,7 @@ void CEditor::Render_Hierarchy()
 	ImGui::Text("Monster Spawn: %d", (int)m_mapMonsters.size());
 	ImGui::Text("IronBar: %d", (int)m_mapIronBars.size());
 	ImGui::Text("TriggerBox: %d", (int)m_mapTriggerBoxes.size());
+	ImGui::Text("JumpingTrap: %d", (int)m_mapJumpingTraps.size());
 
 	ImGui::Separator();
 
@@ -324,8 +337,8 @@ void CEditor::Render_Inspector()
 	Render_StageSelector();
 	ImGui::Separator();
 
-	const char* szModes[] = { "Block", "Monster", "IronBar", "TriggerBox", "Particle" };
-	for (int i = 0; i < 5; ++i)
+	const char* szModes[] = { "Block", "Monster", "IronBar", "TriggerBox", "JumpingTrap" ,"Particle"};
+	for (int i = 0; i < 6; ++i)
 	{
 		if (i > 0) ImGui::SameLine();
 		bool bActive = (m_eEditMode == (eEditMode)i);
@@ -345,6 +358,7 @@ void CEditor::Render_Inspector()
 	case MODE_MONSTER:    Render_MonsterPalette();  break;
 	case MODE_IRONBAR:    Render_IronBarPalette();  break;
 	case MODE_TRIGGERBOX: Render_TriggerPalette();  break;
+	case MODE_JUMPINGTRAP: Render_JumpingTrapPalette();  break;
 	case MODE_PARTICLE:   Render_ParticleEditor();  break;
 	default: break;
 	}
@@ -395,6 +409,8 @@ void CEditor::Render_BlockPalette()
 		{"Lava##block",         "Lava",         BLOCK_LAVA},
         {"PlankAcacia##block",  "PlankAcacia",  BLOCK_PLANKS_ACACIA},
         {"PlankSpruce##block",  "PlankSpruce",  BLOCK_PLANKS_SPRUCE},
+		{"OakWood##block",  "OakWood",  BLOCK_OAKWOOD},
+		{"Redstone##block",  "Redstone",  BLOCK_REDSTONE}
 	};
 	constexpr int iCount = (int)(sizeof(palette) / sizeof(palette[0]));
 
@@ -414,7 +430,7 @@ void CEditor::Render_BlockPalette()
 	}
 
 	ImGui::Separator();
-
+	
 	enum ePresetType { PRESET_OAK, PRESET_CHERRY, PRESET_DRAGON, PRESET_END };
 	struct PresetEntry { const char* label; const char* name; ePresetType eType; };
 	static const PresetEntry presets[] =
@@ -719,7 +735,7 @@ void CEditor::Render_TriggerPalette()
 {
 	ImGui::Text("TriggerBox Placement");
 	ImGui::Separator();
-	const char* szTypes[] = { "IronBar", "Monster", "SceneChange" };
+	const char* szTypes[] = { "IronBar", "Monster", "SceneChange", "JumpingTrap"};
 	ImGui::Text("Type:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(120.f);
@@ -738,7 +754,7 @@ void CEditor::Render_TriggerPalette()
 	for (auto& pair : m_mapTriggerBoxes)
 	{
 		TriggerBoxData& tData = const_cast<TriggerBoxData&>(pair.first);
-		const char* szTypes2[] = { "IronBar", "Monster", "SceneChange" };
+		const char* szTypes2[] = { "IronBar", "Monster", "SceneChange", "JumpingTrap"};
 		char szCombo[32];
 		sprintf_s(szCombo, "##type_%d_%d_%d", tData.x, tData.y, tData.z);
 		ImGui::SetNextItemWidth(90.f);
@@ -782,6 +798,87 @@ void CEditor::Render_TriggerPalette()
 		{
 			Safe_Release(iter->second);
 			m_mapTriggerBoxes.erase(iter);
+		}
+	}
+}
+
+void CEditor::Render_JumpingTrapPalette()
+{
+	ImGui::Text("JumpingTrap Placement");
+	ImGui::Separator();
+	ImGui::Text("TriggerID:");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(60.f);
+	ImGui::InputInt("##JTrapTriggerID", &m_iCurTriggerID, 0, 0);
+	if (m_iCurTriggerID < 0) m_iCurTriggerID = 0;
+	ImGui::SameLine();
+	if (ImGui::Button("Auto##jt")) m_iCurTriggerID++;
+
+	ImGui::Separator();
+	ImGui::Text("Placed: %d", (int)m_mapJumpingTraps.size());
+	ImGui::Separator();
+
+	// TriggerID → 좌표 순으로 정렬해서 표시
+	using Pair = pair<const JumpingTrapData*, CJumpingTrap*>;
+	vector<Pair> vecSorted;
+	vecSorted.reserve(m_mapJumpingTraps.size());
+	for (auto& pair : m_mapJumpingTraps)
+		vecSorted.push_back({ &pair.first, pair.second });
+
+	sort(vecSorted.begin(), vecSorted.end(), [](const Pair& a, const Pair& b)
+		{
+			if (a.first->iTriggerID != b.first->iTriggerID)
+				return a.first->iTriggerID < b.first->iTriggerID;
+			if (a.first->x != b.first->x) return a.first->x < b.first->x;
+			if (a.first->y != b.first->y) return a.first->y < b.first->y;
+			return a.first->z < b.first->z;
+		});
+
+	// 삭제 대상을 값으로 보관 (포인터 dangling 방지)
+	bool bPendingDelete = false;
+	JumpingTrapData tPendingDeleteData{};
+
+	for (auto& entry : vecSorted)
+	{
+		const JumpingTrapData& tData = *entry.first;
+
+		ImGui::Text("(%d, %d, %d)", tData.x, tData.y, tData.z);
+		ImGui::SameLine();
+		ImGui::Text("ID:");
+		ImGui::SameLine();
+
+		char szID[64];
+		sprintf_s(szID, "##jtid_%d_%d_%d", tData.x, tData.y, tData.z);
+		ImGui::SetNextItemWidth(40.f);
+		int iID = tData.iTriggerID;
+		if (ImGui::InputInt(szID, &iID, 0, 0))
+		{
+			JumpingTrapData tNew = tData;
+			tNew.iTriggerID = iID;
+			auto pObj = entry.second;
+			m_mapJumpingTraps.erase(tData);
+			m_mapJumpingTraps.insert({ tNew, pObj });
+			break; // map 변경 후 vecSorted 포인터 무효화 → 즉시 break
+		}
+
+		ImGui::SameLine();
+		char szBtn[64];
+		sprintf_s(szBtn, "X##jt_%d_%d_%d", tData.x, tData.y, tData.z);
+		if (ImGui::Button(szBtn))
+		{
+			// 포인터 대신 값을 복사해서 보관 → vecSorted 해제 후에도 안전
+			bPendingDelete = true;
+			tPendingDeleteData = tData;
+		}
+	}
+
+	if (bPendingDelete)
+	{
+		auto iter = m_mapJumpingTraps.find(tPendingDeleteData);
+		if (iter != m_mapJumpingTraps.end())
+		{
+			Safe_Release(iter->second);
+			m_mapJumpingTraps.erase(iter);
 		}
 	}
 }
@@ -853,7 +950,7 @@ void CEditor::UpdateBlockMode(const _float& fTimeDelta)
 	{
 		// 기존 블록 배치 모드
 		m_pBlockPlacer->Update_Placer(m_eSelectedBlock);
-		CBlockMgr::GetInstance()->Update(fTimeDelta);
+		//CBlockMgr::GetInstance()->Update(fTimeDelta);
 	}
 
 	// 선택 영역이 있을 때 단축키 처리
@@ -1305,6 +1402,64 @@ void CEditor::UpdateTriggerBoxMode()
 	m_bRBtnPrev = bRBtn;
 }
 
+void CEditor::UpdateJumpingTrapMode()
+{
+	if (ImGui::GetIO().WantCaptureMouse) return;
+
+	bool bLBtn = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+	bool bRBtn = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
+
+	if (bLBtn && !m_bLBtnPrev)
+	{
+		_vec3 vRayPos, vRayDir;
+		m_pBlockPlacer->Compute_Ray(&vRayPos, &vRayDir);
+
+		BlockPos tHitPos;
+		float fT = 0.f;
+		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
+		{
+			JumpingTrapData tData = {};
+			tData.x = tHitPos.x;
+			tData.y = tHitPos.y + 1;
+			tData.z = tHitPos.z;
+			tData.iTriggerID = m_iCurTriggerID;
+
+			if (m_mapJumpingTraps.find(tData) == m_mapJumpingTraps.end())
+			{
+				_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+				CJumpingTrap* pJumpingTrap = CJumpingTrap::Create(m_pGraphicDev, vPos);
+				if (pJumpingTrap)
+					m_mapJumpingTraps.insert({ tData, pJumpingTrap });
+			}
+		}
+	}
+
+	if (bRBtn && !m_bRBtnPrev)
+	{
+		_vec3 vRayPos, vRayDir;
+		m_pBlockPlacer->Compute_Ray(&vRayPos, &vRayDir);
+
+		BlockPos tHitPos;
+		float fT = 0.f;
+		if (CBlockMgr::GetInstance()->RayAABBIntersect(vRayPos, vRayDir, &tHitPos, &fT))
+		{
+			for (auto iter = m_mapJumpingTraps.begin(); iter != m_mapJumpingTraps.end(); ++iter)
+			{
+				const JumpingTrapData& tData = iter->first;
+				if (tData.x == tHitPos.x && tData.y == tHitPos.y + 1 && tData.z == tHitPos.z)
+				{
+					Safe_Release(iter->second);
+					m_mapJumpingTraps.erase(iter);
+					break;
+				}
+			}
+		}
+	}
+
+	m_bLBtnPrev = bLBtn;
+	m_bRBtnPrev = bRBtn;
+}
+
 void CEditor::UpdateParticleMode()
 {
 	if (ImGui::GetIO().WantCaptureMouse) return;
@@ -1438,6 +1593,14 @@ HRESULT CEditor::SaveStageData(const _tchar* szPath)
 		fwrite(&tData, sizeof(TriggerBoxData), 1, pFile);
 	}
 
+	iCount = (int)m_mapJumpingTraps.size();
+	fwrite(&iCount, sizeof(int), 1, pFile);
+	for (auto& pair : m_mapJumpingTraps)
+	{
+		JumpingTrapData tData = pair.first;
+		fwrite(&tData, sizeof(JumpingTrapData), 1, pFile);
+	}
+
 	fclose(pFile);
 	return S_OK;
 }
@@ -1447,9 +1610,9 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 	FILE* pFile = nullptr;
 	_wfopen_s(&pFile, szPath, L"rb");
 	if (!pFile) return E_FAIL;
-
+	//블럭
 	CBlockMgr::GetInstance()->LoadBlocks(pFile);
-
+	//몬스터
 	for (auto& pair : m_mapMonsters)
 		Safe_Release(pair.second);
 	m_mapMonsters.clear();
@@ -1458,7 +1621,7 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 	fread(&iCount, sizeof(int), 1, pFile);
 	for (int i = 0; i < iCount; ++i)
 	{
-		MonsterData tData;
+		MonsterData tData{};
 		fread(&tData, sizeof(MonsterData), 1, pFile);
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 		CMonster* pMonster = CMonster::Create(m_pGraphicDev, (EMonsterType)tData.iMonsterType, vPos);
@@ -1466,7 +1629,7 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 		if (pMonster)
 			m_mapMonsters.insert({ tData, pMonster });
 	}
-
+	//아이언바
 	for (auto& pair : m_mapIronBars)
 		Safe_Release(pair.second);
 	m_mapIronBars.clear();
@@ -1474,14 +1637,14 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 	fread(&iCount, sizeof(int), 1, pFile);
 	for (int i = 0; i < iCount; ++i)
 	{
-		IronBarData tData;
+		IronBarData tData{};
 		fread(&tData, sizeof(IronBarData), 1, pFile);
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 		CIronBar* pIronBar = CIronBar::Create(m_pGraphicDev, vPos);
 		if (pIronBar)
 			m_mapIronBars.insert({ tData, pIronBar });
 	}
-
+	//트리거 박스
 	for (auto& pair : m_mapTriggerBoxes)
 		Safe_Release(pair.second);
 	m_mapTriggerBoxes.clear();
@@ -1489,12 +1652,27 @@ HRESULT CEditor::LoadStageData(const _tchar* szPath)
 	fread(&iCount, sizeof(int), 1, pFile);
 	for (int i = 0; i < iCount; ++i)
 	{
-		TriggerBoxData tData;
+		TriggerBoxData tData{};
 		fread(&tData, sizeof(TriggerBoxData), 1, pFile);
 		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
 		CTriggerBox* pTriggerBox = CTriggerBox::Create(m_pGraphicDev, vPos);
 		if (pTriggerBox)
 			m_mapTriggerBoxes.insert({ tData, pTriggerBox });
+	}
+	//점핑 트랩
+	for (auto& pair : m_mapJumpingTraps)
+		Safe_Release(pair.second);
+	m_mapJumpingTraps.clear();
+
+	fread(&iCount, sizeof(int), 1, pFile);
+	for (int i = 0; i < iCount; ++i)
+	{
+		JumpingTrapData tData{};
+		fread(&tData, sizeof(JumpingTrapData), 1, pFile);
+		_vec3 vPos = { (float)tData.x, (float)tData.y, (float)tData.z };
+		CJumpingTrap* pJumpingTrap = CJumpingTrap::Create(m_pGraphicDev, vPos);
+		if (pJumpingTrap)
+			m_mapJumpingTraps.insert({ tData, pJumpingTrap });
 	}
 
 	fclose(pFile);
@@ -1603,6 +1781,12 @@ HRESULT CEditor::Ready_ProtoType()
 		return E_FAIL;
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_OakLeavesTexture",
 		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/OakLeaves.dds"))))
+		return E_FAIL;
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_RedStoneTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/RedStone_Block.dds"))))
+		return E_FAIL;
+	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_OakWoodTexture",
+		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/Oak_Wood.dds"))))
 		return E_FAIL;
 	if (FAILED(CProtoMgr::GetInstance()->Ready_Prototype(L"Proto_CherryLeavesTexture",
 		CTexture::Create(m_pGraphicDev, TEX_CUBE, L"../Bin/Resource/Texture/blocks/CherryLeaves.dds"))))

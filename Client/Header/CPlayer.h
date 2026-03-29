@@ -149,6 +149,9 @@ public:
 	//NPC 추가함수
 	void Add_NPC(CNPC* pNPC) { m_vecNPCs.push_back(pNPC); }
 
+	//점핑 트랩
+	void LaunchByTrap(_float fForce);
+
 private:
 	CPlayerBody* m_pBufferCom[PART_END];
 	CPlayerBody* m_pArmorBufferCom[PART_END] = {};
@@ -175,7 +178,7 @@ private:
 	_vec3 m_vTargetPos;
 	_bool  m_bHasTarget = false;
 
-	_float m_fGravity = -20.f;
+	_float m_fGravity = -50.f;
 	_float m_fJumpPower = 8.f;
 	_float m_fMaxFall = -20.f;
 

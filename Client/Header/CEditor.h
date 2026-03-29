@@ -6,6 +6,7 @@
 #include "CMonster.h"
 #include "CTriggerBox.h"
 #include "CIronBar.h"
+#include "CJumpingTrap.h"
 #include "StageData.h"
 #include "CParticleMgr.h"
 #include "CDragon.h"
@@ -33,6 +34,7 @@ enum eEditMode
     MODE_MONSTER,
     MODE_IRONBAR,
     MODE_TRIGGERBOX,
+    MODE_JUMPINGTRAP,
     MODE_PARTICLE
 };
 
@@ -87,6 +89,7 @@ private:
     void Render_MonsterPalette();
     void Render_IronBarPalette();
     void Render_TriggerPalette();
+    void Render_JumpingTrapPalette();
     void Render_ParticleEditor();
     void Respawn_PreviewParticle();
     void Render_SelectionBox(); // 추가 - 선택 영역 와이어프레임
@@ -96,6 +99,7 @@ private:
     void UpdateMonsterMode();
     void UpdateIronBarMode();
     void UpdateTriggerBoxMode();
+    void UpdateJumpingTrapMode();
     void UpdateParticleMode();
 private:
     // 추가 - 선택 영역 조작
@@ -124,6 +128,7 @@ private:
     map<MonsterData, CMonster*>     m_mapMonsters;
     map<IronBarData, CIronBar*>     m_mapIronBars;
     map<TriggerBoxData, CTriggerBox*> m_mapTriggerBoxes;
+    map<JumpingTrapData, CJumpingTrap*> m_mapJumpingTraps;
     CBlockPlacer* m_pBlockPlacer = nullptr;
     bool m_bEditorMode = true;
     eEditMode  m_eEditMode = MODE_BLOCK;
@@ -137,7 +142,6 @@ private:
     int  m_iTriggerType = TRIGGER_IRONBAR;
     bool m_bLBtnPrev = false;
     bool m_bRBtnPrev = false;
-
 
     int m_iRangeMinX = 0, m_iRangeMaxX = 0;
     int m_iRangeMinY = 0, m_iRangeMaxY = 0;
@@ -163,6 +167,7 @@ private:
     bool m_bCKeyPrev = false;
     bool m_bVKeyPrev = false;
     bool m_bDelKeyPrev = false;
+
 public:
     static CEditor* Create(LPDIRECT3DDEVICE9 pGraphicDev);
 private:

@@ -32,7 +32,6 @@ CComponent* CProtoMgr::Clone_Prototype(const _tchar* pComponentTag)
 	if (nullptr == pInstance)
 		return nullptr;
 	
-	
 	return pInstance->Clone();
 }
 

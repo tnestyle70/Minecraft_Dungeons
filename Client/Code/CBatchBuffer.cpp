@@ -50,6 +50,16 @@ TileUV CBatchBuffer::MakeTile(int col, int row)
 		(col + 1) * su - insetU,
 		(row + 1) * sv - insetV
 	};
+
+	//const float s = 1.f / 4.f;          // 타일 1칸 = 0.25
+	//const float inset = 0.5f / 64.f;    // 반 픽셀 = 0.0078125
+
+	//return {
+	//col * s + inset,
+	//row * s + inset,
+	//(col + 1) * s - inset,
+	//(row + 1) * s - inset
+	//};
 }
 
 TileUV CBatchBuffer::GetTileUV(eBlockType eType, eFace eFace)
@@ -89,11 +99,15 @@ TileUV CBatchBuffer::GetTileUV(eBlockType eType, eFace eFace)
 	case BLOCK_CHERRY_LEAVES:
 		return MakeTile(1, 3);
 	case BLOCK_LAVA:
-		return MakeTile(1, 4);  
+		return MakeTile(2, 1);  
 	case BLOCK_PLANKS_ACACIA:
-		return MakeTile(2, 4);  
+		return MakeTile(3, 4);  
 	case BLOCK_PLANKS_SPRUCE:
-		return MakeTile(0, 4);  
+		return MakeTile(3, 3);  
+	case BLOCK_OAKWOOD:
+		return MakeTile(0, 4);
+	case BLOCK_REDSTONE:
+		return MakeTile(1, 4);
 	default:
 		return MakeTile(1, 0);
 	}
